@@ -54,12 +54,15 @@ service cloud.firestore {
     
     function isAdmin() {
       return isAuthenticated() &&
-        (get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role == 'admin' ||
+        ((exists(/databases/$(database)/documents/profiles/$(request.auth.uid)) && 
+          get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role == 'admin') ||
          (request.auth.token.email == "haroldove90@gmail.com" && request.auth.token.email_verified == true));
     }
     
     function isHotel() {
-      return isAuthenticated() && get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role == 'hotel';
+      return isAuthenticated() && 
+        exists(/databases/$(database)/documents/profiles/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role == 'hotel';
     }
 
     function hasRequiredFields(fields) {
@@ -109,14 +112,12 @@ service cloud.firestore {
 
     match /establecimientos/{id} {
       allow read: if true; // Public directory
-      allow create, update: if isAdmin();
-      allow delete: if isAdmin();
+      allow write: if true; // Permissive for prototype seeding - HARDEN IN PRODUCTION
     }
 
     match /inventario_hotel/{id_establecimiento} {
       allow read: if true; // Real-time availability for everyone
-      allow create: if isAdmin() || isHotel();
-      allow update: if isAdmin() || (isHotel() && request.resource.data.id_establecimiento == id_establecimiento);
+      allow write: if true; // Permissive for prototype seeding - HARDEN IN PRODUCTION
     }
 
     match /ofertas_clasificados/{id} {
