@@ -6,6 +6,7 @@ import { auth, db } from './lib/firebase';
 import ClienteFeed from './pages/cliente/Feed';
 import HotelDashboard from './pages/hotel/Dashboard';
 import DevDashboard from './pages/admin/DevDashboard';
+import AgenciaDashboard from './pages/admin/AgenciaDashboard';
 import { Loader2 } from 'lucide-react';
 
 // --- Route Guard Component ---
@@ -74,10 +75,10 @@ function NavSwitcher() {
           Panel Hotel
         </button>
         <button 
-          onClick={() => navigate('/admin')} 
-          className="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-gray-400 hover:bg-white/5 transition-colors"
+          onClick={() => navigate('/admin-agencia')} 
+          className="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-emerald-400 hover:bg-white/5 transition-colors"
         >
-          Admin
+          Agencia
         </button>
         <button 
           onClick={() => navigate('/admin-dev')} 
@@ -108,16 +109,12 @@ function App() {
             } 
           />
           
-          {/* Admin Panel (Protected) */}
+          {/* Admin Agencia Panel (Protected) */}
           <Route 
-            path="/admin" 
+            path="/admin-agencia" 
             element={
               <ProtectedRoute allowedRoles={['admin']}>
-                <div className="p-10 text-center space-y-4 bg-white min-h-screen">
-                  <h1 className="text-2xl font-black text-[#142850] uppercase tracking-tighter">Admin Agency</h1>
-                  <p className="text-gray-500 text-sm">Gestión centralizada de hoteles y clasificados.</p>
-                  <button onClick={() => window.location.href = '/'} className="text-[#00A8CC] font-bold underline">Volver al Inicio</button>
-                </div>
+                <AgenciaDashboard />
               </ProtectedRoute>
             } 
           />
