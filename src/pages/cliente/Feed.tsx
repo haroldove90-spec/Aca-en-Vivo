@@ -1,5 +1,5 @@
 import { useEffect, useState, useMemo } from 'react';
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
+import { collection, onSnapshot, query, orderBy, addDoc, getDocs, Timestamp } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { 
   Loader2, 
@@ -20,7 +20,9 @@ import {
   Tent,
   Trees,
   Waves,
-  Sun
+  Sun,
+  Grid,
+  Home
 } from 'lucide-react';
 import { useRealtimeAvailability } from '../../hooks/useRealtimeAvailability';
 import { motion, AnimatePresence } from 'motion/react';
@@ -32,6 +34,7 @@ import { useNavigate } from 'react-router-dom';
 
 // --- Categories Definition ---
 const CATEGORIES = [
+  { id: 'all', label: 'Todo', icon: Grid, color: 'bg-dark' },
   { id: 'hotel', label: 'Hoteles', icon: Hotel, color: 'bg-blue-500' },
   { id: 'restaurante', label: 'Restaurantes', icon: Utensils, color: 'bg-orange-500' },
   { id: 'yate', label: 'Yates', icon: Ship, color: 'bg-cyan-500' },
@@ -39,6 +42,7 @@ const CATEGORIES = [
   { id: 'artesania', label: 'Artesanías', icon: Palmtree, color: 'bg-amber-600' },
   { id: 'moto', label: 'Motos', icon: Bike, color: 'bg-indigo-500' },
   { id: 'medico', label: 'Médico', icon: Stethoscope, color: 'bg-emerald-500' },
+  { id: 'clasificados', label: 'Rentas', icon: Home, color: 'bg-purple-600' },
 ];
 
 // --- Popular Card ---
@@ -82,7 +86,7 @@ export default function ClienteFeed() {
   const navigate = useNavigate();
   const [establecimientos, setEstablecimientos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState('hotel');
+  const [selectedCategory, setSelectedCategory] = useState('all');
   const [showOnboarding, setShowOnboarding] = useState(true);
 
   const DEMO_ROLES = [
@@ -94,6 +98,27 @@ export default function ClienteFeed() {
   ];
 
   useEffect(() => {
+    const seedData = async () => {
+      try {
+        const snapshot = await getDocs(collection(db, 'establecimientos'));
+        if (snapshot.empty) {
+          const mockData = [
+            { nombre: 'Hotel Emporio', tipo: 'hotel', zona: 'Zona Dorada', estrellas: 4.8, createdAt: Timestamp.now() },
+            { nombre: 'Condo Diamante', tipo: 'clasificados', zona: 'Zona Diamante', estrellas: 4.9, createdAt: Timestamp.now() },
+            { nombre: 'La Cabaña', tipo: 'restaurante', zona: 'Playa Bonfil', estrellas: 4.5, createdAt: Timestamp.now() },
+            { nombre: 'Yate Bonanza', tipo: 'yate', zona: 'Puerto Marqués', estrellas: 5.0, createdAt: Timestamp.now() },
+            { nombre: 'Depa Vista Mar', tipo: 'clasificados', zona: 'Zona Tradicional', estrellas: 4.7, createdAt: Timestamp.now() },
+          ];
+          for (const item of mockData) {
+            await addDoc(collection(db, 'establecimientos'), item);
+          }
+        }
+      } catch (err) {
+        console.error("Error seeding data:", err);
+      }
+    };
+    seedData();
+
     const q = query(collection(db, 'establecimientos'), orderBy('nombre'));
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const ests = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));

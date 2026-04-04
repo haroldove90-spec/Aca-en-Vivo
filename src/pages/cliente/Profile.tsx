@@ -4,6 +4,8 @@ import { User, MapPin, Mail, Phone, Calendar, Edit3, Settings, LogOut, Shield } 
 import { motion } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { useNavigate } from 'react-router-dom';
+import { auth } from '../../lib/firebase';
+import { signOut } from 'firebase/auth';
 
 const MOCK_USER = {
   name: 'Harold Dev',
@@ -22,6 +24,16 @@ const MOCK_USER = {
 
 export default function ClienteProfile() {
   const navigate = useNavigate();
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      window.location.href = '/';
+    } catch (error) {
+      console.error("Error signing out:", error);
+      window.location.href = '/';
+    }
+  };
 
   return (
     <Layout>
@@ -127,7 +139,10 @@ export default function ClienteProfile() {
                 <Edit3 className="w-4 h-4 text-muted" />
               </button>
               
-              <button className="flex items-center justify-between p-4 bg-rose-50 hover:bg-rose-100 rounded-2xl border border-rose-100 transition-all group">
+              <button 
+                onClick={handleLogout}
+                className="flex items-center justify-between p-4 bg-rose-50 hover:bg-rose-100 rounded-2xl border border-rose-100 transition-all group"
+              >
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm text-rose-500">
                     <LogOut className="w-5 h-5" />

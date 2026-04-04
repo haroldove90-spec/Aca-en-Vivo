@@ -38,6 +38,9 @@ import { motion, AnimatePresence } from 'motion/react';
 import { useNotifications } from '../contexts/NotificationContext';
 import { SupportChat } from './SupportChat';
 
+import { auth } from '../lib/firebase';
+import { signOut } from 'firebase/auth';
+
 interface LayoutProps {
   children: React.ReactNode;
 }
@@ -103,6 +106,16 @@ export function Layout({ children }: LayoutProps) {
   const navItems = getNavItems(location.pathname);
   const isAdmin = location.pathname.includes('admin') || location.pathname.includes('agencia');
 
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      window.location.href = '/';
+    } catch (error) {
+      console.error("Error signing out:", error);
+      window.location.href = '/';
+    }
+  };
+
   const isActive = (path: string) => {
     if (path === '/') return location.pathname === '/';
     return location.pathname + location.search === path;
@@ -152,7 +165,10 @@ export function Layout({ children }: LayoutProps) {
             <Settings className="w-5 h-5 group-hover:rotate-45 transition-transform" />
             Settings
           </button>
-          <button className="w-full flex items-center gap-4 px-5 py-4 rounded-[1.5rem] text-rose-500 hover:bg-rose-50 transition-all font-black text-sm uppercase tracking-widest">
+          <button 
+            onClick={handleLogout}
+            className="w-full flex items-center gap-4 px-5 py-4 rounded-[1.5rem] text-rose-500 hover:bg-rose-50 transition-all font-black text-sm uppercase tracking-widest"
+          >
             <LogOut className="w-5 h-5" />
             Logout
           </button>
@@ -184,6 +200,12 @@ export function Layout({ children }: LayoutProps) {
               {unreadCount > 0 && (
                 <div className="absolute top-3 right-3 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-primary" />
               )}
+            </button>
+            <button 
+              onClick={handleLogout}
+              className="w-12 h-12 bg-white/20 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-white/30 shadow-lg text-white"
+            >
+              <LogOut className="w-6 h-6" />
             </button>
           </div>
         </div>
@@ -288,6 +310,12 @@ export function Layout({ children }: LayoutProps) {
                 )}
               </AnimatePresence>
             </div>
+            <button 
+              onClick={handleLogout}
+              className="w-12 h-12 bg-bg rounded-2xl flex items-center justify-center text-rose-500 hover:bg-rose-50 transition-all shadow-sm border border-gray-100"
+            >
+              <LogOut className="w-6 h-6" />
+            </button>
             <div className="flex items-center gap-4 pl-8 border-l border-gray-100">
               <div className="text-right">
                 <p className="text-sm font-black text-dark tracking-tight leading-none">Jack Fitzgerald</p>
