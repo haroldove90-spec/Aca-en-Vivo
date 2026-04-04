@@ -1,0 +1,71 @@
+{
+  "entities": {
+    "profiles": {
+      "title": "User Profile",
+      "description": "User profile information and role.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Auth UID" },
+        "email": { "type": "string", "format": "email" },
+        "full_name": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "hotel", "agente", "negocio", "cliente"] }
+      },
+      "required": ["id", "email", "role"]
+    },
+    "establecimientos": {
+      "title": "Establecimiento",
+      "description": "Hotel o negocio en Acapulco.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "nombre": { "type": "string" },
+        "zona": { "type": "string", "enum": ["Diamante", "Dorada", "Tradicional"] },
+        "tipo": { "type": "string", "enum": ["hotel", "negocio"] },
+        "estrellas": { "type": "integer" }
+      },
+      "required": ["id", "nombre", "zona", "tipo"]
+    },
+    "inventario_hotel": {
+      "title": "Inventario de Hotel",
+      "description": "Disponibilidad de habitaciones en tiempo real.",
+      "type": "object",
+      "properties": {
+        "id_establecimiento": { "type": "string" },
+        "habitaciones_totales": { "type": "integer" },
+        "disponibles_ahora": { "type": "integer" },
+        "ultima_actualizacion": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id_establecimiento", "habitaciones_totales", "disponibles_ahora"]
+    },
+    "ofertas_clasificados": {
+      "title": "Oferta Clasificada",
+      "description": "Ofertas de negocios o clasificados.",
+      "type": "object",
+      "properties": {
+        "id_establecimiento": { "type": "string" },
+        "titulo": { "type": "string" },
+        "descripcion": { "type": "string" },
+        "activa_boolean": { "type": "boolean" }
+      },
+      "required": ["id_establecimiento", "titulo", "activa_boolean"]
+    }
+  },
+  "firestore": {
+    "/profiles/{userId}": {
+      "schema": "profiles",
+      "description": "User profiles"
+    },
+    "/establecimientos/{id}": {
+      "schema": "establecimientos",
+      "description": "Hotels and businesses"
+    },
+    "/inventario_hotel/{id_establecimiento}": {
+      "schema": "inventario_hotel",
+      "description": "Real-time hotel inventory"
+    },
+    "/ofertas_clasificados/{id}": {
+      "schema": "ofertas_clasificados",
+      "description": "Business offers and classifieds"
+    }
+  }
+}

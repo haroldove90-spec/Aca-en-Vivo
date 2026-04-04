@@ -1,0 +1,128 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: profiles
+    // Document ID: userId
+    // Fields:
+    //   - id: string (required) - Auth UID
+    //   - email: string (required) - User email
+    //   - full_name: string (optional) - User's full name
+    //   - role: string (required) - One of ['admin', 'hotel', 'agente', 'negocio', 'cliente']
+    //
+    // Collection: establecimientos
+    // Document ID: id
+    // Fields:
+    //   - id: string (required)
+    //   - nombre: string (required)
+    //   - zona: string (required) - One of ['Diamante', 'Dorada', 'Tradicional']
+    //   - tipo: string (required) - One of ['hotel', 'negocio']
+    //   - estrellas: number (optional)
+    //
+    // Collection: inventario_hotel
+    // Document ID: id_establecimiento
+    // Fields:
+    //   - id_establecimiento: string (required)
+    //   - habitaciones_totales: number (required)
+    //   - disponibles_ahora: number (required)
+    //   - ultima_actualizacion: timestamp (required)
+    //
+    // Collection: ofertas_clasificados
+    // Document ID: id
+    // Fields:
+    //   - id_establecimiento: string (required)
+    //   - titulo: string (required)
+    //   - descripcion: string (optional)
+    //   - activa_boolean: bool (required)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    function isAdmin() {
+      return isAuthenticated() &&
+        (get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role == 'admin' ||
+         (request.auth.token.email == "haroldove90@gmail.com" && request.auth.token.email_verified == true));
+    }
+    
+    function isHotel() {
+      return isAuthenticated() && get(/databases/$(database)/documents/profiles/$(request.auth.uid)).data.role == 'hotel';
+    }
+
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidProfile(data) {
+      return hasRequiredFields(['id', 'email', 'role']) &&
+             data.id is string &&
+             data.email is string &&
+             data.role in ['admin', 'hotel', 'agente', 'negocio', 'cliente'];
+    }
+
+    function isValidEstablecimiento(data) {
+      return hasRequiredFields(['id', 'nombre', 'zona', 'tipo']) &&
+             data.id is string &&
+             data.nombre is string && data.nombre.size() > 0 && data.nombre.size() < 100 &&
+             data.zona in ['Diamante', 'Dorada', 'Tradicional'] &&
+             data.tipo in ['hotel', 'negocio'];
+    }
+
+    function isValidInventario(data) {
+      return hasRequiredFields(['id_establecimiento', 'habitaciones_totales', 'disponibles_ahora']) &&
+             data.id_establecimiento is string &&
+             data.habitaciones_totales is number && data.habitaciones_totales >= 0 &&
+             data.disponibles_ahora is number && data.disponibles_ahora >= 0 &&
+             data.disponibles_ahora <= data.habitaciones_totales;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /profiles/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isOwner(userId) && isValidProfile(request.resource.data) && (request.resource.data.role == 'cliente' || isAdmin());
+      allow update: if isOwner(userId) && isValidProfile(request.resource.data) && (request.resource.data.role == resource.data.role || isAdmin());
+    }
+
+    match /establecimientos/{id} {
+      allow read: if true; // Public directory
+      allow create, update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    match /inventario_hotel/{id_establecimiento} {
+      allow read: if true; // Real-time availability for everyone
+      allow create: if isAdmin() || isHotel();
+      allow update: if isAdmin() || (isHotel() && request.resource.data.id_establecimiento == id_establecimiento);
+    }
+
+    match /ofertas_clasificados/{id} {
+      allow read: if true;
+      allow create, update: if isAdmin() || isHotel() || isAuthenticated(); // Simplified for now
+      allow delete: if isAdmin();
+    }
+  }
+}
