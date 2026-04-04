@@ -10,6 +10,7 @@ import AgenciaDashboard from './pages/admin/AgenciaDashboard';
 import NegocioDashboard from './pages/negocio/Dashboard';
 import ClasificadosDashboard from './pages/clasificados/Dashboard';
 import { Loader2 } from 'lucide-react';
+import { Layout } from './components/Layout';
 
 // --- Route Guard Component ---
 function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode, allowedRoles: string[] }) {
@@ -108,7 +109,7 @@ function NavSwitcher() {
 function App() {
   return (
     <Router>
-      <div className="min-h-screen bg-gray-50 font-sans">
+      <div className="min-h-screen bg-bg font-sans">
         <Routes>
           {/* Public Feed */}
           <Route path="/" element={<ClienteFeed />} />
@@ -118,7 +119,9 @@ function App() {
             path="/hotel" 
             element={
               <ProtectedRoute allowedRoles={['hotel', 'admin']}>
-                <HotelDashboard />
+                <Layout>
+                  <HotelDashboard />
+                </Layout>
               </ProtectedRoute>
             } 
           />
@@ -128,7 +131,9 @@ function App() {
             path="/admin-agencia" 
             element={
               <ProtectedRoute allowedRoles={['admin']}>
-                <AgenciaDashboard />
+                <Layout>
+                  <AgenciaDashboard />
+                </Layout>
               </ProtectedRoute>
             } 
           />
@@ -138,7 +143,9 @@ function App() {
             path="/negocio" 
             element={
               <ProtectedRoute allowedRoles={['negocio', 'admin']}>
-                <NegocioDashboard />
+                <Layout>
+                  <NegocioDashboard />
+                </Layout>
               </ProtectedRoute>
             } 
           />
@@ -148,7 +155,9 @@ function App() {
             path="/admin-dev" 
             element={
               <ProtectedRoute allowedRoles={['admin']}>
-                <DevDashboard />
+                <Layout>
+                  <DevDashboard />
+                </Layout>
               </ProtectedRoute>
             } 
           />
@@ -158,7 +167,9 @@ function App() {
             path="/clasificados" 
             element={
               <ProtectedRoute allowedRoles={['clasificados', 'admin']}>
-                <ClasificadosDashboard />
+                <Layout>
+                  <ClasificadosDashboard />
+                </Layout>
               </ProtectedRoute>
             } 
           />

@@ -171,30 +171,30 @@ export default function HotelDashboard() {
   const displayCount = optimisticCount ?? inventario?.disponibles_ahora ?? 0;
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-[#1E293B] font-sans pb-32">
-      {/* Header */}
-      <header className="bg-white border-b border-slate-200 sticky top-0 z-30 px-6 py-4 flex items-center justify-between shadow-sm">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-[#00A8CC] rounded-xl flex items-center justify-center shadow-lg shadow-[#00A8CC]/20">
-            <Settings className="w-6 h-6 text-white" />
+    <div className="space-y-10">
+      {/* Header Section */}
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
+            <Settings className="w-7 h-7 text-white" />
           </div>
           <div>
-            <h1 className="text-sm font-black uppercase tracking-widest text-slate-400 leading-none">Admin Pro</h1>
-            <p className="text-lg font-black text-[#142850] tracking-tight truncate max-w-[180px]">
+            <h1 className="text-2xl font-black text-dark tracking-tighter uppercase leading-none">Admin <span className="text-primary">Pro</span></h1>
+            <p className="text-[10px] font-bold text-muted uppercase tracking-[0.3em] mt-1 truncate max-w-[200px]">
               {hotelName}
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-2 bg-slate-100 px-3 py-1.5 rounded-full">
-          <Clock className="w-3 h-3 text-[#00A8CC]" />
-          <span className="text-[10px] font-bold text-slate-500 uppercase">
+        <div className="flex items-center gap-3 bg-white px-5 py-2.5 rounded-2xl border border-gray-100 shadow-sm">
+          <Clock className="w-4 h-4 text-primary" />
+          <span className="text-[10px] font-black text-dark uppercase tracking-widest">
             {inventario?.ultima_actualizacion?.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || 'Sincronizando...'}
           </span>
         </div>
-      </header>
+      </div>
 
       {/* Tabs Navigation */}
-      <nav className="flex gap-2 p-4 overflow-x-auto no-scrollbar bg-white border-b border-slate-100 sticky top-[73px] z-20">
+      <nav className="flex gap-2 p-2 overflow-x-auto no-scrollbar bg-white rounded-[2rem] border border-gray-100 shadow-sm sticky top-0 z-20">
         {[
           { id: 'inventario', label: 'Inventario', icon: RotateCcw },
           { id: 'perfil', label: 'Perfil', icon: FileText },
@@ -205,10 +205,10 @@ export default function HotelDashboard() {
             key={tab.id}
             onClick={() => setActiveTab(tab.id as Tab)}
             className={cn(
-              "flex items-center gap-2 px-6 py-2.5 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all whitespace-nowrap",
+              "flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all whitespace-nowrap",
               activeTab === tab.id 
-                ? "bg-[#00A8CC] text-white shadow-lg shadow-[#00A8CC]/20 scale-105" 
-                : "bg-slate-100 text-slate-400 hover:bg-slate-200"
+                ? "bg-primary text-white shadow-lg shadow-primary/20 scale-105" 
+                : "bg-transparent text-muted hover:bg-gray-50"
             )}
           >
             <tab.icon className="w-4 h-4" />
@@ -218,7 +218,7 @@ export default function HotelDashboard() {
       </nav>
 
       {/* Main Content Area */}
-      <main className="p-6 max-w-md mx-auto">
+      <div className="max-w-2xl mx-auto w-full">
         <AnimatePresence mode="wait">
           {activeTab === 'inventario' && (
             <motion.div
@@ -226,75 +226,75 @@ export default function HotelDashboard() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="space-y-6"
+              className="space-y-8"
             >
               {/* Critical Inventory Card */}
-              <div className="bg-white rounded-[2.5rem] p-8 shadow-xl shadow-slate-200/50 border border-slate-100 text-center space-y-8">
+              <div className="bg-white rounded-[3rem] p-10 shadow-xl shadow-black/5 border border-gray-100 text-center space-y-10">
                 <div>
-                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400 mb-2">Disponibles Ahora</p>
+                  <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted mb-4">Disponibles Ahora</p>
                   <div className={cn(
-                    "text-[10rem] font-black leading-none tabular-nums transition-colors duration-500",
+                    "text-[12rem] font-black leading-none tabular-nums transition-colors duration-500 tracking-tighter",
                     displayCount > 5 ? "text-emerald-500" : displayCount > 0 ? "text-amber-500" : "text-rose-500"
                   )}>
                     {displayCount}
                   </div>
                 </div>
 
-                <div className="flex items-center justify-center gap-8">
+                <div className="flex items-center justify-center gap-10">
                   <button
                     onClick={() => handleUpdateInventory(-1)}
                     disabled={displayCount <= 0}
-                    className="w-20 h-20 rounded-full bg-slate-100 flex items-center justify-center active:scale-90 transition-all disabled:opacity-20"
+                    className="w-24 h-24 rounded-full bg-gray-50 flex items-center justify-center active:scale-90 transition-all disabled:opacity-20 hover:bg-gray-100"
                   >
-                    <Minus className="w-8 h-8 text-slate-600 stroke-[3]" />
+                    <Minus className="w-10 h-10 text-dark stroke-[3]" />
                   </button>
                   <button
                     onClick={() => handleUpdateInventory(1)}
                     disabled={displayCount >= (inventario?.habitaciones_totales ?? 99)}
-                    className="w-20 h-20 rounded-full bg-[#00A8CC]/10 border-2 border-[#00A8CC]/20 flex items-center justify-center active:scale-90 transition-all"
+                    className="w-24 h-24 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center active:scale-90 transition-all hover:bg-primary/20"
                   >
-                    <Plus className="w-8 h-8 text-[#00A8CC] stroke-[3]" />
+                    <Plus className="w-10 h-10 text-primary stroke-[3]" />
                   </button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 pt-4">
+                <div className="grid grid-cols-2 gap-4 pt-6">
                   <button
                     onClick={() => handleQuickAction(0)}
-                    className="py-4 rounded-2xl bg-rose-50 text-rose-600 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all"
+                    className="py-5 rounded-[1.5rem] bg-rose-50 text-rose-600 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all hover:bg-rose-100"
                   >
-                    <AlertCircle className="w-4 h-4" />
+                    <AlertCircle className="w-5 h-5" />
                     Sold Out
                   </button>
                   <button
                     onClick={() => handleQuickAction(inventario?.habitaciones_totales ?? 50)}
-                    className="py-4 rounded-2xl bg-slate-100 text-slate-600 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all"
+                    className="py-5 rounded-[1.5rem] bg-gray-50 text-dark font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all hover:bg-gray-100"
                   >
-                    <RotateCcw className="w-4 h-4" />
+                    <RotateCcw className="w-5 h-5" />
                     Restablecer
                   </button>
                 </div>
               </div>
 
               {/* Emergency Toggle */}
-              <div className="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-rose-100 rounded-xl flex items-center justify-center">
-                    <AlertCircle className="w-5 h-5 text-rose-500" />
+              <div className="bg-white p-8 rounded-[2rem] shadow-xl shadow-black/5 border border-gray-100 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-12 h-12 bg-rose-100 rounded-2xl flex items-center justify-center">
+                    <AlertCircle className="w-6 h-6 text-rose-500" />
                   </div>
                   <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Estado de Emergencia</p>
-                    <p className="text-xs font-bold text-slate-600">Cerrar preventas al instante</p>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-muted">Estado de Emergencia</p>
+                    <p className="text-xs font-bold text-dark uppercase mt-1">Cerrar preventas al instante</p>
                   </div>
                 </div>
                 <button 
                   onClick={() => handleQuickAction(0)}
                   className={cn(
-                    "w-12 h-6 rounded-full transition-all relative",
-                    displayCount === 0 ? "bg-rose-500" : "bg-slate-200"
+                    "w-14 h-7 rounded-full transition-all relative",
+                    displayCount === 0 ? "bg-rose-500" : "bg-gray-200"
                   )}
                 >
                   <div className={cn(
-                    "absolute top-1 w-4 h-4 rounded-full bg-white transition-all",
+                    "absolute top-1 w-5 h-5 rounded-full bg-white transition-all shadow-sm",
                     displayCount === 0 ? "right-1" : "left-1"
                   )} />
                 </button>
@@ -308,46 +308,46 @@ export default function HotelDashboard() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="space-y-6"
+              className="space-y-8"
             >
-              <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 space-y-6">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Nombre del Hotel</label>
+              <div className="bg-white rounded-[3rem] p-10 shadow-xl shadow-black/5 border border-gray-100 space-y-8">
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted ml-2">Nombre del Hotel</label>
                   <input 
                     type="text" 
                     value={hotelName}
                     onChange={(e) => setHotelName(e.target.value)}
-                    className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 text-sm font-bold focus:outline-none focus:border-[#00A8CC]/30 transition-all"
+                    className="w-full bg-gray-50 border-2 border-gray-100 rounded-[1.5rem] p-5 text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all uppercase tracking-tight"
                   />
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Descripción Corta</label>
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted ml-2">Descripción Corta</label>
                   <textarea 
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     maxLength={150}
-                    className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 text-sm font-medium focus:outline-none focus:border-[#00A8CC]/30 transition-all h-24 resize-none"
+                    className="w-full bg-gray-50 border-2 border-gray-100 rounded-[1.5rem] p-5 text-sm font-bold text-dark focus:outline-none focus:border-primary/30 transition-all h-32 resize-none"
                   />
-                  <p className="text-right text-[8px] font-bold text-slate-400 uppercase">{description.length}/150</p>
+                  <p className="text-right text-[10px] font-black text-muted uppercase tracking-widest">{description.length}/150</p>
                 </div>
 
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Teléfono Recepción</label>
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted ml-2">Teléfono Recepción</label>
                   <div className="relative">
-                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <Phone className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
                     <input 
                       type="tel" 
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 pl-12 text-sm font-bold focus:outline-none focus:border-[#00A8CC]/30 transition-all"
+                      className="w-full bg-gray-50 border-2 border-gray-100 rounded-[1.5rem] p-5 pl-14 text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all tracking-widest"
                     />
                   </div>
                 </div>
 
-                <div className="space-y-4">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Amenidades Activas</label>
-                  <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted ml-2">Amenidades Activas</label>
+                  <div className="grid grid-cols-2 gap-4">
                     {[
                       { id: 'wifi', label: 'WiFi Gratis', icon: Wifi },
                       { id: 'pool', label: 'Alberca', icon: Waves },
@@ -358,14 +358,14 @@ export default function HotelDashboard() {
                         key={item.id}
                         onClick={() => toggleAmenity(item.id)}
                         className={cn(
-                          "flex items-center gap-3 p-3 rounded-2xl border-2 transition-all",
+                          "flex items-center gap-4 p-4 rounded-[1.5rem] border-2 transition-all",
                           amenities.includes(item.id) 
-                            ? "bg-[#00A8CC]/5 border-[#00A8CC]/20 text-[#00A8CC]" 
-                            : "bg-slate-50 border-transparent text-slate-400"
+                            ? "bg-primary/5 border-primary/20 text-primary" 
+                            : "bg-gray-50 border-transparent text-muted"
                         )}
                       >
-                        <item.icon className="w-4 h-4" />
-                        <span className="text-[10px] font-black uppercase">{item.label}</span>
+                        <item.icon className="w-5 h-5" />
+                        <span className="text-[10px] font-black uppercase tracking-widest">{item.label}</span>
                       </button>
                     ))}
                   </div>
@@ -380,11 +380,11 @@ export default function HotelDashboard() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="space-y-6"
+              className="space-y-8"
             >
-              <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 space-y-6">
-                <div className="space-y-4">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Media Center</label>
+              <div className="bg-white rounded-[3rem] p-10 shadow-xl shadow-black/5 border border-gray-100 space-y-8">
+                <div className="space-y-6">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted ml-2">Media Center</label>
                   
                   {/* Dropzone Simulation */}
                   <div className="relative group">
@@ -394,24 +394,24 @@ export default function HotelDashboard() {
                       onChange={handleUploadImage}
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                     />
-                    <div className="h-40 border-4 border-dashed border-slate-100 rounded-[2rem] flex flex-col items-center justify-center gap-3 group-hover:bg-slate-50 transition-all">
-                      <div className="w-12 h-12 bg-[#00A8CC]/10 rounded-2xl flex items-center justify-center">
-                        <Camera className="w-6 h-6 text-[#00A8CC]" />
+                    <div className="h-48 border-4 border-dashed border-gray-100 rounded-[2.5rem] flex flex-col items-center justify-center gap-4 group-hover:bg-gray-50 transition-all">
+                      <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center">
+                        <Camera className="w-7 h-7 text-primary" />
                       </div>
-                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Tomar Foto o Subir</p>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-muted">Tomar Foto o Subir</p>
                     </div>
                   </div>
-
+ 
                   {/* Image Grid */}
-                  <div className="grid grid-cols-3 gap-3">
+                  <div className="grid grid-cols-3 gap-4">
                     {images.map((img, idx) => (
-                      <div key={idx} className="relative aspect-square rounded-2xl overflow-hidden group">
+                      <div key={idx} className="relative aspect-square rounded-[1.5rem] overflow-hidden group shadow-sm">
                         <img src={img} alt="Hotel" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                         <button 
                           onClick={() => deleteImage(idx)}
-                          className="absolute top-1 right-1 w-6 h-6 bg-rose-500 rounded-lg flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="absolute top-2 right-2 w-8 h-8 bg-rose-500 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
                         >
-                          <Trash2 className="w-3 h-3 text-white" />
+                          <Trash2 className="w-4 h-4 text-white" />
                         </button>
                       </div>
                     ))}
@@ -427,41 +427,41 @@ export default function HotelDashboard() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="space-y-6"
+              className="space-y-8"
             >
-              <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 space-y-6">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-1">Promoción del Día</label>
+              <div className="bg-white rounded-[3rem] p-10 shadow-xl shadow-black/5 border border-gray-100 space-y-8">
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted ml-2">Promoción del Día</label>
                   <div className="relative">
-                    <Zap className="absolute left-4 top-4 w-4 h-4 text-amber-500" />
+                    <Zap className="absolute left-5 top-5 w-5 h-5 text-amber-500" />
                     <textarea 
                       value={promo}
                       onChange={(e) => setPromo(e.target.value)}
                       placeholder="Ej: Desayuno incluido..."
-                      className="w-full bg-slate-50 border-2 border-slate-100 rounded-2xl p-4 pl-12 text-sm font-bold focus:outline-none focus:border-[#00A8CC]/30 transition-all h-24 resize-none"
+                      className="w-full bg-gray-50 border-2 border-gray-100 rounded-[1.5rem] p-5 pl-14 text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all h-32 resize-none"
                     />
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between p-4 bg-amber-50 rounded-2xl border border-amber-100">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-amber-500 rounded-xl flex items-center justify-center shadow-lg shadow-amber-500/20">
-                      <Star className="w-5 h-5 text-white fill-white" />
+                <div className="flex items-center justify-between p-6 bg-amber-50 rounded-[2rem] border border-amber-100">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-amber-500 rounded-2xl flex items-center justify-center shadow-lg shadow-amber-500/20">
+                      <Star className="w-6 h-6 text-white fill-white" />
                     </div>
                     <div>
                       <p className="text-[10px] font-black uppercase tracking-widest text-amber-700">Banner Destacado</p>
-                      <p className="text-[8px] font-bold text-amber-600 uppercase">Suscripción Premium Activa</p>
+                      <p className="text-[8px] font-bold text-amber-600 uppercase tracking-widest mt-1">Suscripción Premium Activa</p>
                     </div>
                   </div>
                   <button 
                     onClick={() => setIsPremium(!isPremium)}
                     className={cn(
-                      "w-12 h-6 rounded-full transition-all relative",
-                      isPremium ? "bg-amber-500" : "bg-slate-200"
+                      "w-14 h-7 rounded-full transition-all relative",
+                      isPremium ? "bg-amber-500" : "bg-gray-200"
                     )}
                   >
                     <div className={cn(
-                      "absolute top-1 w-4 h-4 rounded-full bg-white transition-all",
+                      "absolute top-1 w-5 h-5 rounded-full bg-white transition-all shadow-sm",
                       isPremium ? "right-1" : "left-1"
                     )} />
                   </button>
@@ -470,20 +470,20 @@ export default function HotelDashboard() {
             </motion.div>
           )}
         </AnimatePresence>
-      </main>
+      </div>
 
       {/* Floating Action Button (FAB) */}
-      <div className="fixed bottom-8 left-1/2 -translate-x-1/2 w-full max-w-md px-6 z-40">
+      <div className="fixed bottom-10 left-1/2 -translate-x-1/2 w-full max-w-md px-6 z-40">
         <button
           onClick={handleSaveChanges}
           disabled={saving}
-          className="w-full py-5 bg-[#00A8CC] text-white rounded-[2rem] font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-[#00A8CC]/40 flex items-center justify-center gap-3 active:scale-95 transition-all"
+          className="w-full py-6 bg-primary text-white rounded-[2.5rem] font-black text-xs uppercase tracking-[0.3em] shadow-2xl shadow-primary/40 flex items-center justify-center gap-3 active:scale-95 transition-all hover:bg-primary/90"
         >
           {saving ? (
-            <Loader2 className="w-5 h-5 animate-spin" />
+            <Loader2 className="w-6 h-6 animate-spin" />
           ) : (
             <>
-              <Save className="w-5 h-5" />
+              <Save className="w-6 h-6" />
               Guardar Cambios
             </>
           )}
@@ -497,12 +497,12 @@ export default function HotelDashboard() {
             initial={{ opacity: 0, y: 50, x: '-50%' }}
             animate={{ opacity: 1, y: 0, x: '-50%' }}
             exit={{ opacity: 0, y: 50, x: '-50%' }}
-            className="fixed bottom-32 left-1/2 bg-[#142850] text-white px-6 py-3 rounded-2xl shadow-2xl flex items-center gap-3 z-50 border border-white/10"
+            className="fixed bottom-36 left-1/2 bg-dark text-white px-8 py-4 rounded-2xl shadow-2xl flex items-center gap-4 z-50 border border-white/10"
           >
-            <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+            <CheckCircle2 className="w-6 h-6 text-emerald-400" />
             <span className="text-[10px] font-black uppercase tracking-widest">Cambios guardados con éxito</span>
             <button onClick={() => setShowToast(false)}>
-              <X className="w-4 h-4 opacity-50" />
+              <X className="w-5 h-5 opacity-50" />
             </button>
           </motion.div>
         )}

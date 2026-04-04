@@ -4,113 +4,72 @@ import { db } from '../../lib/firebase';
 import { 
   Loader2, 
   Search, 
-  Mic, 
-  Map as MapIcon, 
-  Zap, 
-  ChevronRight, 
-  Star, 
   MapPin,
-  Clock,
-  TrendingUp,
-  Utensils,
+  Star,
   Hotel,
+  Utensils,
+  Ship,
   ShoppingBag,
   Palmtree,
-  Ship,
   Bike,
   Stethoscope,
+  Heart,
+  ChevronRight,
   Filter,
-  Navigation,
-  Heart
+  Mountain,
+  Tent,
+  Trees,
+  Waves,
+  Sun
 } from 'lucide-react';
 import { useRealtimeAvailability } from '../../hooks/useRealtimeAvailability';
-import { AIChatSearch } from '../../components/AIChatSearch';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
+import { Layout } from '../../components/Layout';
 
 // --- Categories Definition ---
 const CATEGORIES = [
   { id: 'hotel', label: 'Hoteles', icon: Hotel, color: 'bg-blue-500' },
-  { id: 'restaurante', label: 'Comida', icon: Utensils, color: 'bg-orange-500' },
+  { id: 'restaurante', label: 'Restaurantes', icon: Utensils, color: 'bg-orange-500' },
   { id: 'yate', label: 'Yates', icon: Ship, color: 'bg-cyan-500' },
   { id: 'tienda', label: 'Tiendas', icon: ShoppingBag, color: 'bg-pink-500' },
   { id: 'artesania', label: 'Artesanías', icon: Palmtree, color: 'bg-amber-600' },
-  { id: 'renta', label: 'Rentas', icon: Bike, color: 'bg-purple-500' },
-  { id: 'salud', label: 'Salud', icon: Stethoscope, color: 'bg-rose-500' },
+  { id: 'moto', label: 'Motos', icon: Bike, color: 'bg-indigo-500' },
+  { id: 'medico', label: 'Médico', icon: Stethoscope, color: 'bg-emerald-500' },
 ];
 
-// --- Business Card (Dynamic) ---
-function BusinessCard({ business }: { business: any, key?: any }) {
+// --- Popular Card ---
+function PopularCard({ business }: { business: any, key?: string }) {
   const { disponibles } = useRealtimeAvailability(business.id);
   
-  const getBadge = () => {
-    if (business.tipo === 'hotel') {
-      if (disponibles > 5) return { color: 'bg-emerald-500', label: 'Disponible' };
-      if (disponibles > 0) return { color: 'bg-amber-500', label: '¡Últimas!' };
-      return { color: 'bg-rose-500', label: 'Lleno' };
-    }
-    if (business.tipo === 'restaurante') {
-      const afluencia = business.afluencia || 'baja';
-      if (afluencia === 'baja') return { color: 'bg-emerald-500', label: 'Mesas Libres' };
-      if (afluencia === 'media') return { color: 'bg-amber-500', label: 'Casi Lleno' };
-      return { color: 'bg-rose-500', label: 'Lista de Espera' };
-    }
-    if (business.promocion) {
-      return { color: 'bg-[#00A8CC]', label: 'Oferta Activa ⚡' };
-    }
-    return { color: 'bg-slate-400', label: 'Abierto' };
-  };
-  
-  const badge = getBadge();
-
   return (
     <motion.div 
       whileTap={{ scale: 0.98 }}
-      className="bg-white rounded-[2rem] shadow-xl shadow-black/5 border border-gray-100 overflow-hidden group"
+      className="bg-white rounded-[2.5rem] p-3 shadow-xl shadow-black/5 border border-gray-100 group flex flex-col gap-3"
     >
-      <div className="aspect-[4/3] relative overflow-hidden">
+      <div className="aspect-[4/5] relative overflow-hidden rounded-[2rem]">
         <img 
-          src={`https://picsum.photos/seed/${business.id}/600/450`} 
+          src={`https://picsum.photos/seed/${business.id}/600/750`} 
           alt={business.nombre}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
           referrerPolicy="no-referrer"
         />
-        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-md px-3 py-1.5 rounded-full flex items-center gap-1.5 shadow-lg">
-          <Star className="w-3.5 h-3.5 fill-amber-400 text-amber-400" />
-          <span className="text-xs font-black text-[#142850]">{business.estrellas || 4.5}</span>
-        </div>
-        <div className="absolute bottom-4 left-4">
-          <div className="flex items-center gap-2 bg-black/40 backdrop-blur-md px-3 py-1.5 rounded-xl border border-white/20">
-            <div className={cn("w-2 h-2 rounded-full animate-pulse", badge.color)} />
-            <span className="text-[10px] font-black text-white uppercase tracking-widest">{badge.label}</span>
-          </div>
-        </div>
-        <button className="absolute top-4 left-4 w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/30">
+        <button className="absolute top-4 right-4 w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/30">
           <Heart className="w-5 h-5 text-white" />
         </button>
-      </div>
-      <div className="p-5 space-y-3">
-        <div className="flex items-start justify-between gap-2">
-          <div>
-            <h3 className="font-black text-[#142850] text-lg leading-tight uppercase tracking-tight">{business.nombre}</h3>
-            <div className="flex items-center gap-1 text-gray-400 mt-1">
-              <MapPin className="w-3.5 h-3.5 text-[#00A8CC]" />
-              <span className="text-[11px] font-bold uppercase tracking-tight">{business.zona || 'Zona Dorada'}</span>
+        <div className="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-lg">
+          <h3 className="font-black text-dark text-sm leading-tight uppercase tracking-tight truncate">{business.nombre}</h3>
+          <div className="flex items-center justify-between mt-1">
+            <div className="flex items-center gap-1 text-muted">
+              <MapPin className="w-3 h-3 text-primary" />
+              <span className="text-[10px] font-bold uppercase tracking-tight">{business.zona || 'Acapulco'}</span>
+            </div>
+            <div className="flex items-center gap-1">
+              <Star className="w-3 h-3 fill-accent text-accent" />
+              <span className="text-[10px] font-black text-dark">{business.estrellas || 4.5}</span>
             </div>
           </div>
-          <div className="text-right">
-            <p className="text-sm font-black text-[#00A8CC] tracking-tighter">
-              {business.tipo === 'hotel' ? '$1,450' : business.tipo === 'restaurante' ? '$$' : 'Ver Precios'}
-            </p>
-            <p className="text-[9px] font-bold text-gray-400 uppercase">Promedio</p>
-          </div>
         </div>
-        {business.promocion && (
-          <div className="bg-amber-50 p-3 rounded-2xl border border-amber-100 flex items-center gap-2">
-            <Zap className="w-4 h-4 text-amber-500 fill-amber-500" />
-            <p className="text-[10px] font-bold text-amber-700 line-clamp-1">{business.promocion}</p>
-          </div>
-        )}
       </div>
     </motion.div>
   );
@@ -120,8 +79,7 @@ export default function ClienteFeed() {
   const [establecimientos, setEstablecimientos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('hotel');
-  const [activeFilter, setActiveFilter] = useState('all');
-  const [aiFilters, setAiFilters] = useState<any>(null);
+  const [showOnboarding, setShowOnboarding] = useState(true);
 
   useEffect(() => {
     const q = query(collection(db, 'establecimientos'), orderBy('nombre'));
@@ -135,191 +93,139 @@ export default function ClienteFeed() {
   }, []);
 
   const filteredBusinesses = useMemo(() => {
-    let results = establecimientos.filter(e => e.tipo === selectedCategory);
-    
-    if (aiFilters) {
-      results = results.filter(b => {
-        let match = true;
-        if (aiFilters.zona && b.zona !== aiFilters.zona) match = false;
-        if (aiFilters.keywords && aiFilters.keywords.length > 0) {
-          const text = `${b.nombre} ${b.zona} ${b.giro || ''}`.toLowerCase();
-          const keywordMatch = aiFilters.keywords.some((k: string) => text.includes(k.toLowerCase()));
-          if (!keywordMatch) match = false;
-        }
-        return match;
-      });
-    }
-
-    if (activeFilter === 'top') {
-      results = results.sort((a, b) => (b.estrellas || 0) - (a.estrellas || 0));
-    } else if (activeFilter === 'cheap') {
-      // Mock price sorting
-    }
-
-    return results;
-  }, [establecimientos, selectedCategory, aiFilters, activeFilter]);
+    return establecimientos.filter(e => e.tipo === selectedCategory || selectedCategory === 'all');
+  }, [establecimientos, selectedCategory]);
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-white">
-        <Loader2 className="w-8 h-8 text-[#00A8CC] animate-spin" />
+      <div className="flex items-center justify-center min-h-screen bg-bg">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      </div>
+    );
+  }
+
+  if (showOnboarding) {
+    return (
+      <div className="fixed inset-0 z-[100] bg-dark overflow-hidden">
+        <img 
+          src="https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&q=80&w=1920" 
+          alt="Background" 
+          className="w-full h-full object-cover opacity-60"
+        />
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-dark/90" />
+        
+        <div className="absolute bottom-0 left-0 right-0 p-10 pb-20 space-y-8">
+          <motion.div 
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="space-y-4"
+          >
+            <h1 className="text-5xl lg:text-7xl font-black text-white tracking-tighter leading-none">
+              Let's Enjoy The<br />
+              <span className="text-primary">Beautiful World!</span>
+            </h1>
+            <p className="text-white/60 text-lg lg:text-xl font-medium max-w-md">
+              Explorer new places in the world and get new experiences
+            </p>
+          </motion.div>
+
+          <motion.button
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            onClick={() => setShowOnboarding(false)}
+            className="w-full lg:w-auto px-10 py-6 bg-primary text-white rounded-[2rem] font-black text-lg uppercase tracking-widest shadow-2xl shadow-primary/40 flex items-center justify-center gap-4 group"
+          >
+            Get Started
+            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center group-hover:translate-x-2 transition-transform">
+              <ChevronRight className="w-6 h-6" />
+            </div>
+          </motion.button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-white pb-32 font-sans">
-      {/* Airbnb Style Header */}
-      <header className="bg-white sticky top-0 z-40 border-b border-gray-100 shadow-sm">
-        <div className="px-6 pt-6 pb-4 space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-[#00A8CC] rounded-xl flex items-center justify-center">
-                <TrendingUp className="w-5 h-5 text-white" />
-              </div>
-              <h1 className="text-xl font-black text-[#142850] tracking-tighter uppercase">AcaEnVivo</h1>
+    <Layout>
+      <div className="space-y-10">
+        {/* Featured Card */}
+        <section className="relative aspect-[16/9] lg:aspect-[21/9] rounded-[3rem] overflow-hidden shadow-2xl group">
+          <img 
+            src="https://images.unsplash.com/photo-1506929199175-60933ee89334?auto=format&fit=crop&q=80&w=1920" 
+            alt="Featured" 
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent" />
+          <div className="absolute inset-y-0 left-0 p-8 lg:p-12 flex flex-col justify-center space-y-4">
+            <div className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-full border border-white/30 w-fit">
+              <span className="text-white text-[10px] font-black uppercase tracking-widest">Featured Destination</span>
             </div>
-            <button className="w-10 h-10 bg-gray-100 rounded-full flex items-center justify-center">
-              <Heart className="w-5 h-5 text-[#142850]" />
+            <h2 className="text-3xl lg:text-5xl font-black text-white tracking-tighter leading-tight">
+              Acapulco Bay<br />Experience
+            </h2>
+            <button className="bg-white text-dark px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl w-fit hover:bg-primary hover:text-white transition-all">
+              Explore Now
             </button>
           </div>
-
-          {/* AI Search Bar */}
-          <div className="relative group">
-            <div className="absolute inset-y-0 left-4 flex items-center pointer-events-none">
-              <Search className="w-5 h-5 text-gray-400 group-focus-within:text-[#00A8CC] transition-colors" />
-            </div>
-            <input 
-              type="text" 
-              placeholder="¿Qué buscas hoy en Acapulco?"
-              className="w-full bg-white border-2 border-gray-100 rounded-full py-4 pl-12 pr-12 text-sm font-bold placeholder:text-gray-400 focus:border-[#00A8CC]/30 focus:ring-4 focus:ring-[#00A8CC]/5 transition-all shadow-sm"
-            />
-            <button className="absolute inset-y-0 right-4 flex items-center">
-              <Mic className="w-5 h-5 text-[#00A8CC]" />
-            </button>
-          </div>
-        </div>
-
-        {/* Categories Horizontal Scroll */}
-        <div className="flex gap-8 overflow-x-auto px-6 pb-4 no-scrollbar">
-          {CATEGORIES.map((cat) => (
-            <button
-              key={cat.id}
-              onClick={() => setSelectedCategory(cat.id)}
-              className={cn(
-                "flex flex-col items-center gap-2 flex-shrink-0 transition-all border-b-2 pb-2",
-                selectedCategory === cat.id 
-                  ? "border-[#00A8CC] opacity-100" 
-                  : "border-transparent opacity-40 hover:opacity-60"
-              )}
-            >
-              <cat.icon className={cn("w-6 h-6", selectedCategory === cat.id ? "text-[#00A8CC]" : "text-gray-600")} />
-              <span className={cn(
-                "text-[10px] font-black uppercase tracking-widest",
-                selectedCategory === cat.id ? "text-[#142850]" : "text-gray-500"
-              )}>
-                {cat.label}
-              </span>
-            </button>
-          ))}
-        </div>
-      </header>
-
-      <main className="px-6 pt-6 space-y-8">
-        {/* Near Me Indicator */}
-        <section className="flex items-center justify-between bg-slate-50 p-4 rounded-3xl border border-slate-100">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-white rounded-2xl flex items-center justify-center shadow-sm">
-              <Navigation className="w-5 h-5 text-[#00A8CC]" />
-            </div>
-            <div>
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Cerca de ti</p>
-              <p className="text-xs font-bold text-[#142850]">Zona Dorada • a 500m</p>
-            </div>
-          </div>
-          <button className="bg-white px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest text-[#00A8CC] shadow-sm border border-slate-100">
-            Ver Mapa
-          </button>
         </section>
 
-        {/* Filter Pills */}
-        <div className="flex gap-3 overflow-x-auto no-scrollbar">
-          {[
-            { id: 'all', label: 'Todos', icon: Filter },
-            { id: 'top', label: 'Mejor Calificados', icon: Star },
-            { id: 'cheap', label: 'Más Baratos', icon: TrendingUp },
-            { id: 'open', label: 'Abiertos Ahora', icon: Clock },
-          ].map((filter) => (
-            <button
-              key={filter.id}
-              onClick={() => setActiveFilter(filter.id)}
-              className={cn(
-                "flex items-center gap-2 px-4 py-2.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all whitespace-nowrap border",
-                activeFilter === filter.id 
-                  ? "bg-[#142850] text-white border-[#142850] shadow-lg" 
-                  : "bg-white text-slate-400 border-slate-100 hover:bg-slate-50"
-              )}
-            >
-              <filter.icon className="w-3.5 h-3.5" />
-              {filter.label}
-            </button>
-          ))}
-        </div>
-
-        {/* AI Chat Integration */}
-        <AIChatSearch 
-          onFilter={(filters) => setAiFilters(filters)} 
-          onClear={() => setAiFilters(null)} 
-        />
-
-        {/* Dynamic Feed */}
+        {/* Categories Grid */}
         <section className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-black text-[#142850] uppercase tracking-[0.2em]">
-              {CATEGORIES.find(c => c.id === selectedCategory)?.label} en Acapulco
-            </h2>
-            <span className="text-[10px] font-bold text-gray-400 uppercase">
-              {filteredBusinesses.length} resultados
-            </span>
+            <h2 className="text-xl font-black text-dark tracking-tight">Category</h2>
+          </div>
+          <div className="flex gap-6 overflow-x-auto no-scrollbar pb-2">
+            {CATEGORIES.map((cat) => (
+              <button
+                key={cat.id}
+                onClick={() => setSelectedCategory(cat.id)}
+                className="flex flex-col items-center gap-3 flex-shrink-0 group"
+              >
+                <div className={cn(
+                  "w-16 h-16 rounded-full flex items-center justify-center transition-all shadow-lg",
+                  selectedCategory === cat.id 
+                    ? "bg-primary text-white scale-110" 
+                    : "bg-white text-muted hover:bg-primary/10 hover:text-primary"
+                )}>
+                  <cat.icon className="w-7 h-7" />
+                </div>
+                <span className={cn(
+                  "text-[10px] font-black uppercase tracking-widest transition-colors",
+                  selectedCategory === cat.id ? "text-primary" : "text-muted"
+                )}>
+                  {cat.label}
+                </span>
+              </button>
+            ))}
+          </div>
+        </section>
+
+        {/* Popular Section */}
+        <section className="space-y-6 pb-20">
+          <div className="flex items-center justify-between">
+            <h2 className="text-xl font-black text-dark tracking-tight">Popular</h2>
+            <button className="text-primary text-[10px] font-black uppercase tracking-widest hover:underline">See all</button>
           </div>
           
-          <div className="grid grid-cols-1 gap-8">
+          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
             {filteredBusinesses.map(business => (
-              <BusinessCard key={business.id} business={business} />
+              <PopularCard key={business.id} business={business} />
             ))}
           </div>
 
           {filteredBusinesses.length === 0 && (
             <div className="text-center py-20 space-y-4">
-              <div className="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center mx-auto">
-                <Search className="w-10 h-10 text-slate-200" />
+              <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto shadow-sm">
+                <Palmtree className="w-10 h-10 text-gray-200" />
               </div>
-              <p className="text-sm font-bold text-slate-400 uppercase tracking-widest">No hay resultados para esta categoría</p>
+              <p className="text-sm font-bold text-muted uppercase tracking-widest">No destinations found in this category</p>
             </div>
           )}
         </section>
-      </main>
-
-      {/* Modern Bottom Nav */}
-      <nav className="fixed bottom-6 left-6 right-6 bg-[#142850]/95 backdrop-blur-xl rounded-[2.5rem] p-4 flex justify-around items-center shadow-2xl border border-white/10 z-50">
-        <button className="flex flex-col items-center gap-1.5 group">
-          <div className="w-1.5 h-1.5 rounded-full bg-[#00A8CC] mb-0.5" />
-          <span className="text-[#00A8CC] font-black text-[9px] uppercase tracking-[0.2em]">Explorar</span>
-        </button>
-        <button className="flex flex-col items-center gap-1.5 opacity-40 group hover:opacity-100 transition-opacity">
-          <Zap className="w-5 h-5 text-white" />
-          <span className="text-white font-black text-[9px] uppercase tracking-[0.2em]">Ofertas</span>
-        </button>
-        <button className="flex flex-col items-center gap-1.5 opacity-40 group hover:opacity-100 transition-opacity">
-          <MapIcon className="w-5 h-5 text-white" />
-          <span className="text-white font-black text-[9px] uppercase tracking-[0.2em]">Mapa</span>
-        </button>
-        <button className="flex flex-col items-center gap-1.5 opacity-40 group hover:opacity-100 transition-opacity">
-          <Heart className="w-5 h-5 text-white" />
-          <span className="text-white font-black text-[9px] uppercase tracking-[0.2em]">Favoritos</span>
-        </button>
-      </nav>
-    </div>
+      </div>
+    </Layout>
   );
 }
 
