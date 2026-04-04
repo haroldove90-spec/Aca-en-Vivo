@@ -14,15 +14,24 @@ async function startServer() {
 
   // API Routes (Simulating Server Actions)
   app.post("/api/inventory/update", async (req, res) => {
-    const { id_establecimiento, delta } = req.body;
+    const { id_establecimiento, delta, set_to_zero } = req.body;
     
     // In a real app, we would verify the user's role here using Firebase Admin SDK
     // For this prototype, we'll simulate the logic
-    console.log(`Updating inventory for ${id_establecimiento} by ${delta}`);
+    console.log(`Updating inventory for ${id_establecimiento} by ${delta} (set_to_zero: ${set_to_zero})`);
     
-    // This would normally call Firestore
-    // For now, we'll just return success
-    res.json({ success: true, message: `Inventory updated by ${delta}` });
+    // Validation: Ensure delta is a number and id exists
+    if (!id_establecimiento) {
+      return res.status(400).json({ success: false, error: "Missing establishment ID" });
+    }
+
+    // This would normally call Firestore using Admin SDK
+    // For now, we'll just return success to confirm the "Server Action" logic
+    res.json({ 
+      success: true, 
+      message: set_to_zero ? "Inventory closed (0)" : `Inventory updated by ${delta}`,
+      timestamp: new Date().toISOString()
+    });
   });
 
   // Vite middleware for development
