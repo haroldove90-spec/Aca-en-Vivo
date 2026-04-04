@@ -1,9 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { HotelCard } from '../../components/HotelCard';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Sparkles } from 'lucide-react';
 import { useRealtimeAvailability } from '../../hooks/useRealtimeAvailability';
+import { AIChatSearch } from '../../components/AIChatSearch';
 
 function HotelCardWithRealtime({ hotel }: { hotel: any, key?: any }) {
   const { disponibles } = useRealtimeAvailability(hotel.id);
@@ -22,6 +23,7 @@ function HotelCardWithRealtime({ hotel }: { hotel: any, key?: any }) {
 export default function ClienteFeed() {
   const [establecimientos, setEstablecimientos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [aiFilters, setAiFilters] = useState<any>(null);
 
   useEffect(() => {
     const q = query(collection(db, 'establecimientos'), orderBy('nombre'));
@@ -34,6 +36,26 @@ export default function ClienteFeed() {
     return () => unsubscribe();
   }, []);
 
+  const filteredHoteles = useMemo(() => {
+    if (!aiFilters) return establecimientos;
+
+    return establecimientos.filter(hotel => {
+      let match = true;
+      if (aiFilters.zona && hotel.zona !== aiFilters.zona) match = false;
+      if (aiFilters.tipo && hotel.tipo !== aiFilters.tipo) match = false;
+      if (aiFilters.minEstrellas && (hotel.estrellas || 0) < aiFilters.minEstrellas) match = false;
+      
+      // Keyword matching (simple)
+      if (aiFilters.keywords && aiFilters.keywords.length > 0) {
+        const text = `${hotel.nombre} ${hotel.zona}`.toLowerCase();
+        const keywordMatch = aiFilters.keywords.some((k: string) => text.includes(k.toLowerCase()));
+        if (!keywordMatch) match = false;
+      }
+
+      return match;
+    });
+  }, [establecimientos, aiFilters]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-gray-50">
@@ -45,7 +67,7 @@ export default function ClienteFeed() {
   return (
     <div className="min-h-screen bg-gray-50 pb-20">
       {/* Header */}
-      <header className="bg-[#142850] text-white p-6 sticky top-0 z-10 shadow-md">
+      <header className="bg-[#142850] text-white p-6 sticky top-0 z-20 shadow-md">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-2xl font-black text-[#00A8CC] tracking-tighter">AcaEnVivo</h1>
@@ -57,20 +79,48 @@ export default function ClienteFeed() {
         </div>
       </header>
 
+      {/* AI Concierge Section */}
+      <div className="py-6 bg-gradient-to-b from-[#142850] to-gray-50">
+        <AIChatSearch 
+          onFilter={(filters) => setAiFilters(filters)} 
+          onClear={() => setAiFilters(null)} 
+        />
+      </div>
+
       {/* Feed */}
       <main className="p-4 max-w-lg mx-auto space-y-6">
         <div className="flex items-center justify-between px-2">
-          <h2 className="text-sm font-black text-[#142850] uppercase tracking-widest">Disponibilidad Hotelera</h2>
+          <div className="flex items-center gap-2">
+            <h2 className="text-sm font-black text-[#142850] uppercase tracking-widest">
+              {aiFilters ? "Resultados Recomendados" : "Disponibilidad Hotelera"}
+            </h2>
+            {aiFilters && <Sparkles className="w-4 h-4 text-[#00A8CC]" />}
+          </div>
           <span className="text-[10px] bg-[#F2E1C1] text-[#142850] px-2 py-1 rounded font-black uppercase">
-            {establecimientos.length} Hoteles
+            {filteredHoteles.length} {filteredHoteles.length === 1 ? 'Resultado' : 'Resultados'}
           </span>
         </div>
 
-        <div className="grid gap-6">
-          {establecimientos.map((hotel) => (
-            <HotelCardWithRealtime key={hotel.id} hotel={hotel} />
-          ))}
-        </div>
+        {filteredHoteles.length === 0 ? (
+          <div className="text-center py-20 space-y-4">
+            <div className="w-16 h-16 bg-gray-100 rounded-full mx-auto flex items-center justify-center">
+              <Loader2 className="w-8 h-8 text-gray-300" />
+            </div>
+            <p className="text-sm text-gray-400 font-bold uppercase tracking-widest">No se encontraron hoteles</p>
+            <button 
+              onClick={() => setAiFilters(null)}
+              className="text-[#00A8CC] text-xs font-black uppercase tracking-widest underline"
+            >
+              Limpiar filtros
+            </button>
+          </div>
+        ) : (
+          <div className="grid gap-6">
+            {filteredHoteles.map((hotel) => (
+              <HotelCardWithRealtime key={hotel.id} hotel={hotel} />
+            ))}
+          </div>
+        )}
       </main>
 
       {/* Bottom Nav Placeholder */}
@@ -89,4 +139,5 @@ export default function ClienteFeed() {
     </div>
   );
 }
+
 

@@ -5,6 +5,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from './lib/firebase';
 import ClienteFeed from './pages/cliente/Feed';
 import HotelDashboard from './pages/hotel/Dashboard';
+import DevDashboard from './pages/admin/DevDashboard';
 import { Loader2 } from 'lucide-react';
 
 // --- Route Guard Component ---
@@ -86,6 +87,16 @@ function App() {
             } 
           />
 
+          {/* Dev Dashboard (Protected) */}
+          <Route 
+            path="/admin-dev" 
+            element={
+              <ProtectedRoute allowedRoles={['admin']}>
+                <DevDashboard />
+              </ProtectedRoute>
+            } 
+          />
+
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
@@ -110,6 +121,12 @@ function App() {
               className="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-gray-400 hover:bg-white/5 transition-colors"
             >
               Admin
+            </button>
+            <button 
+              onClick={() => window.location.href = '/admin-dev'} 
+              className="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-yellow-400 hover:bg-white/5 transition-colors"
+            >
+              Dev Master
             </button>
           </div>
         </div>
