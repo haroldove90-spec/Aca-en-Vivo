@@ -8,6 +8,7 @@ import HotelDashboard from './pages/hotel/Dashboard';
 import DevDashboard from './pages/admin/DevDashboard';
 import AgenciaDashboard from './pages/admin/AgenciaDashboard';
 import NegocioDashboard from './pages/negocio/Dashboard';
+import ClasificadosDashboard from './pages/clasificados/Dashboard';
 import { Loader2 } from 'lucide-react';
 
 // --- Route Guard Component ---
@@ -93,6 +94,12 @@ function NavSwitcher() {
         >
           Dev Master
         </button>
+        <button 
+          onClick={() => navigate('/clasificados')} 
+          className="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-orange-400 hover:bg-white/5 transition-colors"
+        >
+          Clasificados
+        </button>
       </div>
     </div>
   );
@@ -142,6 +149,16 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <DevDashboard />
+              </ProtectedRoute>
+            } 
+          />
+
+          {/* Clasificados Dashboard (Protected) */}
+          <Route 
+            path="/clasificados" 
+            element={
+              <ProtectedRoute allowedRoles={['clasificados', 'admin']}>
+                <ClasificadosDashboard />
               </ProtectedRoute>
             } 
           />
