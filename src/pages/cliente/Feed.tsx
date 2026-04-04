@@ -28,6 +28,8 @@ import { cn } from '../../lib/utils';
 import { Layout } from '../../components/Layout';
 import { DemoAccess } from '../../components/DemoAccess';
 
+import { useNavigate } from 'react-router-dom';
+
 // --- Categories Definition ---
 const CATEGORIES = [
   { id: 'hotel', label: 'Hoteles', icon: Hotel, color: 'bg-blue-500' },
@@ -77,10 +79,19 @@ function PopularCard({ business }: { business: any, key?: string }) {
 }
 
 export default function ClienteFeed() {
+  const navigate = useNavigate();
   const [establecimientos, setEstablecimientos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('hotel');
   const [showOnboarding, setShowOnboarding] = useState(true);
+
+  const DEMO_ROLES = [
+    { id: 'admin-dev', label: 'Dev', path: '/admin-dev', color: 'bg-yellow-400' },
+    { id: 'admin-agencia', label: 'Agencia', path: '/admin-agencia', color: 'bg-emerald-400' },
+    { id: 'hotel', label: 'Hotel', path: '/hotel', color: 'bg-blue-500' },
+    { id: 'negocio', label: 'Negocio', path: '/negocio', color: 'bg-amber-500' },
+    { id: 'clasificados', label: 'Rentas', path: '/clasificados', color: 'bg-orange-400' },
+  ];
 
   useEffect(() => {
     const q = query(collection(db, 'establecimientos'), orderBy('nombre'));
@@ -128,6 +139,25 @@ export default function ClienteFeed() {
             <p className="text-white/60 text-lg lg:text-xl font-medium max-w-md">
               Explorer new places in the world and get new experiences
             </p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="flex flex-wrap gap-3"
+          >
+            {DEMO_ROLES.map((role) => (
+              <button
+                key={role.id}
+                onClick={() => navigate(role.path)}
+                className={cn(
+                  "px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white shadow-xl transition-all active:scale-95",
+                  role.color
+                )}
+              >
+                {role.label}
+              </button>
+            ))}
           </motion.div>
 
           <motion.button

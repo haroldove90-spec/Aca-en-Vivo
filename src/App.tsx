@@ -4,6 +4,10 @@ import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from './lib/firebase';
 import ClienteFeed from './pages/cliente/Feed';
+import ClienteFavorites from './pages/cliente/Favorites';
+import ClienteReservations from './pages/cliente/Reservations';
+import ClienteProfile from './pages/cliente/Profile';
+import ClienteSettings from './pages/cliente/Settings';
 import HotelDashboard from './pages/hotel/Dashboard';
 import DevDashboard from './pages/admin/DevDashboard';
 import AgenciaDashboard from './pages/admin/AgenciaDashboard';
@@ -115,6 +119,10 @@ function App() {
           <Routes>
             {/* Public Feed */}
             <Route path="/" element={<ClienteFeed />} />
+            <Route path="/favoritos" element={<Layout><ClienteFavorites /></Layout>} />
+            <Route path="/reservas" element={<Layout><ClienteReservations /></Layout>} />
+            <Route path="/perfil" element={<Layout><ClienteProfile /></Layout>} />
+            <Route path="/settings" element={<Layout><ClienteSettings /></Layout>} />
             
             {/* Hotel Dashboard (Protected) */}
             <Route 

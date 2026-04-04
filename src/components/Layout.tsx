@@ -89,6 +89,7 @@ const getNavItems = (pathname: string) => {
     { id: 'favoritos', label: 'Favoritos', icon: Heart, path: '/favoritos' },
     { id: 'reservas', label: 'Reservas', icon: Bookmark, path: '/reservas' },
     { id: 'perfil', label: 'Perfil', icon: User, path: '/perfil' },
+    { id: 'settings', label: 'Ajustes', icon: Settings, path: '/settings' },
   ];
 };
 
