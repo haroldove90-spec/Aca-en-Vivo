@@ -7,6 +7,7 @@ import ClienteFeed from './pages/cliente/Feed';
 import HotelDashboard from './pages/hotel/Dashboard';
 import DevDashboard from './pages/admin/DevDashboard';
 import AgenciaDashboard from './pages/admin/AgenciaDashboard';
+import NegocioDashboard from './pages/negocio/Dashboard';
 import { Loader2 } from 'lucide-react';
 
 // --- Route Guard Component ---
@@ -81,6 +82,12 @@ function NavSwitcher() {
           Agencia
         </button>
         <button 
+          onClick={() => navigate('/negocio')} 
+          className="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-amber-500 hover:bg-white/5 transition-colors"
+        >
+          Negocio
+        </button>
+        <button 
           onClick={() => navigate('/admin-dev')} 
           className="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-yellow-400 hover:bg-white/5 transition-colors"
         >
@@ -115,6 +122,16 @@ function App() {
             element={
               <ProtectedRoute allowedRoles={['admin']}>
                 <AgenciaDashboard />
+              </ProtectedRoute>
+            } 
+          />
+
+          {/* Negocio Panel (Protected) */}
+          <Route 
+            path="/negocio" 
+            element={
+              <ProtectedRoute allowedRoles={['negocio', 'admin']}>
+                <NegocioDashboard />
               </ProtectedRoute>
             } 
           />
