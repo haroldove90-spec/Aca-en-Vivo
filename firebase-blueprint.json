@@ -48,6 +48,19 @@
         "activa_boolean": { "type": "boolean" }
       },
       "required": ["id_establecimiento", "titulo", "activa_boolean"]
+    },
+    "reservas_leads": {
+      "title": "Lead de Reserva",
+      "description": "Intención de reserva de un cliente.",
+      "type": "object",
+      "properties": {
+        "id_establecimiento": { "type": "string" },
+        "nombre_cliente": { "type": "string" },
+        "telefono_cliente": { "type": "string" },
+        "fecha_llegada": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["id_establecimiento", "nombre_cliente", "telefono_cliente"]
     }
   },
   "firestore": {
@@ -66,6 +79,10 @@
     "/ofertas_clasificados/{id}": {
       "schema": "ofertas_clasificados",
       "description": "Business offers and classifieds"
+    },
+    "/reservas_leads/{id}": {
+      "schema": "reservas_leads",
+      "description": "Reservation leads for hotels"
     }
   }
 }
