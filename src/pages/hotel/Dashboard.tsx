@@ -35,10 +35,20 @@ import {
 import { cn } from '../../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 
+import { useNavigate, useLocation } from 'react-router-dom';
+
 type Tab = 'inventario' | 'perfil' | 'galeria' | 'promociones';
 
 export default function HotelDashboard() {
-  const [activeTab, setActiveTab] = useState<Tab>('inventario');
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  const queryParams = new URLSearchParams(location.search);
+  const activeTab = (queryParams.get('tab') as Tab) || 'inventario';
+
+  const setActiveTab = (tab: Tab) => {
+    navigate(`/hotel?tab=${tab}`);
+  };
   const [inventario, setInventario] = useState<any>(null);
   const [establecimiento, setEstablecimiento] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -193,29 +203,7 @@ export default function HotelDashboard() {
         </div>
       </div>
 
-      {/* Tabs Navigation */}
-      <nav className="flex gap-2 p-2 overflow-x-auto no-scrollbar bg-white rounded-[2rem] border border-gray-100 shadow-sm sticky top-0 z-20">
-        {[
-          { id: 'inventario', label: 'Inventario', icon: RotateCcw },
-          { id: 'perfil', label: 'Perfil', icon: FileText },
-          { id: 'galeria', label: 'Galería', icon: ImageIcon },
-          { id: 'promociones', label: 'Promos', icon: Zap },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id as Tab)}
-            className={cn(
-              "flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all whitespace-nowrap",
-              activeTab === tab.id 
-                ? "bg-primary text-white shadow-lg shadow-primary/20 scale-105" 
-                : "bg-transparent text-muted hover:bg-gray-50"
-            )}
-          >
-            <tab.icon className="w-4 h-4" />
-            {tab.label}
-          </button>
-        ))}
-      </nav>
+      {/* Main Content */}
 
       {/* Main Content Area */}
       <div className="max-w-2xl mx-auto w-full">

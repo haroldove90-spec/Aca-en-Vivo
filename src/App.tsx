@@ -179,8 +179,6 @@ function App() {
             {/* Fallback */}
             <Route path="*" element={<Navigate to="/" replace />} />
           </Routes>
-
-          <NavSwitcher />
         </div>
       </Router>
     </NotificationProvider>

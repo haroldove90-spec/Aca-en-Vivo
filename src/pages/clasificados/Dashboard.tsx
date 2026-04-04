@@ -30,10 +30,20 @@ import { cn } from '../../lib/utils';
 import { doc, onSnapshot, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 
+import { useNavigate, useLocation } from 'react-router-dom';
+
 type Tab = 'anuncio' | 'disponibilidad' | 'contacto' | 'fotos' | 'rendimiento';
 
 export default function ClasificadosDashboard() {
-  const [activeTab, setActiveTab] = useState<Tab>('anuncio');
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  const queryParams = new URLSearchParams(location.search);
+  const activeTab = (queryParams.get('tab') as Tab) || 'anuncio';
+
+  const setActiveTab = (tab: Tab) => {
+    navigate(`/clasificados?tab=${tab}`);
+  };
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showToast, setShowToast] = useState(false);
@@ -121,30 +131,7 @@ export default function ClasificadosDashboard() {
         </div>
       </div>
 
-      {/* Tabs Navigation */}
-      <nav className="flex gap-2 p-2 overflow-x-auto no-scrollbar bg-white rounded-[2rem] border border-gray-100 shadow-sm sticky top-0 z-30">
-        {[
-          { id: 'anuncio', label: 'Anuncio', icon: Home },
-          { id: 'disponibilidad', label: 'Disponibilidad', icon: Calendar },
-          { id: 'contacto', label: 'Contacto', icon: Smartphone },
-          { id: 'fotos', label: 'Fotos', icon: Camera },
-          { id: 'rendimiento', label: 'Rendimiento', icon: TrendingUp },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id as Tab)}
-            className={cn(
-              "flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all whitespace-nowrap",
-              activeTab === tab.id 
-                ? "bg-primary text-white shadow-lg shadow-primary/20 scale-105" 
-                : "bg-transparent text-muted hover:bg-gray-50"
-            )}
-          >
-            <tab.icon className="w-4 h-4" />
-            {tab.label}
-          </button>
-        ))}
-      </nav>
+      {/* Main Content */}
 
       {/* Main Content */}
       <div className="max-w-2xl mx-auto w-full">

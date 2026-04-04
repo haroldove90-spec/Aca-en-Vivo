@@ -29,10 +29,20 @@ import { cn } from '../../lib/utils';
 import { doc, onSnapshot, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 
+import { useNavigate, useLocation } from 'react-router-dom';
+
 type Tab = 'estado' | 'perfil' | 'ofertas' | 'multimedia' | 'impacto';
 
 export default function NegocioDashboard() {
-  const [activeTab, setActiveTab] = useState<Tab>('estado');
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  const queryParams = new URLSearchParams(location.search);
+  const activeTab = (queryParams.get('tab') as Tab) || 'estado';
+
+  const setActiveTab = (tab: Tab) => {
+    navigate(`/negocio?tab=${tab}`);
+  };
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showToast, setShowToast] = useState(false);
@@ -144,30 +154,7 @@ export default function NegocioDashboard() {
         </div>
       </div>
 
-      {/* Tabs Navigation */}
-      <nav className="flex gap-2 p-2 overflow-x-auto no-scrollbar bg-white rounded-[2rem] border border-gray-100 shadow-sm sticky top-0 z-30">
-        {[
-          { id: 'estado', label: 'Estado', icon: Clock },
-          { id: 'perfil', label: 'Perfil', icon: Smartphone },
-          { id: 'ofertas', label: 'Ofertas', icon: Zap },
-          { id: 'multimedia', label: 'Media', icon: ImageIcon },
-          { id: 'impacto', label: 'Impacto', icon: TrendingUp },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id as Tab)}
-            className={cn(
-              "flex items-center gap-2 px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all whitespace-nowrap",
-              activeTab === tab.id 
-                ? "bg-primary text-white shadow-lg shadow-primary/20 scale-105" 
-                : "bg-transparent text-muted hover:bg-gray-50"
-            )}
-          >
-            <tab.icon className="w-4 h-4" />
-            {tab.label}
-          </button>
-        ))}
-      </nav>
+      {/* Main Content */}
 
       {/* Main Content */}
       <div className="max-w-2xl mx-auto w-full">

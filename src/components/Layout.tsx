@@ -19,7 +19,19 @@ import {
   Zap,
   DollarSign,
   Building2,
-  MessageSquare
+  MessageSquare,
+  TrendingUp,
+  Users,
+  MapPin,
+  RotateCcw,
+  FileText,
+  ImageIcon,
+  Clock,
+  Smartphone,
+  Calendar,
+  Phone,
+  Activity,
+  Database
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
@@ -30,13 +42,55 @@ interface LayoutProps {
   children: React.ReactNode;
 }
 
-const NAV_ITEMS = [
-  { id: 'home', label: 'Home', icon: Home, path: '/' },
-  { id: 'hotel', label: 'Hotel', icon: Hotel, path: '/hotel' },
-  { id: 'negocio', label: 'Negocio', icon: Store, path: '/negocio' },
-  { id: 'agencia', label: 'Agencia', icon: ShieldCheck, path: '/admin-agencia' },
-  { id: 'clasificados', label: 'Casas', icon: Palmtree, path: '/clasificados' },
-];
+const getNavItems = (pathname: string) => {
+  if (pathname.includes('/admin-agencia')) {
+    return [
+      { id: 'dashboard', label: 'Dashboard', icon: Grid, path: '/admin-agencia' },
+      { id: 'afiliados', label: 'Afiliados', icon: Users, path: '/admin-agencia?tab=afiliados' },
+      { id: 'zonas', label: 'Zonas', icon: MapPin, path: '/admin-agencia?tab=zonas' },
+      { id: 'pagos', label: 'Pagos', icon: DollarSign, path: '/admin-agencia?tab=pagos' },
+    ];
+  }
+  if (pathname.includes('/hotel')) {
+    return [
+      { id: 'inventario', label: 'Inventario', icon: RotateCcw, path: '/hotel?tab=inventario' },
+      { id: 'perfil', label: 'Perfil', icon: FileText, path: '/hotel?tab=perfil' },
+      { id: 'galeria', label: 'Galería', icon: ImageIcon, path: '/hotel?tab=galeria' },
+      { id: 'promociones', label: 'Promos', icon: Zap, path: '/hotel?tab=promociones' },
+    ];
+  }
+  if (pathname.includes('/negocio')) {
+    return [
+      { id: 'estado', label: 'Estado', icon: Clock, path: '/negocio?tab=estado' },
+      { id: 'perfil', label: 'Perfil', icon: Smartphone, path: '/negocio?tab=perfil' },
+      { id: 'ofertas', label: 'Ofertas', icon: Zap, path: '/negocio?tab=ofertas' },
+      { id: 'multimedia', label: 'Media', icon: ImageIcon, path: '/negocio?tab=multimedia' },
+      { id: 'impacto', label: 'Impacto', icon: TrendingUp, path: '/negocio?tab=impacto' },
+    ];
+  }
+  if (pathname.includes('/clasificados')) {
+    return [
+      { id: 'dashboard', label: 'Dashboard', icon: Home, path: '/clasificados?tab=dashboard' },
+      { id: 'propiedad', label: 'Propiedad', icon: Building2, path: '/clasificados?tab=propiedad' },
+      { id: 'disponibilidad', label: 'Disponibilidad', icon: Calendar, path: '/clasificados?tab=disponibilidad' },
+      { id: 'contacto', label: 'Contacto', icon: Phone, path: '/clasificados?tab=contacto' },
+    ];
+  }
+  if (pathname.includes('/admin-dev')) {
+    return [
+      { id: 'master', label: 'Master', icon: Zap, path: '/admin-dev' },
+      { id: 'logs', label: 'Logs', icon: Activity, path: '/admin-dev?tab=logs' },
+      { id: 'config', label: 'Config', icon: Settings, path: '/admin-dev?tab=config' },
+    ];
+  }
+  // Default (Cliente)
+  return [
+    { id: 'explorar', label: 'Explorar', icon: Home, path: '/' },
+    { id: 'favoritos', label: 'Favoritos', icon: Heart, path: '/favoritos' },
+    { id: 'reservas', label: 'Reservas', icon: Bookmark, path: '/reservas' },
+    { id: 'perfil', label: 'Perfil', icon: User, path: '/perfil' },
+  ];
+};
 
 export function Layout({ children }: LayoutProps) {
   const navigate = useNavigate();
@@ -45,7 +99,13 @@ export function Layout({ children }: LayoutProps) {
   const [isNotifOpen, setIsNotifOpen] = React.useState(false);
   const { notifications, unreadCount, markAsRead } = useNotifications();
 
+  const navItems = getNavItems(location.pathname);
   const isAdmin = location.pathname.includes('admin') || location.pathname.includes('agencia');
+
+  const isActive = (path: string) => {
+    if (path === '/') return location.pathname === '/';
+    return location.pathname + location.search === path;
+  };
 
   return (
     <div className="min-h-screen bg-bg flex flex-col lg:flex-row font-sans selection:bg-primary/30">
@@ -66,7 +126,7 @@ export function Layout({ children }: LayoutProps) {
         </motion.div>
 
         <nav className="flex-1 space-y-3">
-          {NAV_ITEMS.map((item, index) => (
+          {navItems.map((item, index) => (
             <motion.button
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -75,12 +135,12 @@ export function Layout({ children }: LayoutProps) {
               onClick={() => navigate(item.path)}
               className={cn(
                 "w-full flex items-center gap-4 px-5 py-4 rounded-[1.5rem] transition-all font-black text-sm uppercase tracking-widest group",
-                location.pathname === item.path 
+                isActive(item.path) 
                   ? "bg-primary text-white shadow-xl shadow-primary/20 scale-105" 
                   : "text-muted hover:bg-gray-50 hover:text-dark"
               )}
             >
-              <item.icon className={cn("w-5 h-5 transition-transform group-hover:scale-110", location.pathname === item.path ? "text-white" : "text-primary")} />
+              <item.icon className={cn("w-5 h-5 transition-transform group-hover:scale-110", isActive(item.path) ? "text-white" : "text-primary")} />
               {item.label}
             </motion.button>
           ))}
@@ -258,19 +318,19 @@ export function Layout({ children }: LayoutProps) {
 
       {/* Mobile Bottom Nav */}
       <nav className="lg:hidden fixed bottom-8 left-8 right-8 bg-white/90 backdrop-blur-2xl rounded-[2.5rem] p-4 flex justify-around items-center shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-white/50 z-50">
-        {NAV_ITEMS.map((item) => (
+        {navItems.map((item) => (
           <button
             key={item.id}
             onClick={() => navigate(item.path)}
             className={cn(
               "p-4 rounded-[1.5rem] transition-all relative group",
-              location.pathname === item.path 
+              isActive(item.path) 
                 ? "bg-primary text-white shadow-xl shadow-primary/30 scale-110 -translate-y-2" 
                 : "text-muted hover:text-primary"
             )}
           >
             <item.icon className="w-6 h-6" />
-            {location.pathname === item.path && (
+            {isActive(item.path) && (
               <motion.div 
                 layoutId="activeTab"
                 className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-white rounded-full"

@@ -129,7 +129,21 @@ const ZoneHeatmap = () => (
   </div>
 );
 
+import { useNavigate, useLocation } from 'react-router-dom';
+
+type Tab = 'dashboard' | 'afiliados' | 'zonas' | 'pagos';
+
 export default function AgenciaDashboard() {
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  const queryParams = new URLSearchParams(location.search);
+  const activeTab = (queryParams.get('tab') as Tab) || 'dashboard';
+
+  const setActiveTab = (tab: Tab) => {
+    navigate(`/admin-agencia?tab=${tab}`);
+  };
+
   const [filter, setFilter] = useState('all');
 
   const filteredAffiliates = useMemo(() => {
@@ -151,220 +165,211 @@ export default function AgenciaDashboard() {
         </div>
       </div>
 
-      {/* Top Summary Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <SummaryCard title="Comisiones Mes" value={42800} isCurrency trend="+15%" icon={DollarSign} />
-        <SummaryCard title="Pagos Pendientes" value={12} trend="-2" icon={Clock} />
-        <SummaryCard title="Nuevos Afiliados" value={8} trend="+4" icon={UserCheck} />
-        <SummaryCard title="Proyección Semana Santa" value={185000} isCurrency trend="+22%" icon={TrendingUp} />
-      </div>
+      {/* Main Content Sections */}
+      <AnimatePresence mode="wait">
+        {activeTab === 'dashboard' && (
+          <motion.div
+            key="dashboard"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="space-y-10"
+          >
+            {/* Top Summary Metrics */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              <SummaryCard title="Comisiones Mes" value={42800} isCurrency trend="+15%" icon={DollarSign} />
+              <SummaryCard title="Pagos Pendientes" value={12} trend="-2" icon={Clock} />
+              <SummaryCard title="Nuevos Afiliados" value={8} trend="+4" icon={UserCheck} />
+              <SummaryCard title="Proyección Semana Santa" value={185000} isCurrency trend="+22%" icon={TrendingUp} />
+            </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
-        {/* Main Analytics Column */}
-        <div className="lg:col-span-2 space-y-10">
-          <ZoneHeatmap />
-
-          {/* Affiliate Master Table */}
-          <div className="bg-white rounded-[3rem] shadow-xl shadow-black/5 border border-gray-100 overflow-hidden">
-            <div className="p-8 lg:p-10 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
-              <div>
-                <h3 className="text-sm font-black text-dark uppercase tracking-[0.2em] flex items-center gap-3">
-                  <Users className="w-6 h-6 text-primary" />
-                  Gestor de Afiliados
-                </h3>
-                <p className="text-[10px] font-bold text-muted uppercase mt-2">Control maestro de socios comerciales</p>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
+              <div className="lg:col-span-2 space-y-10">
+                <ZoneHeatmap />
               </div>
-              <div className="flex gap-2 overflow-x-auto no-scrollbar w-full sm:w-auto">
-                {['all', 'hotel', 'restaurante', 'yate', 'renta'].map((cat) => (
-                  <button
-                    key={cat}
-                    onClick={() => setFilter(cat)}
-                    className={cn(
-                      "px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border",
-                      filter === cat 
-                        ? "bg-primary text-white border-primary shadow-lg shadow-primary/20" 
-                        : "bg-gray-50 text-muted border-gray-100 hover:bg-gray-100"
-                    )}
-                  >
-                    {cat === 'all' ? 'Todos' : cat}
-                  </button>
-                ))}
-              </div>
-            </div>
-            <div className="overflow-x-auto">
-              <table className="w-full text-left">
-                <thead>
-                  <tr className="bg-gray-50/50">
-                    <th className="px-10 py-6 text-[10px] font-black text-muted uppercase tracking-widest">Establecimiento</th>
-                    <th className="px-10 py-6 text-[10px] font-black text-muted uppercase tracking-widest">Plan</th>
-                    <th className="px-10 py-6 text-[10px] font-black text-muted uppercase tracking-widest">Última Act.</th>
-                    <th className="px-10 py-6 text-[10px] font-black text-muted uppercase tracking-widest">Estado Pago</th>
-                    <th className="px-10 py-6 text-[10px] font-black text-muted uppercase tracking-widest text-right">Acciones</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-100">
-                  <AnimatePresence mode="popLayout">
-                    {filteredAffiliates.map((a) => (
-                      <motion.tr 
-                        layout
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        key={a.id} 
-                        className="hover:bg-gray-50/50 transition-colors group"
-                      >
-                        <td className="px-10 py-6">
-                          <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center group-hover:bg-white transition-colors shadow-sm group-hover:rotate-3">
-                              {a.cat === 'hotel' ? <Building2 className="w-6 h-6 text-blue-500" /> : 
-                               a.cat === 'yate' ? <Ship className="w-6 h-6 text-cyan-500" /> : 
-                               <Utensils className="w-6 h-6 text-orange-500" />}
-                            </div>
-                            <div>
-                              <p className="text-sm font-black text-dark uppercase tracking-tight">{a.name}</p>
-                              <p className="text-[10px] text-muted font-bold uppercase tracking-widest">{a.cat}</p>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-10 py-6">
-                          <span className={cn(
-                            "text-[9px] font-black px-3 py-1.5 rounded-xl uppercase tracking-widest",
-                            a.plan === 'Premium' ? "bg-amber-100 text-amber-700" : "bg-slate-100 text-slate-700"
-                          )}>
-                            {a.plan}
-                          </span>
-                        </td>
-                        <td className="px-10 py-6">
-                          <span className="text-[10px] font-bold text-muted uppercase">{a.lastUpdate}</span>
-                        </td>
-                        <td className="px-10 py-6">
-                          <div className="flex items-center gap-2">
-                            <div className={cn(
-                              "w-2 h-2 rounded-full",
-                              a.status === 'Pagado' ? "bg-emerald-500" : a.status === 'Pendiente' ? "bg-amber-500" : "bg-rose-500"
-                            )} />
-                            <span className="text-[10px] font-black text-dark uppercase tracking-widest">{a.status}</span>
-                          </div>
-                        </td>
-                        <td className="px-10 py-6 text-right">
-                          <div className="flex items-center justify-end gap-3">
-                            <button className="w-10 h-10 flex items-center justify-center text-emerald-600 hover:bg-emerald-50 rounded-2xl transition-all" title="WhatsApp">
-                              <MessageSquare className="w-5 h-5" />
-                            </button>
-                            <button className="w-10 h-10 flex items-center justify-center text-rose-600 hover:bg-rose-50 rounded-2xl transition-all" title="Suspender">
-                              <XCircle className="w-5 h-5" />
-                            </button>
-                            <button className="w-10 h-10 flex items-center justify-center text-muted hover:bg-gray-100 rounded-2xl transition-all">
-                              <MoreVertical className="w-5 h-5" />
-                            </button>
-                          </div>
-                        </td>
-                      </motion.tr>
-                    ))}
-                  </AnimatePresence>
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-
-        {/* Sidebar Analytics Column */}
-        <div className="space-y-10">
-          {/* Search Analytics */}
-          <div className="bg-white p-10 rounded-[3rem] shadow-xl shadow-black/5 border border-gray-100 space-y-8">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-black text-dark uppercase tracking-[0.2em] flex items-center gap-3">
-                <TrendingUp className="w-6 h-6 text-primary" />
-                Tendencias Hoy
-              </h3>
-              <Calendar className="w-5 h-5 text-muted" />
-            </div>
-            
-            <div className="space-y-6">
-              {TOP_CATEGORIES.map((cat, i) => (
-                <div key={cat.id} className="space-y-3">
+              <div className="space-y-10">
+                <div className="bg-white p-10 rounded-[3rem] shadow-xl shadow-black/5 border border-gray-100 space-y-8">
                   <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <span className="text-xs font-black text-gray-200">0{i+1}</span>
-                      <div className={cn("w-10 h-10 rounded-2xl flex items-center justify-center bg-gray-50 shadow-sm", cat.color)}>
-                        <cat.icon className="w-5 h-5" />
+                    <h3 className="text-sm font-black text-dark uppercase tracking-[0.2em] flex items-center gap-3">
+                      <TrendingUp className="w-6 h-6 text-primary" />
+                      Tendencias Hoy
+                    </h3>
+                    <Calendar className="w-5 h-5 text-muted" />
+                  </div>
+                  <div className="space-y-6">
+                    {TOP_CATEGORIES.map((cat, i) => (
+                      <div key={cat.id} className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-4">
+                            <span className="text-xs font-black text-gray-200">0{i+1}</span>
+                            <div className={cn("w-10 h-10 rounded-2xl flex items-center justify-center bg-gray-50 shadow-sm", cat.color)}>
+                              <cat.icon className="w-5 h-5" />
+                            </div>
+                            <span className="text-xs font-black text-dark uppercase tracking-tight">{cat.label}</span>
+                          </div>
+                          <div className="text-right">
+                            <p className="text-xs font-black text-dark">{cat.clics}</p>
+                            <p className="text-[10px] font-black text-emerald-500 uppercase">{cat.trend}</p>
+                          </div>
+                        </div>
+                        <div className="h-2 bg-gray-50 rounded-full overflow-hidden">
+                          <motion.div 
+                            initial={{ width: 0 }}
+                            animate={{ width: `${(cat.clics / 500) * 100}%` }}
+                            transition={{ duration: 1, delay: i * 0.1 }}
+                            className={cn("h-full rounded-full", cat.color.replace('text', 'bg'))}
+                          />
+                        </div>
                       </div>
-                      <span className="text-xs font-black text-dark uppercase tracking-tight">{cat.label}</span>
-                    </div>
-                    <div className="text-right">
-                      <p className="text-xs font-black text-dark">{cat.clics}</p>
-                      <p className="text-[10px] font-black text-emerald-500 uppercase">{cat.trend}</p>
-                    </div>
-                  </div>
-                  <div className="h-2 bg-gray-50 rounded-full overflow-hidden">
-                    <motion.div 
-                      initial={{ width: 0 }}
-                      animate={{ width: `${(cat.clics / 500) * 100}%` }}
-                      transition={{ duration: 1, delay: i * 0.1 }}
-                      className={cn("h-full rounded-full", cat.color.replace('text', 'bg'))}
-                    />
+                    ))}
                   </div>
                 </div>
-              ))}
+              </div>
             </div>
+          </motion.div>
+        )}
 
-            <button className="w-full py-5 bg-gray-50 text-dark rounded-[1.5rem] font-black text-[10px] uppercase tracking-widest hover:bg-primary hover:text-white transition-all border border-gray-100">
-              Ver Reporte Completo
-            </button>
-          </div>
+        {activeTab === 'afiliados' && (
+          <motion.div
+            key="afiliados"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+          >
+            {/* Affiliate Master Table */}
+            <div className="bg-white rounded-[3rem] shadow-xl shadow-black/5 border border-gray-100 overflow-hidden">
+              <div className="p-8 lg:p-10 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
+                <div>
+                  <h3 className="text-sm font-black text-dark uppercase tracking-[0.2em] flex items-center gap-3">
+                    <Users className="w-6 h-6 text-primary" />
+                    Gestor de Afiliados
+                  </h3>
+                  <p className="text-[10px] font-bold text-muted uppercase mt-2">Control maestro de socios comerciales</p>
+                </div>
+                <div className="flex gap-2 overflow-x-auto no-scrollbar w-full sm:w-auto">
+                  {['all', 'hotel', 'restaurante', 'yate', 'renta'].map((cat) => (
+                    <button
+                      key={cat}
+                      onClick={() => setFilter(cat)}
+                      className={cn(
+                        "px-5 py-2.5 rounded-2xl text-[10px] font-black uppercase tracking-widest transition-all border",
+                        filter === cat 
+                          ? "bg-primary text-white border-primary shadow-lg shadow-primary/20" 
+                          : "bg-gray-50 text-muted border-gray-100 hover:bg-gray-100"
+                      )}
+                    >
+                      {cat === 'all' ? 'Todos' : cat}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="bg-gray-50/50">
+                      <th className="px-10 py-6 text-[10px] font-black text-muted uppercase tracking-widest">Establecimiento</th>
+                      <th className="px-10 py-6 text-[10px] font-black text-muted uppercase tracking-widest">Plan</th>
+                      <th className="px-10 py-6 text-[10px] font-black text-muted uppercase tracking-widest">Última Act.</th>
+                      <th className="px-10 py-6 text-[10px] font-black text-muted uppercase tracking-widest">Estado Pago</th>
+                      <th className="px-10 py-6 text-[10px] font-black text-muted uppercase tracking-widest text-right">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    <AnimatePresence mode="popLayout">
+                      {filteredAffiliates.map((a) => (
+                        <motion.tr 
+                          layout
+                          initial={{ opacity: 0 }}
+                          animate={{ opacity: 1 }}
+                          exit={{ opacity: 0 }}
+                          key={a.id} 
+                          className="hover:bg-gray-50/50 transition-colors group"
+                        >
+                          <td className="px-10 py-6">
+                            <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 rounded-2xl bg-gray-100 flex items-center justify-center group-hover:bg-white transition-colors shadow-sm group-hover:rotate-3">
+                                {a.cat === 'hotel' ? <Building2 className="w-6 h-6 text-blue-500" /> : 
+                                 a.cat === 'yate' ? <Ship className="w-6 h-6 text-cyan-500" /> : 
+                                 <Utensils className="w-6 h-6 text-orange-500" />}
+                              </div>
+                              <div>
+                                <p className="text-sm font-black text-dark uppercase tracking-tight">{a.name}</p>
+                                <p className="text-[10px] text-muted font-bold uppercase tracking-widest">{a.cat}</p>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="px-10 py-6">
+                            <span className={cn(
+                              "text-[9px] font-black px-3 py-1.5 rounded-xl uppercase tracking-widest",
+                              a.plan === 'Premium' ? "bg-amber-100 text-amber-700" : "bg-slate-100 text-slate-700"
+                            )}>
+                              {a.plan}
+                            </span>
+                          </td>
+                          <td className="px-10 py-6">
+                            <span className="text-[10px] font-bold text-muted uppercase">{a.lastUpdate}</span>
+                          </td>
+                          <td className="px-10 py-6">
+                            <div className="flex items-center gap-2">
+                              <div className={cn(
+                                "w-2 h-2 rounded-full",
+                                a.status === 'Pagado' ? "bg-emerald-500" : a.status === 'Pendiente' ? "bg-amber-500" : "bg-rose-500"
+                              )} />
+                              <span className="text-[10px] font-black text-dark uppercase tracking-widest">{a.status}</span>
+                            </div>
+                          </td>
+                          <td className="px-10 py-6 text-right">
+                            <div className="flex items-center justify-end gap-3">
+                              <button className="w-10 h-10 flex items-center justify-center text-emerald-600 hover:bg-emerald-50 rounded-2xl transition-all" title="WhatsApp">
+                                <MessageSquare className="w-5 h-5" />
+                              </button>
+                              <button className="w-10 h-10 flex items-center justify-center text-rose-600 hover:bg-rose-50 rounded-2xl transition-all" title="Suspender">
+                                <XCircle className="w-5 h-5" />
+                              </button>
+                              <button className="w-10 h-10 flex items-center justify-center text-muted hover:bg-gray-100 rounded-2xl transition-all">
+                                <MoreVertical className="w-5 h-5" />
+                              </button>
+                            </div>
+                          </td>
+                        </motion.tr>
+                      ))}
+                    </AnimatePresence>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </motion.div>
+        )}
 
-          {/* Live Activity Log */}
-          <div className="bg-white p-10 rounded-[3rem] shadow-xl shadow-black/5 border border-gray-100 space-y-8">
-            <h3 className="text-sm font-black text-dark uppercase tracking-[0.2em] flex items-center gap-3">
-              <Activity className="w-6 h-6 text-rose-500" />
-              Actividad en Vivo
-            </h3>
-            
-            <div className="space-y-8 relative">
-              <div className="absolute left-5 top-2 bottom-2 w-px bg-gray-100" />
-              {ACTIVITY_LOG.map((log) => (
-                <div key={log.id} className="flex gap-5 relative">
-                  <div className={cn(
-                    "w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 z-10 border-4 border-white shadow-lg",
-                    log.type === 'status' ? "bg-blue-500" : log.type === 'promo' ? "bg-amber-500" : "bg-emerald-500"
-                  )}>
-                    {log.type === 'status' ? <Clock className="w-4 h-4 text-white" /> : 
-                     log.type === 'promo' ? <Zap className="w-4 h-4 text-white" /> : 
-                     <PlusIcon className="w-4 h-4 text-white" />}
-                  </div>
-                  <div>
-                    <p className="text-sm font-black text-dark leading-tight uppercase tracking-tight">{log.text}</p>
-                    <p className="text-[10px] font-black text-muted uppercase mt-2 tracking-widest">{log.time}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+        {activeTab === 'zonas' && (
+          <motion.div
+            key="zonas"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+          >
+            <ZoneHeatmap />
+          </motion.div>
+        )}
 
-          {/* Quick Actions Card */}
-          <div className="bg-dark rounded-[3rem] p-10 text-white space-y-8 shadow-2xl shadow-dark/20 relative overflow-hidden">
-            <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl" />
-            <div className="space-y-2 relative z-10">
-              <h4 className="text-xs font-black uppercase tracking-[0.3em] text-primary">Acciones de Agencia</h4>
-              <p className="text-[10px] text-white/40 font-bold uppercase tracking-widest">Gestión rápida de inventario</p>
+        {activeTab === 'pagos' && (
+          <motion.div
+            key="pagos"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="bg-white p-10 rounded-[3rem] shadow-xl border border-gray-100 text-center space-y-6"
+          >
+            <div className="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-[2rem] flex items-center justify-center mx-auto">
+              <DollarSign className="w-10 h-10" />
             </div>
-            <div className="grid grid-cols-1 gap-4 relative z-10">
-              <button className="w-full p-5 bg-white/5 hover:bg-white/10 rounded-[1.5rem] text-left transition-all border border-white/5 group">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-black uppercase tracking-widest">Validar Cobranza Masiva</span>
-                  <DollarSign className="w-5 h-5 text-primary group-hover:scale-110 transition-transform" />
-                </div>
-              </button>
-              <button className="w-full p-5 bg-white/5 hover:bg-white/10 rounded-[1.5rem] text-left transition-all border border-white/5 group">
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-black uppercase tracking-widest">Exportar Leads Hoy</span>
-                  <ArrowUpRight className="w-5 h-5 text-primary group-hover:scale-110 transition-transform" />
-                </div>
-              </button>
+            <div>
+              <h3 className="text-xl font-black text-dark uppercase tracking-tight">Gestión de Pagos</h3>
+              <p className="text-xs text-muted font-bold uppercase tracking-widest mt-2">Próximamente: Pasarela de cobro integrada</p>
             </div>
-          </div>
-        </div>
-      </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
