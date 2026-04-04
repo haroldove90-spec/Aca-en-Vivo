@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
 import { onAuthStateChanged } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, db } from './lib/firebase';
@@ -55,6 +55,41 @@ function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode,
   return children;
 }
 
+function NavSwitcher() {
+  const navigate = useNavigate();
+  
+  return (
+    <div className="fixed top-4 right-4 z-[100] flex flex-col gap-2">
+      <div className="bg-[#142850]/80 backdrop-blur-md p-1.5 rounded-2xl border border-white/10 shadow-2xl flex flex-col gap-1">
+        <button 
+          onClick={() => navigate('/')} 
+          className="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-[#00A8CC] hover:bg-white/5 transition-colors"
+        >
+          Feed Cliente
+        </button>
+        <button 
+          onClick={() => navigate('/hotel')} 
+          className="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-white hover:bg-white/5 transition-colors"
+        >
+          Panel Hotel
+        </button>
+        <button 
+          onClick={() => navigate('/admin')} 
+          className="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-gray-400 hover:bg-white/5 transition-colors"
+        >
+          Admin
+        </button>
+        <button 
+          onClick={() => navigate('/admin-dev')} 
+          className="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-yellow-400 hover:bg-white/5 transition-colors"
+        >
+          Dev Master
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function App() {
   return (
     <Router>
@@ -101,39 +136,10 @@ function App() {
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
 
-        {/* Prototype Navigation Switcher */}
-        <div className="fixed top-4 right-4 z-[100] flex flex-col gap-2">
-          <div className="bg-[#142850]/80 backdrop-blur-md p-1.5 rounded-2xl border border-white/10 shadow-2xl flex flex-col gap-1">
-            <button 
-              onClick={() => window.location.href = '/'} 
-              className="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-[#00A8CC] hover:bg-white/5 transition-colors"
-            >
-              Feed Cliente
-            </button>
-            <button 
-              onClick={() => window.location.href = '/hotel'} 
-              className="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-white hover:bg-white/5 transition-colors"
-            >
-              Panel Hotel
-            </button>
-            <button 
-              onClick={() => window.location.href = '/admin'} 
-              className="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-gray-400 hover:bg-white/5 transition-colors"
-            >
-              Admin
-            </button>
-            <button 
-              onClick={() => window.location.href = '/admin-dev'} 
-              className="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-yellow-400 hover:bg-white/5 transition-colors"
-            >
-              Dev Master
-            </button>
-          </div>
-        </div>
+        <NavSwitcher />
       </div>
     </Router>
   );
 }
 
 export default App;
-
