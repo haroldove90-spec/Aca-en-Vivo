@@ -11,6 +11,7 @@ import NegocioDashboard from './pages/negocio/Dashboard';
 import ClasificadosDashboard from './pages/clasificados/Dashboard';
 import { Loader2 } from 'lucide-react';
 import { Layout } from './components/Layout';
+import { NotificationProvider } from './contexts/NotificationContext';
 
 // --- Route Guard Component ---
 function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode, allowedRoles: string[] }) {
@@ -108,79 +109,81 @@ function NavSwitcher() {
 
 function App() {
   return (
-    <Router>
-      <div className="min-h-screen bg-bg font-sans">
-        <Routes>
-          {/* Public Feed */}
-          <Route path="/" element={<ClienteFeed />} />
-          
-          {/* Hotel Dashboard (Protected) */}
-          <Route 
-            path="/hotel" 
-            element={
-              <ProtectedRoute allowedRoles={['hotel', 'admin']}>
-                <Layout>
-                  <HotelDashboard />
-                </Layout>
-              </ProtectedRoute>
-            } 
-          />
-          
-          {/* Admin Agencia Panel (Protected) */}
-          <Route 
-            path="/admin-agencia" 
-            element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <Layout>
-                  <AgenciaDashboard />
-                </Layout>
-              </ProtectedRoute>
-            } 
-          />
+    <NotificationProvider>
+      <Router>
+        <div className="min-h-screen bg-bg font-sans">
+          <Routes>
+            {/* Public Feed */}
+            <Route path="/" element={<ClienteFeed />} />
+            
+            {/* Hotel Dashboard (Protected) */}
+            <Route 
+              path="/hotel" 
+              element={
+                <ProtectedRoute allowedRoles={['hotel', 'admin']}>
+                  <Layout>
+                    <HotelDashboard />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
+            
+            {/* Admin Agencia Panel (Protected) */}
+            <Route 
+              path="/admin-agencia" 
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <Layout>
+                    <AgenciaDashboard />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
 
-          {/* Negocio Panel (Protected) */}
-          <Route 
-            path="/negocio" 
-            element={
-              <ProtectedRoute allowedRoles={['negocio', 'admin']}>
-                <Layout>
-                  <NegocioDashboard />
-                </Layout>
-              </ProtectedRoute>
-            } 
-          />
+            {/* Negocio Panel (Protected) */}
+            <Route 
+              path="/negocio" 
+              element={
+                <ProtectedRoute allowedRoles={['negocio', 'admin']}>
+                  <Layout>
+                    <NegocioDashboard />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
 
-          {/* Dev Dashboard (Protected) */}
-          <Route 
-            path="/admin-dev" 
-            element={
-              <ProtectedRoute allowedRoles={['admin']}>
-                <Layout>
-                  <DevDashboard />
-                </Layout>
-              </ProtectedRoute>
-            } 
-          />
+            {/* Dev Dashboard (Protected) */}
+            <Route 
+              path="/admin-dev" 
+              element={
+                <ProtectedRoute allowedRoles={['admin']}>
+                  <Layout>
+                    <DevDashboard />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
 
-          {/* Clasificados Dashboard (Protected) */}
-          <Route 
-            path="/clasificados" 
-            element={
-              <ProtectedRoute allowedRoles={['clasificados', 'admin']}>
-                <Layout>
-                  <ClasificadosDashboard />
-                </Layout>
-              </ProtectedRoute>
-            } 
-          />
+            {/* Clasificados Dashboard (Protected) */}
+            <Route 
+              path="/clasificados" 
+              element={
+                <ProtectedRoute allowedRoles={['clasificados', 'admin']}>
+                  <Layout>
+                    <ClasificadosDashboard />
+                  </Layout>
+                </ProtectedRoute>
+              } 
+            />
 
-          {/* Fallback */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
+            {/* Fallback */}
+            <Route path="*" element={<Navigate to="/" replace />} />
+          </Routes>
 
-        <NavSwitcher />
-      </div>
-    </Router>
+          <NavSwitcher />
+        </div>
+      </Router>
+    </NotificationProvider>
   );
 }
 

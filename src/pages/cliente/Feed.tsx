@@ -26,6 +26,7 @@ import { useRealtimeAvailability } from '../../hooks/useRealtimeAvailability';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { Layout } from '../../components/Layout';
+import { DemoAccess } from '../../components/DemoAccess';
 
 // --- Categories Definition ---
 const CATEGORIES = [
@@ -224,6 +225,9 @@ export default function ClienteFeed() {
             </div>
           )}
         </section>
+
+        {/* Demo Access Section */}
+        <DemoAccess />
       </div>
     </Layout>
   );

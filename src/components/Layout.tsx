@@ -15,10 +15,16 @@ import {
   X,
   Hotel,
   Store,
-  ShieldCheck
+  ShieldCheck,
+  Zap,
+  DollarSign,
+  Building2,
+  MessageSquare
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
+import { useNotifications } from '../contexts/NotificationContext';
+import { SupportChat } from './SupportChat';
 
 interface LayoutProps {
   children: React.ReactNode;
@@ -36,6 +42,10 @@ export function Layout({ children }: LayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
+  const [isNotifOpen, setIsNotifOpen] = React.useState(false);
+  const { notifications, unreadCount, markAsRead } = useNotifications();
+
+  const isAdmin = location.pathname.includes('admin') || location.pathname.includes('agencia');
 
   return (
     <div className="min-h-screen bg-bg flex flex-col lg:flex-row font-sans selection:bg-primary/30">
@@ -105,9 +115,14 @@ export function Layout({ children }: LayoutProps) {
             </div>
           </div>
           <div className="flex gap-3">
-            <button className="w-12 h-12 bg-white/20 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-white/30 relative shadow-lg">
+            <button 
+              onClick={() => setIsNotifOpen(!isNotifOpen)}
+              className="w-12 h-12 bg-white/20 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-white/30 relative shadow-lg"
+            >
               <Bell className="w-6 h-6" />
-              <div className="absolute top-3 right-3 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-primary" />
+              {unreadCount > 0 && (
+                <div className="absolute top-3 right-3 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-primary" />
+              )}
             </button>
           </div>
         </div>
@@ -141,10 +156,77 @@ export function Layout({ children }: LayoutProps) {
             />
           </div>
           <div className="flex items-center gap-8 ml-12">
-            <button className="relative text-muted hover:text-primary transition-all hover:scale-110">
-              <Bell className="w-7 h-7" />
-              <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-rose-500 rounded-full border-2 border-white" />
-            </button>
+            <div className="relative">
+              <button 
+                onClick={() => setIsNotifOpen(!isNotifOpen)}
+                className="relative text-muted hover:text-primary transition-all hover:scale-110"
+              >
+                <Bell className="w-7 h-7" />
+                {unreadCount > 0 && (
+                  <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-rose-500 rounded-full border-2 border-white flex items-center justify-center text-[8px] font-black text-white">
+                    {unreadCount}
+                  </div>
+                )}
+              </button>
+
+              {/* Notification Panel */}
+              <AnimatePresence>
+                {isNotifOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                    className="absolute right-0 mt-6 w-96 bg-white rounded-[2.5rem] shadow-[0_30px_100px_rgba(0,0,0,0.15)] border border-gray-100 overflow-hidden z-50"
+                  >
+                    <div className="p-8 border-b border-gray-100 flex items-center justify-between">
+                      <h3 className="text-sm font-black text-dark uppercase tracking-[0.2em]">Notificaciones</h3>
+                      <span className="text-[10px] font-black text-primary uppercase tracking-widest">{unreadCount} Nuevas</span>
+                    </div>
+                    <div className="max-h-[400px] overflow-y-auto no-scrollbar">
+                      {notifications.length === 0 ? (
+                        <div className="p-12 text-center space-y-4">
+                          <Bell className="w-10 h-10 text-gray-100 mx-auto" />
+                          <p className="text-[10px] font-black text-muted uppercase tracking-widest">Sin notificaciones</p>
+                        </div>
+                      ) : (
+                        notifications.map((n) => (
+                          <button
+                            key={n.id}
+                            onClick={() => markAsRead(n.id)}
+                            className={cn(
+                              "w-full p-6 flex gap-4 text-left hover:bg-gray-50 transition-colors border-b border-gray-50 last:border-0",
+                              !n.read && "bg-primary/5"
+                            )}
+                          >
+                            <div className={cn(
+                              "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
+                              n.type === 'registration' ? "bg-blue-100 text-blue-600" :
+                              n.type === 'payment' ? "bg-emerald-100 text-emerald-600" :
+                              n.type === 'message' ? "bg-amber-100 text-amber-600" :
+                              "bg-gray-100 text-gray-600"
+                            )}>
+                              {n.type === 'registration' ? <Building2 className="w-5 h-5" /> :
+                               n.type === 'payment' ? <DollarSign className="w-5 h-5" /> :
+                               n.type === 'message' ? <MessageSquare className="w-5 h-5" /> :
+                               <Zap className="w-5 h-5" />}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-xs font-black text-dark uppercase tracking-tight truncate">{n.title}</p>
+                              <p className="text-[11px] font-bold text-muted mt-1 line-clamp-2">{n.body}</p>
+                              <p className="text-[9px] font-black text-primary uppercase tracking-widest mt-2">Hace 5 min</p>
+                            </div>
+                            {!n.read && <div className="w-2 h-2 bg-primary rounded-full mt-2" />}
+                          </button>
+                        ))
+                      )}
+                    </div>
+                    <button className="w-full p-6 bg-gray-50 text-dark font-black text-[10px] uppercase tracking-widest hover:bg-primary hover:text-white transition-all">
+                      Ver Todo el Historial
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
             <div className="flex items-center gap-4 pl-8 border-l border-gray-100">
               <div className="text-right">
                 <p className="text-sm font-black text-dark tracking-tight leading-none">Jack Fitzgerald</p>
@@ -171,6 +253,8 @@ export function Layout({ children }: LayoutProps) {
           </motion.div>
         </div>
       </main>
+
+      <SupportChat isAdmin={isAdmin} />
 
       {/* Mobile Bottom Nav */}
       <nav className="lg:hidden fixed bottom-8 left-8 right-8 bg-white/90 backdrop-blur-2xl rounded-[2.5rem] p-4 flex justify-around items-center shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-white/50 z-50">
