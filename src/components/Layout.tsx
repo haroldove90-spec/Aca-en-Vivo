@@ -47,7 +47,7 @@ interface LayoutProps {
 }
 
 const getNavItems = (pathname: string) => {
-  if (pathname.includes('/admin-agencia')) {
+  if (pathname.startsWith('/admin-agencia')) {
     return [
       { id: 'dashboard', label: 'Panel', icon: Grid, path: '/admin-agencia' },
       { id: 'afiliados', label: 'Afiliados', icon: Users, path: '/admin-agencia?tab=afiliados' },
@@ -55,7 +55,7 @@ const getNavItems = (pathname: string) => {
       { id: 'pagos', label: 'Pagos', icon: DollarSign, path: '/admin-agencia?tab=pagos' },
     ];
   }
-  if (pathname.includes('/hotel')) {
+  if (pathname.startsWith('/hotel')) {
     return [
       { id: 'inventario', label: 'Inventario', icon: RotateCcw, path: '/hotel?tab=inventario' },
       { id: 'perfil', label: 'Perfil', icon: FileText, path: '/hotel?tab=perfil' },
@@ -63,7 +63,7 @@ const getNavItems = (pathname: string) => {
       { id: 'promociones', label: 'Promos', icon: Zap, path: '/hotel?tab=promociones' },
     ];
   }
-  if (pathname.includes('/negocio')) {
+  if (pathname.startsWith('/negocio')) {
     return [
       { id: 'estado', label: 'Estado', icon: Clock, path: '/negocio?tab=estado' },
       { id: 'perfil', label: 'Perfil', icon: Smartphone, path: '/negocio?tab=perfil' },
@@ -72,7 +72,7 @@ const getNavItems = (pathname: string) => {
       { id: 'impacto', label: 'Impacto', icon: TrendingUp, path: '/negocio?tab=impacto' },
     ];
   }
-  if (pathname.includes('/clasificados')) {
+  if (pathname.startsWith('/clasificados')) {
     return [
       { id: 'dashboard', label: 'Panel', icon: Home, path: '/clasificados?tab=dashboard' },
       { id: 'propiedad', label: 'Propiedad', icon: Building2, path: '/clasificados?tab=propiedad' },
@@ -80,7 +80,7 @@ const getNavItems = (pathname: string) => {
       { id: 'contacto', label: 'Contacto', icon: Phone, path: '/clasificados?tab=contacto' },
     ];
   }
-  if (pathname.includes('/admin-dev')) {
+  if (pathname.startsWith('/admin-dev')) {
     return [
       { id: 'master', label: 'Master', icon: Zap, path: '/admin-dev' },
       { id: 'logs', label: 'Logs', icon: Activity, path: '/admin-dev?tab=logs' },
@@ -90,11 +90,11 @@ const getNavItems = (pathname: string) => {
   // Default (Cliente)
   return [
     { id: 'explorar', label: 'Inicio', icon: Home, path: '/' },
-    { id: 'hoteles', label: 'Hoteles', icon: Hotel, path: '/?cat=hotel' },
-    { id: 'clasificados', label: 'Rentas', icon: Building2, path: '/?cat=clasificados' },
     { id: 'favoritos', label: 'Favoritos', icon: Heart, path: '/favoritos' },
     { id: 'reservas', label: 'Reservas', icon: Bookmark, path: '/reservas' },
     { id: 'perfil', label: 'Perfil', icon: User, path: '/perfil' },
+    { id: 'clasificados', label: 'Rentas', icon: Building2, path: '/?cat=clasificados' },
+    { id: 'hoteles', label: 'Hoteles', icon: Hotel, path: '/?cat=hotel' },
     { id: 'settings', label: 'Ajustes', icon: Settings, path: '/settings' },
   ];
 };
