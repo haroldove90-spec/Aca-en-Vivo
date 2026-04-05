@@ -178,47 +178,41 @@ export function Layout({ children }: LayoutProps) {
       </aside>
 
       {/* Mobile/Tablet Top Nav */}
-      <header className="lg:hidden bg-white/80 backdrop-blur-xl border-b border-gray-100 px-6 py-4 sticky top-0 z-50">
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl overflow-hidden border border-gray-100 shadow-sm">
-              <img 
-                src="https://api.dicebear.com/7.x/avataaars/svg?seed=Jack" 
-                alt="User" 
-                className="w-full h-full object-cover"
-              />
+      <header className="lg:hidden bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-50 shadow-md">
+        <div className="flex items-center justify-between gap-3">
+          {/* App Logo & Name */}
+          <div className="flex items-center gap-2 shrink-0">
+            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-lg shadow-primary/20">
+              <Palmtree className="w-5 h-5 text-white" />
             </div>
-            <div className="hidden sm:block">
-              <p className="text-[8px] font-black text-muted uppercase tracking-widest leading-none">Hola,</p>
-              <h2 className="text-sm font-black text-dark tracking-tight">Jack Fitzgerald</h2>
-            </div>
+            <h1 className="text-sm font-black text-dark tracking-tighter uppercase leading-none">AcaEnVivo</h1>
           </div>
 
           {/* Minimalist Search Bar */}
-          <div className="flex-1 relative group max-w-xs">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted group-focus-within:text-primary transition-colors" />
+          <div className="flex-1 relative group max-w-[140px] sm:max-w-xs">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted group-focus-within:text-primary transition-colors" />
             <input 
               type="text" 
               placeholder="Buscar..."
-              className="w-full bg-gray-50 text-dark rounded-xl py-2.5 pl-10 pr-4 text-xs font-bold placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary/10 border border-transparent focus:border-primary/20 transition-all"
+              className="w-full bg-gray-100 text-dark rounded-lg py-2 pl-8 pr-3 text-[10px] font-bold placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary/10 border border-transparent focus:border-primary/20 transition-all"
             />
           </div>
 
-          <div className="flex gap-2">
+          <div className="flex gap-1.5 shrink-0">
             <button 
               onClick={() => setIsNotifOpen(!isNotifOpen)}
-              className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100 relative text-muted"
+              className="w-9 h-9 bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200 relative text-muted"
             >
-              <Bell className="w-5 h-5" />
+              <Bell className="w-4.5 h-4.5" />
               {unreadCount > 0 && (
-                <div className="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white" />
+                <div className="absolute top-2 right-2 w-1.5 h-1.5 bg-rose-500 rounded-full border border-white" />
               )}
             </button>
             <button 
               onClick={handleLogout}
-              className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100 text-rose-500 hover:bg-rose-50 transition-all"
+              className="w-9 h-9 bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200 text-rose-500 hover:bg-rose-50 transition-all"
             >
-              <LogOut className="w-5 h-5" />
+              <LogOut className="w-4.5 h-4.5" />
             </button>
           </div>
         </div>
