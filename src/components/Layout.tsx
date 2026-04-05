@@ -36,6 +36,7 @@ import {
 import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNotifications } from '../contexts/NotificationContext';
+import { useSearch } from '../contexts/SearchContext';
 import { SupportChat } from './SupportChat';
 
 import { auth } from '../lib/firebase';
@@ -104,6 +105,7 @@ export function Layout({ children }: LayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const [isNotifOpen, setIsNotifOpen] = React.useState(false);
   const { notifications, unreadCount, markAsRead } = useNotifications();
+  const { searchQuery, setSearchQuery } = useSearch();
 
   const navItems = getNavItems(location.pathname);
   const isAdmin = location.pathname.includes('admin') || location.pathname.includes('agencia');
@@ -194,6 +196,8 @@ export function Layout({ children }: LayoutProps) {
             <input 
               type="text" 
               placeholder="Buscar..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-gray-100 text-dark rounded-none py-2 pl-8 pr-3 text-[10px] font-bold placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary/10 border border-transparent focus:border-primary/20 transition-all"
             />
           </div>
@@ -227,6 +231,8 @@ export function Layout({ children }: LayoutProps) {
             <input 
               type="text" 
               placeholder="Buscar destinos, hoteles, experiencias..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               className="w-full bg-gray-50 rounded-none py-2.5 pl-14 pr-4 text-sm font-bold placeholder:text-muted focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all border border-transparent focus:border-primary/10"
             />
           </div>

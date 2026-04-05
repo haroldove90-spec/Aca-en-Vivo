@@ -1,4 +1,10 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
+import { 
+  collection,
+  onSnapshot,
+  query
+} from 'firebase/firestore';
+import { db } from '../../lib/firebase';
 import { 
   DollarSign, 
   Clock, 
@@ -198,11 +204,38 @@ export default function AgenciaDashboard() {
 
   const [filter, setFilter] = useState('all');
   const [selectedHotel, setSelectedHotel] = useState<any>(null);
+  const [realInventory, setRealInventory] = useState<Record<string, any>>({});
+
+  useEffect(() => {
+    const q = query(collection(db, 'inventario_hotel'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const inventory: Record<string, any> = {};
+      snapshot.forEach((doc) => {
+        inventory[doc.id] = doc.data();
+      });
+      setRealInventory(inventory);
+    });
+    return () => unsubscribe();
+  }, []);
+
+  const affiliatesWithInventory = useMemo(() => {
+    return AFFILIATES.map(a => {
+      if (a.cat === 'hotel' && realInventory[a.id === '1' ? 'hotel-2' : 'hotel-1']) {
+        const inv = realInventory[a.id === '1' ? 'hotel-2' : 'hotel-1'];
+        return {
+          ...a,
+          lastUpdate: inv.ultima_actualizacion?.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || a.lastUpdate,
+          inventory: inv
+        };
+      }
+      return a;
+    });
+  }, [realInventory]);
 
   const filteredAffiliates = useMemo(() => {
-    if (filter === 'all') return AFFILIATES;
-    return AFFILIATES.filter(a => a.cat === filter);
-  }, [filter]);
+    if (filter === 'all') return affiliatesWithInventory;
+    return affiliatesWithInventory.filter(a => a.cat === filter);
+  }, [filter, affiliatesWithInventory]);
 
   return (
     <div className="space-y-10">
@@ -456,20 +489,22 @@ export default function AgenciaDashboard() {
               </div>
               
               <div className="p-8 space-y-8">
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="p-4 bg-gray-50 border border-gray-100 rounded-none">
-                    <p className="text-[9px] font-black text-muted uppercase tracking-widest">Total</p>
-                    <p className="text-xl font-black text-dark">{selectedHotel.rooms?.length || 0}</p>
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="p-4 bg-gray-50 border border-gray-100 rounded-none">
+                      <p className="text-[9px] font-black text-muted uppercase tracking-widest">Total</p>
+                      <p className="text-xl font-black text-dark">{selectedHotel.inventory?.habitaciones_totales || selectedHotel.rooms?.length || 0}</p>
+                    </div>
+                    <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-none">
+                      <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Disponibles</p>
+                      <p className="text-xl font-black text-emerald-600">{selectedHotel.inventory?.disponibles_ahora ?? selectedHotel.rooms?.filter((r: any) => r.status === 'Disponible').length ?? 0}</p>
+                    </div>
+                    <div className="p-4 bg-rose-50 border border-rose-100 rounded-none">
+                      <p className="text-[9px] font-black text-rose-600 uppercase tracking-widest">Ocupadas</p>
+                      <p className="text-xl font-black text-rose-600">
+                        {(selectedHotel.inventory?.habitaciones_totales ?? 0) - (selectedHotel.inventory?.disponibles_ahora ?? 0) || selectedHotel.rooms?.filter((r: any) => r.status === 'Ocupada').length || 0}
+                      </p>
+                    </div>
                   </div>
-                  <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-none">
-                    <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Disponibles</p>
-                    <p className="text-xl font-black text-emerald-600">{selectedHotel.rooms?.filter((r: any) => r.status === 'Disponible').length || 0}</p>
-                  </div>
-                  <div className="p-4 bg-rose-50 border border-rose-100 rounded-none">
-                    <p className="text-[9px] font-black text-rose-600 uppercase tracking-widest">Ocupadas</p>
-                    <p className="text-xl font-black text-rose-600">{selectedHotel.rooms?.filter((r: any) => r.status === 'Ocupada').length || 0}</p>
-                  </div>
-                </div>
 
                 <div className="space-y-4">
                   <h4 className="text-[10px] font-black text-dark uppercase tracking-widest border-b border-gray-100 pb-2">Inventario Detallado</h4>

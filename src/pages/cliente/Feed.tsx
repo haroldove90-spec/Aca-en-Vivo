@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { collection, onSnapshot, query, orderBy, addDoc, getDocs, Timestamp } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { 
@@ -22,10 +22,12 @@ import {
   Waves,
   Sun,
   Grid,
-  Home
+  Home,
+  Store
 } from 'lucide-react';
 import { useRealtimeAvailability } from '../../hooks/useRealtimeAvailability';
 import { useFavorites } from '../../contexts/FavoritesContext';
+import { useSearch } from '../../contexts/SearchContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { DemoAccess } from '../../components/DemoAccess';
@@ -36,13 +38,37 @@ import { useNavigate, useLocation } from 'react-router-dom';
 const CATEGORIES = [
   { id: 'all', label: 'Todo', icon: Grid, color: 'bg-dark' },
   { id: 'hotel', label: 'Hoteles', icon: Hotel, color: 'bg-blue-500' },
+  { id: 'negocio', label: 'Negocios', icon: Store, color: 'bg-amber-500' },
   { id: 'clasificados', label: 'Rentas', icon: Home, color: 'bg-purple-600' },
+  { id: 'yates', label: 'Yates', icon: Ship, color: 'bg-cyan-500' },
+  { id: 'medicos', label: 'Médicos', icon: Stethoscope, color: 'bg-rose-500' },
 ];
 
 // --- Popular Card ---
 function PopularCard({ business }: { business: any, key?: string }) {
   const { toggleFavorite, isFavorite } = useFavorites();
+  const { searchQuery } = useSearch();
+  const navigate = useNavigate();
   const active = isFavorite(business.id);
+
+  const handleReserve = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    try {
+      await addDoc(collection(db, 'reservas'), {
+        userId: 'demo-user', // In real app use auth.currentUser.uid
+        businessId: business.id,
+        businessName: business.nombre,
+        businessImage: `https://picsum.photos/seed/${business.id}/600/750`,
+        status: 'confirmada',
+        date: new Date().toISOString(),
+        createdAt: Timestamp.now()
+      });
+      alert('¡Reserva realizada con éxito!');
+      navigate('/reservas');
+    } catch (err) {
+      console.error("Error reserving:", err);
+    }
+  };
 
   return (
     <motion.div 
@@ -89,6 +115,12 @@ function PopularCard({ business }: { business: any, key?: string }) {
               <span className="text-[10px] font-black text-dark">{business.estrellas || 4.5}</span>
             </div>
           </div>
+          <button 
+            onClick={handleReserve}
+            className="w-full mt-3 py-2 bg-primary text-white text-[9px] font-black uppercase tracking-widest rounded-none hover:bg-primary/90 transition-all"
+          >
+            Reservar Ahora
+          </button>
         </div>
       </div>
     </motion.div>
@@ -98,6 +130,7 @@ function PopularCard({ business }: { business: any, key?: string }) {
 export default function ClienteFeed() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { searchQuery } = useSearch();
   const [establecimientos, setEstablecimientos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -160,8 +193,13 @@ export default function ClienteFeed() {
   }, []);
 
   const filteredBusinesses = useMemo(() => {
-    return establecimientos.filter(e => e.tipo === selectedCategory || selectedCategory === 'all');
-  }, [establecimientos, selectedCategory]);
+    return establecimientos.filter(e => {
+      const matchesCategory = e.tipo === selectedCategory || selectedCategory === 'all';
+      const matchesSearch = e.nombre.toLowerCase().includes(searchQuery.toLowerCase()) || 
+                           (e.zona && e.zona.toLowerCase().includes(searchQuery.toLowerCase()));
+      return matchesCategory && matchesSearch;
+    });
+  }, [establecimientos, selectedCategory, searchQuery]);
 
   if (loading) {
     return (

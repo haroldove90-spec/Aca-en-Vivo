@@ -17,6 +17,7 @@ import { Loader2 } from 'lucide-react';
 import { Layout } from './components/Layout';
 import { NotificationProvider } from './contexts/NotificationContext';
 import { FavoritesProvider } from './contexts/FavoritesContext';
+import { SearchProvider } from './contexts/SearchContext';
 
 // --- Route Guard Component ---
 function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode, allowedRoles: string[] }) {
@@ -69,9 +70,10 @@ function App() {
   return (
     <NotificationProvider>
       <FavoritesProvider>
-        <Router>
-          <div className="min-h-screen bg-bg font-sans">
-            <Routes>
+        <SearchProvider>
+          <Router>
+            <div className="min-h-screen bg-bg font-sans">
+              <Routes>
             {/* Public Feed */}
             <Route path="/" element={<Layout><ClienteFeed /></Layout>} />
             <Route path="/favoritos" element={<Layout><ClienteFavorites /></Layout>} />
@@ -144,6 +146,7 @@ function App() {
           </Routes>
         </div>
       </Router>
+        </SearchProvider>
       </FavoritesProvider>
     </NotificationProvider>
   );

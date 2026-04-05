@@ -54,7 +54,7 @@ export function SupportChat({ isAdmin = false }: { isAdmin?: boolean }) {
     }
   }, [messages]);
 
-  // Listen for messages
+  // Listen for messages and sessions
   useEffect(() => {
     if (!isOpen) return;
 
@@ -69,12 +69,31 @@ export function SupportChat({ isAdmin = false }: { isAdmin?: boolean }) {
           limit(50)
         );
       } else {
-        // Listen for all sessions (simplified for demo)
-        setSessions([
-          { userId: 'hotel-2', userName: 'Hotel Emporio', userRole: 'hotel', lastMessage: '¿Cómo puedo actualizar mi plan?', timestamp: new Date(), unread: true },
-          { userId: 'negocio-1', userName: 'Yates Bonanza', userRole: 'negocio', lastMessage: 'Gracias por la ayuda.', timestamp: new Date(Date.now() - 3600000), unread: false },
-        ]);
-        return;
+        // Listen for all messages to build session list (simplified for demo)
+        const qSessions = query(
+          collection(db, 'messages'),
+          orderBy('created_at', 'desc'),
+          limit(100)
+        );
+        
+        const unsubSessions = onSnapshot(qSessions, (snapshot) => {
+          const sessionMap: Record<string, ChatSession> = {};
+          snapshot.docs.forEach(doc => {
+            const data = doc.data();
+            if (!sessionMap[data.session_id]) {
+              sessionMap[data.session_id] = {
+                userId: data.session_id,
+                userName: data.sender_role === 'admin' ? 'Socio' : data.sender_name,
+                userRole: data.sender_role === 'admin' ? 'socio' : data.sender_role,
+                lastMessage: data.text,
+                timestamp: data.created_at?.toDate() || new Date(),
+                unread: false // Simplified
+              };
+            }
+          });
+          setSessions(Object.values(sessionMap));
+        });
+        return () => unsubSessions();
       }
     } else {
       // For business owner, listen to their chat with admin
@@ -119,14 +138,14 @@ export function SupportChat({ isAdmin = false }: { isAdmin?: boolean }) {
   };
 
   return (
-    <div className="fixed bottom-20 lg:bottom-10 right-6 lg:right-10 z-[150]">
+    <div className="fixed bottom-24 lg:bottom-10 right-6 lg:right-10 z-[150]">
       <AnimatePresence>
         {isOpen && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="bg-white rounded-none shadow-[0_30px_100px_rgba(0,0,0,0.2)] border border-gray-100 w-[calc(100vw-3rem)] sm:w-[400px] h-[500px] sm:h-[600px] flex flex-col overflow-hidden mb-6"
+            className="bg-white rounded-none shadow-[0_30px_100px_rgba(0,0,0,0.2)] border border-gray-100 w-[calc(100vw-3rem)] sm:w-[400px] h-[70vh] sm:h-[600px] flex flex-col overflow-hidden mb-6"
           >
             {/* Header */}
             <div className="bg-primary p-6 sm:p-8 text-white flex items-center justify-between">

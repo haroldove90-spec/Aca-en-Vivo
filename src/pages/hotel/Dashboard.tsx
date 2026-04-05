@@ -151,19 +151,52 @@ export default function HotelDashboard() {
     }
   };
 
-  const handleUploadImage = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleUploadImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setImages(prev => [...prev, reader.result as string]);
+      reader.onloadend = async () => {
+        const img = reader.result as string;
+        const newImages = [...images, img];
+        setImages(newImages);
+        try {
+          await updateDoc(doc(db, 'establecimientos', hotelId), {
+            galeria: newImages,
+            ultima_edicion: serverTimestamp()
+          });
+        } catch (err) {
+          console.error("Error updating images:", err);
+        }
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const deleteImage = (index: number) => {
-    setImages(prev => prev.filter((_, i) => i !== index));
+  const deleteImage = async (index: number) => {
+    const newImages = images.filter((_, i) => i !== index);
+    setImages(newImages);
+    try {
+      await updateDoc(doc(db, 'establecimientos', hotelId), {
+        galeria: newImages,
+        ultima_edicion: serverTimestamp()
+      });
+    } catch (err) {
+      console.error("Error deleting image:", err);
+    }
+  };
+
+  const handleAddPhoto = async (img: string) => {
+    const newImages = [...images, img];
+    setImages(newImages);
+    try {
+      await updateDoc(doc(db, 'establecimientos', hotelId), {
+        galeria: newImages,
+        ultima_edicion: serverTimestamp()
+      });
+      setShowCamera(false);
+    } catch (err) {
+      console.error("Error adding photo:", err);
+    }
   };
 
   const toggleAmenity = (id: string) => {
@@ -504,7 +537,7 @@ export default function HotelDashboard() {
       <CameraModal 
         isOpen={showCamera}
         onClose={() => setShowCamera(false)}
-        onCapture={(img) => setImages(prev => [...prev, img])}
+        onCapture={handleAddPhoto}
       />
     </div>
   );
