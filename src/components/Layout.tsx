@@ -178,66 +178,62 @@ export function Layout({ children }: LayoutProps) {
       </aside>
 
       {/* Mobile/Tablet Top Nav */}
-      <header className="lg:hidden bg-primary text-white px-6 pt-10 pb-12 rounded-b-[3rem] shadow-2xl sticky top-0 z-50">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl overflow-hidden border-2 border-white/30 shadow-xl rotate-3">
+      <header className="lg:hidden bg-white/80 backdrop-blur-xl border-b border-gray-100 px-6 py-4 sticky top-0 z-50">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl overflow-hidden border border-gray-100 shadow-sm">
               <img 
                 src="https://api.dicebear.com/7.x/avataaars/svg?seed=Jack" 
                 alt="User" 
                 className="w-full h-full object-cover"
               />
             </div>
-            <div>
-              <p className="text-[10px] font-black text-white/60 uppercase tracking-[0.2em]">Welcome back</p>
-              <h2 className="text-xl font-black tracking-tight">Jack Fitzgerald</h2>
+            <div className="hidden sm:block">
+              <p className="text-[8px] font-black text-muted uppercase tracking-widest leading-none">Hola,</p>
+              <h2 className="text-sm font-black text-dark tracking-tight">Jack Fitzgerald</h2>
             </div>
           </div>
-          <div className="flex gap-3">
+
+          {/* Minimalist Search Bar */}
+          <div className="flex-1 relative group max-w-xs">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted group-focus-within:text-primary transition-colors" />
+            <input 
+              type="text" 
+              placeholder="Buscar..."
+              className="w-full bg-gray-50 text-dark rounded-xl py-2.5 pl-10 pr-4 text-xs font-bold placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary/10 border border-transparent focus:border-primary/20 transition-all"
+            />
+          </div>
+
+          <div className="flex gap-2">
             <button 
               onClick={() => setIsNotifOpen(!isNotifOpen)}
-              className="w-12 h-12 bg-white/20 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-white/30 relative shadow-lg"
+              className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100 relative text-muted"
             >
-              <Bell className="w-6 h-6" />
+              <Bell className="w-5 h-5" />
               {unreadCount > 0 && (
-                <div className="absolute top-3 right-3 w-2.5 h-2.5 bg-rose-500 rounded-full border-2 border-primary" />
+                <div className="absolute top-2.5 right-2.5 w-2 h-2 bg-rose-500 rounded-full border-2 border-white" />
               )}
             </button>
             <button 
               onClick={handleLogout}
-              className="w-12 h-12 bg-white/20 backdrop-blur-xl rounded-2xl flex items-center justify-center border border-white/30 shadow-lg text-white"
+              className="w-10 h-10 bg-gray-50 rounded-xl flex items-center justify-center border border-gray-100 text-rose-500 hover:bg-rose-50 transition-all"
             >
-              <LogOut className="w-6 h-6" />
+              <LogOut className="w-5 h-5" />
             </button>
           </div>
-        </div>
-
-        {/* Search Bar in Mobile Header */}
-        <div className="flex gap-3">
-          <div className="flex-1 relative group">
-            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted group-focus-within:text-primary transition-colors" />
-            <input 
-              type="text" 
-              placeholder="Where to next?"
-              className="w-full bg-white text-dark rounded-[1.5rem] py-4 pl-14 pr-4 text-sm font-black placeholder:text-muted focus:outline-none shadow-2xl"
-            />
-          </div>
-          <button className="w-14 h-14 bg-white/20 backdrop-blur-xl rounded-[1.5rem] flex items-center justify-center border border-white/30 shadow-2xl">
-            <Grid className="w-6 h-6" />
-          </button>
         </div>
       </header>
 
       {/* Main Content Area */}
       <main className="flex-1 overflow-y-auto">
         {/* Desktop Top Header (Hidden on mobile) */}
-        <header className="hidden lg:flex items-center justify-between px-12 py-8 bg-white/80 backdrop-blur-xl border-b border-gray-100 sticky top-0 z-40">
-          <div className="flex-1 max-w-2xl relative group">
-            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-6 h-6 text-muted group-focus-within:text-primary transition-colors" />
+        <header className="hidden lg:flex items-center justify-between px-12 py-4 bg-white/80 backdrop-blur-xl border-b border-gray-100 sticky top-0 z-40">
+          <div className="flex-1 max-w-xl relative group">
+            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted group-focus-within:text-primary transition-colors" />
             <input 
               type="text" 
-              placeholder="Search destinations, hotels, experiences..."
-              className="w-full bg-bg rounded-[1.5rem] py-4 pl-14 pr-4 text-sm font-black placeholder:text-muted focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all border border-transparent focus:border-primary/20"
+              placeholder="Buscar destinos, hoteles, experiencias..."
+              className="w-full bg-gray-50 rounded-xl py-2.5 pl-14 pr-4 text-sm font-bold placeholder:text-muted focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all border border-transparent focus:border-primary/10"
             />
           </div>
           <div className="flex items-center gap-8 ml-12">
