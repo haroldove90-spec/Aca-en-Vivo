@@ -35,6 +35,7 @@ import {
 import { cn } from '../../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { CameraModal } from '../../components/CameraModal';
+import { HOTEL_IMAGES } from '../../constants/images';
 
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -67,9 +68,9 @@ export default function HotelDashboard() {
   const [promo, setPromo] = useState("Desayuno incluido en estancias de 2 noches");
   const [isPremium, setIsPremium] = useState(true);
   const [images, setImages] = useState<string[]>([
-    "https://picsum.photos/seed/h1/300/200",
-    "https://picsum.photos/seed/h2/300/200",
-    "https://picsum.photos/seed/h3/300/200"
+    HOTEL_IMAGES.EXTERIOR,
+    HOTEL_IMAGES.ROOM,
+    HOTEL_IMAGES.POOL
   ]);
 
   const hotelId = "hotel-2"; // Hotel Emporio Acapulco

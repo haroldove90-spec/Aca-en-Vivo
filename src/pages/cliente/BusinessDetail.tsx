@@ -22,6 +22,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { useFavorites } from '../../contexts/FavoritesContext';
+import { HOTEL_IMAGES } from '../../constants/images';
 
 export default function BusinessDetail() {
   const { id } = useParams();
@@ -52,9 +53,9 @@ export default function BusinessDetail() {
             telefono: '+52 744 123 4567',
             amenidades: ['wifi', 'pool', 'parking', 'pet'],
             galeria: [
-              `https://picsum.photos/seed/${id}1/1200/800`,
-              `https://picsum.photos/seed/${id}2/1200/800`,
-              ` Entra en vivo con nosotros.`
+              HOTEL_IMAGES.EXTERIOR,
+              HOTEL_IMAGES.ROOM,
+              HOTEL_IMAGES.POOL
             ]
           });
         }
@@ -74,7 +75,7 @@ export default function BusinessDetail() {
         userId: auth.currentUser?.uid || 'demo-user',
         businessId: id,
         businessName: business.nombre,
-        businessImage: business.image || business.galeria?.[0] || `https://picsum.photos/seed/${id}/600/400`,
+        businessImage: business.image || business.galeria?.[0] || HOTEL_IMAGES.EXTERIOR,
         status: 'confirmada',
         date: new Date().toISOString(),
         createdAt: Timestamp.now()
@@ -106,7 +107,7 @@ export default function BusinessDetail() {
       {/* Hero Gallery */}
       <div className="relative h-[50vh] lg:h-[60vh] bg-dark overflow-hidden">
         <img 
-          src={business.image || business.galeria?.[0] || `https://picsum.photos/seed/${id}/1200/800`} 
+          src={business.image || business.galeria?.[0] || HOTEL_IMAGES.EXTERIOR} 
           alt={business.nombre}
           className="w-full h-full object-cover opacity-80"
           referrerPolicy="no-referrer"
@@ -130,7 +131,7 @@ export default function BusinessDetail() {
                 id: business.id,
                 name: business.nombre,
                 category: business.tipo,
-                image: business.image || business.galeria?.[0] || `https://picsum.photos/seed/${id}/600/400`,
+                image: business.image || business.galeria?.[0] || HOTEL_IMAGES.EXTERIOR,
                 price: '$2,500',
                 rating: business.estrellas
               })}
@@ -212,10 +213,10 @@ export default function BusinessDetail() {
           <section className="space-y-8">
             <h2 className="text-2xl font-black text-dark uppercase tracking-tight border-l-4 border-primary pl-6">Galería</h2>
             <div className="grid grid-cols-2 gap-4">
-              {[1, 2, 3, 4].map((i) => (
+              {[HOTEL_IMAGES.ROOM, HOTEL_IMAGES.POOL, HOTEL_IMAGES.RESTAURANT, HOTEL_IMAGES.BEACH].map((img, i) => (
                 <div key={i} className="aspect-video bg-gray-100 rounded-none overflow-hidden group">
                   <img 
-                    src={`https://picsum.photos/seed/${id}${i}/800/600`} 
+                    src={img} 
                     alt="Gallery" 
                     className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                     referrerPolicy="no-referrer"

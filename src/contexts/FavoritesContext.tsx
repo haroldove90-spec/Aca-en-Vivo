@@ -3,6 +3,7 @@ import { collection, query, where, onSnapshot, addDoc, deleteDoc, doc, getDocs }
 import { onAuthStateChanged } from 'firebase/auth';
 import { db, auth } from '../lib/firebase';
 import { useNotifications } from './NotificationContext';
+import { HOTEL_IMAGES } from '../constants/images';
 
 interface Favorite {
   id: string;
@@ -66,7 +67,7 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
           userId: userId,
           name: item.name,
           category: item.category || 'General',
-          image: item.image || 'https://picsum.photos/seed/aca/400/300',
+          image: item.image || HOTEL_IMAGES.EXTERIOR,
           price: item.price || '$0',
           rating: item.rating || 5.0,
           createdAt: new Date()

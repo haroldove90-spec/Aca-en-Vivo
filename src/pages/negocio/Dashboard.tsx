@@ -29,6 +29,7 @@ import { cn } from '../../lib/utils';
 import { doc, onSnapshot, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { CameraModal } from '../../components/CameraModal';
+import { HOTEL_IMAGES } from '../../constants/images';
 
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -65,8 +66,8 @@ export default function NegocioDashboard() {
   const [offerValidity, setOfferValidity] = useState<'today' | 'permanent'>('today');
 
   // Media State
-  const [coverImage, setCoverImage] = useState<string>("https://picsum.photos/seed/bonanza/600/400");
-  const [menuImage, setMenuImage] = useState<string>("https://picsum.photos/seed/menu/600/800");
+  const [coverImage, setCoverImage] = useState<string>(HOTEL_IMAGES.YACHT);
+  const [menuImage, setMenuImage] = useState<string>(HOTEL_IMAGES.RESTAURANT);
 
   // Mock Stats
   const stats = {

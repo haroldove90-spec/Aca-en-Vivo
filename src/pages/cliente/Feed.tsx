@@ -31,6 +31,7 @@ import { useSearch } from '../../contexts/SearchContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { DemoAccess } from '../../components/DemoAccess';
+import { HOTEL_IMAGES } from '../../constants/images';
 
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -57,7 +58,7 @@ function PopularCard({ business }: { business: any, key?: string }) {
         userId: auth.currentUser?.uid || 'demo-user',
         businessId: business.id,
         businessName: business.nombre,
-        businessImage: business.image || `https://picsum.photos/seed/${business.id}/600/750`,
+        businessImage: business.image || HOTEL_IMAGES.EXTERIOR,
         status: 'confirmada',
         date: new Date().toISOString(),
         createdAt: Timestamp.now()
@@ -76,7 +77,7 @@ function PopularCard({ business }: { business: any, key?: string }) {
     >
       <div className="aspect-[4/5] relative overflow-hidden rounded-none">
         <img 
-          src={business.image || `https://picsum.photos/seed/${business.id}/600/750`} 
+          src={business.image || HOTEL_IMAGES.EXTERIOR} 
           alt={business.nombre}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 pointer-events-none"
           referrerPolicy="no-referrer"
@@ -88,7 +89,7 @@ function PopularCard({ business }: { business: any, key?: string }) {
               id: business.id,
               name: business.nombre,
               category: business.tipo,
-              image: business.image || `https://picsum.photos/seed/${business.id}/600/750`,
+              image: business.image || HOTEL_IMAGES.EXTERIOR,
               price: business.tipo === 'hotel' ? '$2,500' : '$1,200',
               rating: business.estrellas || 4.5
             });

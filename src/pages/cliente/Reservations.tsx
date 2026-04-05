@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
 import { onAuthStateChanged } from 'firebase/auth';
 import { db, auth } from '../../lib/firebase';
+import { HOTEL_IMAGES } from '../../constants/images';
 
 export default function ClienteReservations() {
   const [reservations, setReservations] = useState<any[]>([]);
@@ -62,7 +63,7 @@ export default function ClienteReservations() {
           >
             <div className="w-full md:w-48 aspect-square rounded-none overflow-hidden shrink-0">
               <img 
-                src={res.businessImage || 'https://picsum.photos/seed/res/400/300'} 
+                src={res.businessImage || HOTEL_IMAGES.EXTERIOR} 
                 alt={res.businessName} 
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 referrerPolicy="no-referrer"

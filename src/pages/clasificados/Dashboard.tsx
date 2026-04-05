@@ -30,6 +30,7 @@ import { cn } from '../../lib/utils';
 import { doc, onSnapshot, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { CameraModal } from '../../components/CameraModal';
+import { HOTEL_IMAGES } from '../../constants/images';
 
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -66,9 +67,9 @@ export default function ClasificadosDashboard() {
 
   // Photos State
   const [photos, setPhotos] = useState<string[]>([
-    "https://picsum.photos/seed/condesa1/800/600",
-    "https://picsum.photos/seed/condesa2/800/600",
-    "https://picsum.photos/seed/condesa3/800/600"
+    HOTEL_IMAGES.EXTERIOR,
+    HOTEL_IMAGES.ROOM,
+    HOTEL_IMAGES.POOL
   ]);
   const [mainPhotoIndex, setMainPhotoIndex] = useState(0);
 

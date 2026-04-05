@@ -13,7 +13,7 @@ const MOCK_USER = {
   phone: '+52 744 123 4567',
   location: 'Acapulco, Guerrero',
   joined: 'Abril 2024',
-  avatar: 'https://picsum.photos/seed/harold/400/400',
+  avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Harold',
   stats: [
     { label: 'Reservas', value: '12' },
     { label: 'Favoritos', value: '45' },
