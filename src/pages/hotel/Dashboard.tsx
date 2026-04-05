@@ -310,7 +310,7 @@ export default function HotelDashboard() {
                   </div>
                 </div>
                 <button 
-                  onClick={() => handleQuickAction(0)}
+                  onClick={() => handleQuickAction(displayCount === 0 ? (inventario?.habitaciones_totales ?? 50) : 0)}
                   className={cn(
                     "w-14 h-7 rounded-none transition-all relative",
                     displayCount === 0 ? "bg-rose-500" : "bg-gray-200"
