@@ -188,7 +188,6 @@ export default function ClienteSettings() {
               </div>
             </div>
 
-            {/* Form Section */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-10 border-t border-gray-100">
               <div className="space-y-2">
                 <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-4">Nombre Completo</label>
@@ -220,17 +219,6 @@ export default function ClienteSettings() {
                   className="w-full px-6 py-4 bg-gray-100 border border-gray-200 rounded-none font-bold text-muted cursor-not-allowed"
                 />
               </div>
-            </div>
-
-            <div className="flex justify-end pt-6">
-              <button 
-                onClick={handleSave}
-                disabled={isSaving}
-                className="flex items-center gap-3 px-10 py-5 bg-primary text-white rounded-none font-black text-xs uppercase tracking-widest shadow-2xl shadow-primary/30 hover:bg-primary/90 transition-all active:scale-95 disabled:opacity-50"
-              >
-                {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-                Guardar Cambios
-              </button>
             </div>
           </motion.div>
         )}
@@ -293,6 +281,18 @@ export default function ClienteSettings() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Global Save Button - Positioned to avoid nav bar obstruction */}
+      <div className="flex justify-end pt-10 pb-12 border-t border-gray-100">
+        <button 
+          onClick={handleSave}
+          disabled={isSaving}
+          className="w-full md:w-auto flex items-center justify-center gap-3 px-10 py-5 bg-primary text-white rounded-none font-black text-xs uppercase tracking-widest shadow-2xl shadow-primary/30 hover:bg-primary/90 transition-all active:scale-95 disabled:opacity-50"
+        >
+          {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
+          Guardar Cambios
+        </button>
+      </div>
 
       <CameraModal 
         isOpen={showCamera}

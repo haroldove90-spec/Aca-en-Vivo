@@ -437,7 +437,7 @@ export default function NegocioDashboard() {
       </div>
 
       {/* Floating Action Button (FAB) */}
-      <div className="fixed bottom-10 left-1/2 -translate-x-1/2 w-full max-w-md px-6 z-40">
+      <div className="fixed bottom-24 lg:bottom-10 left-1/2 -translate-x-1/2 w-full max-w-md px-6 z-40">
         <button
           onClick={handleSaveChanges}
           disabled={saving}
