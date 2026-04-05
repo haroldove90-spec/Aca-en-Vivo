@@ -27,10 +27,9 @@ import {
 import { useRealtimeAvailability } from '../../hooks/useRealtimeAvailability';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
-import { Layout } from '../../components/Layout';
 import { DemoAccess } from '../../components/DemoAccess';
 
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 // --- Categories Definition ---
 const CATEGORIES = [
@@ -84,9 +83,21 @@ function PopularCard({ business }: { business: any, key?: string }) {
 
 export default function ClienteFeed() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [establecimientos, setEstablecimientos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  
+  const queryParams = new URLSearchParams(location.search);
+  const selectedCategory = queryParams.get('cat') || 'all';
+
+  const setSelectedCategory = (cat: string) => {
+    if (cat === 'all') {
+      navigate('/');
+    } else {
+      navigate(`/?cat=${cat}`);
+    }
+  };
+
   const [showOnboarding, setShowOnboarding] = useState(true);
 
   const DEMO_ROLES = [
@@ -204,9 +215,8 @@ export default function ClienteFeed() {
   }
 
   return (
-    <Layout>
-      <div className="space-y-10">
-        {/* Featured Card */}
+    <div className="space-y-10">
+      {/* Featured Card */}
         <section className="relative aspect-[16/9] lg:aspect-[21/9] rounded-[3rem] overflow-hidden shadow-2xl group">
           <img 
             src="https://images.unsplash.com/photo-1506929199175-60933ee89334?auto=format&fit=crop&q=80&w=1920" 
@@ -281,10 +291,9 @@ export default function ClienteFeed() {
           )}
         </section>
 
-        {/* Demo Access Section */}
-        <DemoAccess />
-      </div>
-    </Layout>
+      {/* Demo Access Section */}
+      <DemoAccess />
+    </div>
   );
 }
 

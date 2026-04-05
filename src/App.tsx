@@ -64,53 +64,6 @@ function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode,
   return children;
 }
 
-function NavSwitcher() {
-  const navigate = useNavigate();
-  
-  return (
-    <div className="fixed top-4 right-4 z-[100] flex flex-col gap-2">
-      <div className="bg-[#142850]/80 backdrop-blur-md p-1.5 rounded-2xl border border-white/10 shadow-2xl flex flex-col gap-1">
-        <button 
-          onClick={() => navigate('/')} 
-          className="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-[#00A8CC] hover:bg-white/5 transition-colors"
-        >
-          Feed Cliente
-        </button>
-        <button 
-          onClick={() => navigate('/hotel')} 
-          className="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-white hover:bg-white/5 transition-colors"
-        >
-          Panel Hotel
-        </button>
-        <button 
-          onClick={() => navigate('/admin-agencia')} 
-          className="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-emerald-400 hover:bg-white/5 transition-colors"
-        >
-          Agencia
-        </button>
-        <button 
-          onClick={() => navigate('/negocio')} 
-          className="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-amber-500 hover:bg-white/5 transition-colors"
-        >
-          Negocio
-        </button>
-        <button 
-          onClick={() => navigate('/admin-dev')} 
-          className="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-yellow-400 hover:bg-white/5 transition-colors"
-        >
-          Dev Master
-        </button>
-        <button 
-          onClick={() => navigate('/clasificados')} 
-          className="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase tracking-widest text-orange-400 hover:bg-white/5 transition-colors"
-        >
-          Clasificados
-        </button>
-      </div>
-    </div>
-  );
-}
-
 function App() {
   return (
     <NotificationProvider>
@@ -118,7 +71,7 @@ function App() {
         <div className="min-h-screen bg-bg font-sans">
           <Routes>
             {/* Public Feed */}
-            <Route path="/" element={<ClienteFeed />} />
+            <Route path="/" element={<Layout><ClienteFeed /></Layout>} />
             <Route path="/favoritos" element={<Layout><ClienteFavorites /></Layout>} />
             <Route path="/reservas" element={<Layout><ClienteReservations /></Layout>} />
             <Route path="/perfil" element={<Layout><ClienteProfile /></Layout>} />

@@ -1,5 +1,4 @@
 import React from 'react';
-import { Layout } from '../../components/Layout';
 import { Calendar, MapPin, Clock, CheckCircle2, ChevronRight } from 'lucide-react';
 import { motion } from 'motion/react';
 
@@ -28,9 +27,8 @@ const MOCK_RESERVATIONS = [
 
 export default function ClienteReservations() {
   return (
-    <Layout>
-      <div className="space-y-10 pb-20">
-        <header className="space-y-2">
+    <div className="space-y-10 pb-20">
+      <header className="space-y-2">
           <h1 className="text-4xl font-black text-dark tracking-tighter uppercase leading-none">Mis <span className="text-primary">Reservas</span></h1>
           <p className="text-muted text-sm font-bold uppercase tracking-widest">Tus próximas experiencias en Acapulco</p>
         </header>
@@ -122,6 +120,5 @@ export default function ClienteReservations() {
           </div>
         )}
       </div>
-    </Layout>
   );
 }

@@ -89,6 +89,8 @@ const getNavItems = (pathname: string) => {
   // Default (Cliente)
   return [
     { id: 'explorar', label: 'Explorar', icon: Home, path: '/' },
+    { id: 'hoteles', label: 'Hoteles', icon: Hotel, path: '/?cat=hotel' },
+    { id: 'clasificados', label: 'Rentas', icon: Building2, path: '/?cat=clasificados' },
     { id: 'favoritos', label: 'Favoritos', icon: Heart, path: '/favoritos' },
     { id: 'reservas', label: 'Reservas', icon: Bookmark, path: '/reservas' },
     { id: 'perfil', label: 'Perfil', icon: User, path: '/perfil' },
@@ -170,7 +172,7 @@ export function Layout({ children }: LayoutProps) {
             className="w-full flex items-center gap-4 px-5 py-4 rounded-[1.5rem] text-rose-500 hover:bg-rose-50 transition-all font-black text-sm uppercase tracking-widest"
           >
             <LogOut className="w-5 h-5" />
-            Logout
+            Cerrar Sesión
           </button>
         </div>
       </aside>

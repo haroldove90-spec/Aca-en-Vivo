@@ -1,5 +1,4 @@
 import React from 'react';
-import { Layout } from '../../components/Layout';
 import { User, MapPin, Mail, Phone, Calendar, Edit3, Settings, LogOut, Shield } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '../../lib/utils';
@@ -36,9 +35,8 @@ export default function ClienteProfile() {
   };
 
   return (
-    <Layout>
-      <div className="space-y-10 pb-20">
-        {/* Profile Header Card */}
+    <div className="space-y-10 pb-20">
+      {/* Profile Header Card */}
         <section className="bg-white rounded-[3rem] p-8 lg:p-12 shadow-2xl shadow-black/5 border border-gray-100 relative overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32" />
           
@@ -154,6 +152,5 @@ export default function ClienteProfile() {
           </section>
         </div>
       </div>
-    </Layout>
   );
 }

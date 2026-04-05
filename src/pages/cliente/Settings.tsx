@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Layout } from '../../components/Layout';
 import { 
   User, 
   Camera, 
@@ -103,9 +102,8 @@ export default function ClienteSettings() {
   };
 
   return (
-    <Layout>
-      <div className="max-w-4xl mx-auto space-y-10 pb-20">
-        <header className="space-y-2">
+    <div className="max-w-4xl mx-auto space-y-10 pb-20">
+      <header className="space-y-2">
           <h1 className="text-4xl font-black text-dark tracking-tighter uppercase leading-none">Configuración</h1>
           <p className="text-muted text-sm font-bold uppercase tracking-widest">Personaliza tu experiencia en Acapulco</p>
         </header>
@@ -332,6 +330,5 @@ export default function ClienteSettings() {
           )}
         </AnimatePresence>
       </div>
-    </Layout>
   );
 }

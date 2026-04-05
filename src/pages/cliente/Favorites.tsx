@@ -1,5 +1,4 @@
 import React from 'react';
-import { Layout } from '../../components/Layout';
 import { Heart, MapPin, Star, Trash2 } from 'lucide-react';
 import { motion } from 'motion/react';
 
@@ -11,9 +10,8 @@ const MOCK_FAVORITES = [
 
 export default function ClienteFavorites() {
   return (
-    <Layout>
-      <div className="space-y-10 pb-20">
-        <header className="space-y-2">
+    <div className="space-y-10 pb-20">
+      <header className="space-y-2">
           <h1 className="text-4xl font-black text-dark tracking-tighter uppercase leading-none">Mis <span className="text-primary">Favoritos</span></h1>
           <p className="text-muted text-sm font-bold uppercase tracking-widest">Tus lugares guardados en Acapulco</p>
         </header>
@@ -78,6 +76,5 @@ export default function ClienteFavorites() {
           </div>
         )}
       </div>
-    </Layout>
   );
 }
