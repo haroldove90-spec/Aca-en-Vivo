@@ -3,9 +3,9 @@ import { Heart, MapPin, Star, Trash2 } from 'lucide-react';
 import { motion } from 'motion/react';
 
 const MOCK_FAVORITES = [
-  { id: '1', name: 'Hotel Emporio', category: 'Hotel', rating: 4.8, price: '$2,500', image: 'https://picsum.photos/seed/emp/400/300' },
-  { id: '2', name: 'La Cabaña', category: 'Restaurante', rating: 4.5, price: '$450', image: 'https://picsum.photos/seed/cab/400/300' },
-  { id: '3', name: 'Yates Bonanza', category: 'Yate', rating: 4.9, price: '$5,000', image: 'https://picsum.photos/seed/bon/400/300' },
+  { id: '1', name: 'Hotel Emporio Acapulco', category: 'Hotel', rating: 4.8, price: '$2,500', image: 'https://picsum.photos/seed/emp/400/300' },
+  { id: '2', name: 'Princess Mundo Imperial', category: 'Hotel', rating: 4.9, price: '$3,800', image: 'https://picsum.photos/seed/pri/400/300' },
+  { id: '3', name: 'Condo Diamante Lakes', category: 'Renta', rating: 4.9, price: '$5,000', image: 'https://picsum.photos/seed/dia/400/300' },
 ];
 
 export default function ClienteFavorites() {

@@ -5,7 +5,7 @@ import { motion } from 'motion/react';
 const MOCK_RESERVATIONS = [
   { 
     id: 'res-1', 
-    hotel: 'Hotel Emporio', 
+    hotel: 'Hotel Emporio Acapulco', 
     date: '15 Abr - 20 Abr', 
     status: 'confirmada', 
     price: '$12,500', 
@@ -15,13 +15,13 @@ const MOCK_RESERVATIONS = [
   },
   { 
     id: 'res-2', 
-    hotel: 'La Cabaña', 
-    date: '16 Abr, 20:00', 
+    hotel: 'Condo Diamante Lakes', 
+    date: '22 Abr - 28 Abr', 
     status: 'pendiente', 
-    price: '$850', 
-    image: 'https://picsum.photos/seed/cab/400/300',
+    price: '$28,450', 
+    image: 'https://picsum.photos/seed/dia/400/300',
     guests: 4,
-    room: 'Mesa Terraza'
+    room: 'Penthouse 3 Recámaras'
   },
 ];
 

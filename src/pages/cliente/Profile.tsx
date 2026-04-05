@@ -74,15 +74,6 @@ export default function ClienteProfile() {
                   <span className="text-[10px] font-bold uppercase tracking-widest">Miembro desde {MOCK_USER.joined}</span>
                 </div>
               </div>
-              
-              <div className="flex justify-center lg:justify-start gap-8 pt-4">
-                {MOCK_USER.stats.map((stat, i) => (
-                  <div key={i} className="text-center lg:text-left">
-                    <p className="text-2xl font-black text-dark tracking-tighter">{stat.value}</p>
-                    <p className="text-[9px] font-black text-muted uppercase tracking-widest">{stat.label}</p>
-                  </div>
-                ))}
-              </div>
             </div>
           </div>
         </section>

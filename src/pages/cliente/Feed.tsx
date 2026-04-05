@@ -35,19 +35,11 @@ import { useNavigate, useLocation } from 'react-router-dom';
 const CATEGORIES = [
   { id: 'all', label: 'Todo', icon: Grid, color: 'bg-dark' },
   { id: 'hotel', label: 'Hoteles', icon: Hotel, color: 'bg-blue-500' },
-  { id: 'restaurante', label: 'Restaurantes', icon: Utensils, color: 'bg-orange-500' },
-  { id: 'yate', label: 'Yates', icon: Ship, color: 'bg-cyan-500' },
-  { id: 'tienda', label: 'Tiendas', icon: ShoppingBag, color: 'bg-pink-500' },
-  { id: 'artesania', label: 'Artesanías', icon: Palmtree, color: 'bg-amber-600' },
-  { id: 'moto', label: 'Motos', icon: Bike, color: 'bg-indigo-500' },
-  { id: 'medico', label: 'Médico', icon: Stethoscope, color: 'bg-emerald-500' },
   { id: 'clasificados', label: 'Rentas', icon: Home, color: 'bg-purple-600' },
 ];
 
 // --- Popular Card ---
 function PopularCard({ business }: { business: any, key?: string }) {
-  const { disponibles } = useRealtimeAvailability(business.id);
-  
   return (
     <motion.div 
       whileTap={{ scale: 0.98 }}
@@ -114,11 +106,16 @@ export default function ClienteFeed() {
         const snapshot = await getDocs(collection(db, 'establecimientos'));
         if (snapshot.empty) {
           const mockData = [
-            { nombre: 'Hotel Emporio', tipo: 'hotel', zona: 'Zona Dorada', estrellas: 4.8, createdAt: Timestamp.now() },
-            { nombre: 'Condo Diamante', tipo: 'clasificados', zona: 'Zona Diamante', estrellas: 4.9, createdAt: Timestamp.now() },
-            { nombre: 'La Cabaña', tipo: 'restaurante', zona: 'Playa Bonfil', estrellas: 4.5, createdAt: Timestamp.now() },
-            { nombre: 'Yate Bonanza', tipo: 'yate', zona: 'Puerto Marqués', estrellas: 5.0, createdAt: Timestamp.now() },
-            { nombre: 'Depa Vista Mar', tipo: 'clasificados', zona: 'Zona Tradicional', estrellas: 4.7, createdAt: Timestamp.now() },
+            { nombre: 'Hotel Emporio Acapulco', tipo: 'hotel', zona: 'Zona Dorada', estrellas: 4.8, createdAt: Timestamp.now() },
+            { nombre: 'Princess Mundo Imperial', tipo: 'hotel', zona: 'Diamante', estrellas: 4.9, createdAt: Timestamp.now() },
+            { nombre: 'HS Hotsson Smart', tipo: 'hotel', zona: 'Costera', estrellas: 4.7, createdAt: Timestamp.now() },
+            { nombre: 'Las Brisas Acapulco', tipo: 'hotel', zona: 'Escénica', estrellas: 5.0, createdAt: Timestamp.now() },
+            { nombre: 'Condo Diamante Lakes', tipo: 'clasificados', zona: 'Zona Diamante', estrellas: 4.9, createdAt: Timestamp.now() },
+            { nombre: 'Villa Vista Mar', tipo: 'clasificados', zona: 'Las Brisas', estrellas: 4.8, createdAt: Timestamp.now() },
+            { nombre: 'Penthouse Costera', tipo: 'clasificados', zona: 'Zona Dorada', estrellas: 4.6, createdAt: Timestamp.now() },
+            { nombre: 'Loft Moderno Condesa', tipo: 'clasificados', zona: 'Condesa', estrellas: 4.5, createdAt: Timestamp.now() },
+            { nombre: 'Casa de Playa Bonfil', tipo: 'clasificados', zona: 'Playa Bonfil', estrellas: 4.7, createdAt: Timestamp.now() },
+            { nombre: 'Hotel Pierre Mundo Imperial', tipo: 'hotel', zona: 'Diamante', estrellas: 4.8, createdAt: Timestamp.now() },
           ];
           for (const item of mockData) {
             await addDoc(collection(db, 'establecimientos'), item);
@@ -290,9 +287,6 @@ export default function ClienteFeed() {
             </div>
           )}
         </section>
-
-      {/* Demo Access Section */}
-      <DemoAccess />
     </div>
   );
 }
