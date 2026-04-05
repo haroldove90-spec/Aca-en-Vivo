@@ -83,16 +83,16 @@ export function DemoAccess() {
     <section className="py-20 px-6 relative overflow-hidden bg-white">
       {/* Background Accents */}
       <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div className="absolute -top-24 -left-24 w-96 h-96 bg-primary/5 rounded-full blur-3xl" />
-        <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-navy/5 rounded-full blur-3xl" />
+        <div className="absolute -top-24 -left-24 w-96 h-96 bg-primary/5 rounded-none blur-3xl" />
+        <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-navy/5 rounded-none blur-3xl" />
       </div>
 
       <div className="max-w-7xl mx-auto relative">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-12">
           <div className="space-y-4">
-            <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-full border border-primary/20">
+            <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/10 rounded-none border border-primary/20">
               <Zap className="w-4 h-4 text-primary animate-pulse" />
-              <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Demo Mode Active</span>
+              <span className="text-[10px] font-black text-primary uppercase tracking-[0.2em]">Modo Demo Activo</span>
             </div>
             <h2 className="text-4xl md:text-6xl font-black text-dark tracking-tighter uppercase leading-none">
               Explorar como... <br />
@@ -116,19 +116,19 @@ export function DemoAccess() {
               whileTap={{ scale: 0.98 }}
               onClick={() => navigate(profile.path)}
               className={cn(
-                "group relative p-8 rounded-[3rem] bg-white border border-gray-100 text-left transition-all",
+                "group relative p-8 rounded-none bg-white border border-gray-100 text-left transition-all",
                 "hover:shadow-[0_30px_60px_-15px_rgba(0,0,0,0.1)] hover:border-primary/20"
               )}
             >
               <div className="flex items-start justify-between mb-8">
                 <div className={cn(
-                  "w-16 h-16 rounded-2xl flex items-center justify-center transition-transform group-hover:rotate-6",
+                  "w-16 h-16 rounded-none flex items-center justify-center transition-transform group-hover:rotate-6",
                   "bg-gray-50 group-hover:bg-white group-hover:shadow-xl",
                   profile.iconColor
                 )}>
                   <profile.icon className="w-8 h-8" />
                 </div>
-                <div className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all">
+                <div className="w-10 h-10 rounded-none bg-gray-50 flex items-center justify-center group-hover:bg-primary group-hover:text-white transition-all">
                   <ChevronRight className="w-5 h-5" />
                 </div>
               </div>
@@ -139,16 +139,16 @@ export function DemoAccess() {
               </div>
 
               {/* Decorative Gradient Border on Hover */}
-              <div className="absolute inset-0 rounded-[3rem] border-2 border-transparent group-hover:border-primary/10 pointer-events-none transition-all" />
+              <div className="absolute inset-0 rounded-none border-2 border-transparent group-hover:border-primary/10 pointer-events-none transition-all" />
             </motion.button>
           ))}
         </div>
 
         {/* Bottom Floating Access (Mobile Optimized) */}
-        <div className="mt-16 p-8 rounded-[3.5rem] bg-dark text-white flex flex-col md:flex-row items-center justify-between gap-8 relative overflow-hidden">
+        <div className="mt-16 p-8 rounded-none bg-dark text-white flex flex-col md:flex-row items-center justify-between gap-8 relative overflow-hidden">
           <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_50%,rgba(0,168,204,0.1),transparent)]" />
           <div className="relative z-10 flex items-center gap-6">
-            <div className="w-16 h-16 bg-primary rounded-2xl flex items-center justify-center shadow-2xl shadow-primary/40">
+            <div className="w-16 h-16 bg-primary rounded-none flex items-center justify-center shadow-2xl shadow-primary/40">
               <ShieldCheck className="w-8 h-8 text-white" />
             </div>
             <div>
@@ -161,7 +161,7 @@ export function DemoAccess() {
               <button
                 key={`mini-${p.id}`}
                 onClick={() => navigate(p.path)}
-                className="px-4 py-2 bg-white/5 hover:bg-primary rounded-xl text-[10px] font-black uppercase tracking-widest transition-all"
+                className="px-4 py-2 bg-white/5 hover:bg-primary rounded-none text-[10px] font-black uppercase tracking-widest transition-all"
               >
                 {p.label.split(' ')[1] || p.label}
               </button>

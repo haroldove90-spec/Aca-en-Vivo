@@ -185,7 +185,7 @@ export default function HotelDashboard() {
       {/* Header Section */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
+          <div className="w-12 h-12 bg-primary rounded-none flex items-center justify-center shadow-lg shadow-primary/20">
             <Settings className="w-7 h-7 text-white" />
           </div>
           <div>
@@ -195,7 +195,7 @@ export default function HotelDashboard() {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-3 bg-white px-5 py-2.5 rounded-2xl border border-gray-100 shadow-sm">
+        <div className="flex items-center gap-3 bg-white px-5 py-2.5 rounded-none border border-gray-100 shadow-sm">
           <Clock className="w-4 h-4 text-primary" />
           <span className="text-[10px] font-black text-dark uppercase tracking-widest">
             {inventario?.ultima_actualizacion?.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || 'Sincronizando...'}
@@ -217,7 +217,7 @@ export default function HotelDashboard() {
               className="space-y-8"
             >
               {/* Critical Inventory Card */}
-              <div className="bg-white rounded-[3rem] p-10 shadow-xl shadow-black/5 border border-gray-100 text-center space-y-10">
+              <div className="bg-white rounded-none p-10 shadow-xl shadow-black/5 border border-gray-100 text-center space-y-10">
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted mb-4">Disponibles Ahora</p>
                   <div className={cn(
@@ -232,14 +232,14 @@ export default function HotelDashboard() {
                   <button
                     onClick={() => handleUpdateInventory(-1)}
                     disabled={displayCount <= 0}
-                    className="w-24 h-24 rounded-full bg-gray-50 flex items-center justify-center active:scale-90 transition-all disabled:opacity-20 hover:bg-gray-100"
+                    className="w-24 h-24 rounded-none bg-gray-50 flex items-center justify-center active:scale-90 transition-all disabled:opacity-20 hover:bg-gray-100"
                   >
                     <Minus className="w-10 h-10 text-dark stroke-[3]" />
                   </button>
                   <button
                     onClick={() => handleUpdateInventory(1)}
                     disabled={displayCount >= (inventario?.habitaciones_totales ?? 99)}
-                    className="w-24 h-24 rounded-full bg-primary/10 border-2 border-primary/20 flex items-center justify-center active:scale-90 transition-all hover:bg-primary/20"
+                    className="w-24 h-24 rounded-none bg-primary/10 border-2 border-primary/20 flex items-center justify-center active:scale-90 transition-all hover:bg-primary/20"
                   >
                     <Plus className="w-10 h-10 text-primary stroke-[3]" />
                   </button>
@@ -248,14 +248,14 @@ export default function HotelDashboard() {
                 <div className="grid grid-cols-2 gap-4 pt-6">
                   <button
                     onClick={() => handleQuickAction(0)}
-                    className="py-5 rounded-[1.5rem] bg-rose-50 text-rose-600 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all hover:bg-rose-100"
+                    className="py-5 rounded-none bg-rose-50 text-rose-600 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all hover:bg-rose-100"
                   >
                     <AlertCircle className="w-5 h-5" />
-                    Sold Out
+                    Agotado
                   </button>
                   <button
                     onClick={() => handleQuickAction(inventario?.habitaciones_totales ?? 50)}
-                    className="py-5 rounded-[1.5rem] bg-gray-50 text-dark font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all hover:bg-gray-100"
+                    className="py-5 rounded-none bg-gray-50 text-dark font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all hover:bg-gray-100"
                   >
                     <RotateCcw className="w-5 h-5" />
                     Restablecer
@@ -264,9 +264,9 @@ export default function HotelDashboard() {
               </div>
 
               {/* Emergency Toggle */}
-              <div className="bg-white p-8 rounded-[2rem] shadow-xl shadow-black/5 border border-gray-100 flex items-center justify-between">
+              <div className="bg-white p-8 rounded-none shadow-xl shadow-black/5 border border-gray-100 flex items-center justify-between">
                 <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-rose-100 rounded-2xl flex items-center justify-center">
+                  <div className="w-12 h-12 bg-rose-100 rounded-none flex items-center justify-center">
                     <AlertCircle className="w-6 h-6 text-rose-500" />
                   </div>
                   <div>
@@ -277,12 +277,12 @@ export default function HotelDashboard() {
                 <button 
                   onClick={() => handleQuickAction(0)}
                   className={cn(
-                    "w-14 h-7 rounded-full transition-all relative",
+                    "w-14 h-7 rounded-none transition-all relative",
                     displayCount === 0 ? "bg-rose-500" : "bg-gray-200"
                   )}
                 >
                   <div className={cn(
-                    "absolute top-1 w-5 h-5 rounded-full bg-white transition-all shadow-sm",
+                    "absolute top-1 w-5 h-5 rounded-none bg-white transition-all shadow-sm",
                     displayCount === 0 ? "right-1" : "left-1"
                   )} />
                 </button>
@@ -298,14 +298,14 @@ export default function HotelDashboard() {
               exit={{ opacity: 0, y: -20 }}
               className="space-y-8"
             >
-              <div className="bg-white rounded-[3rem] p-10 shadow-xl shadow-black/5 border border-gray-100 space-y-8">
+              <div className="bg-white rounded-none p-10 shadow-xl shadow-black/5 border border-gray-100 space-y-8">
                 <div className="space-y-3">
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted ml-2">Nombre del Hotel</label>
                   <input 
                     type="text" 
                     value={hotelName}
                     onChange={(e) => setHotelName(e.target.value)}
-                    className="w-full bg-gray-50 border-2 border-gray-100 rounded-[1.5rem] p-5 text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all uppercase tracking-tight"
+                    className="w-full bg-gray-50 border-2 border-gray-100 rounded-none p-5 text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all uppercase tracking-tight"
                   />
                 </div>
 
@@ -315,7 +315,7 @@ export default function HotelDashboard() {
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
                     maxLength={150}
-                    className="w-full bg-gray-50 border-2 border-gray-100 rounded-[1.5rem] p-5 text-sm font-bold text-dark focus:outline-none focus:border-primary/30 transition-all h-32 resize-none"
+                    className="w-full bg-gray-50 border-2 border-gray-100 rounded-none p-5 text-sm font-bold text-dark focus:outline-none focus:border-primary/30 transition-all h-32 resize-none"
                   />
                   <p className="text-right text-[10px] font-black text-muted uppercase tracking-widest">{description.length}/150</p>
                 </div>
@@ -328,7 +328,7 @@ export default function HotelDashboard() {
                       type="tel" 
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      className="w-full bg-gray-50 border-2 border-gray-100 rounded-[1.5rem] p-5 pl-14 text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all tracking-widest"
+                      className="w-full bg-gray-50 border-2 border-gray-100 rounded-none p-5 pl-14 text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all tracking-widest"
                     />
                   </div>
                 </div>
@@ -346,7 +346,7 @@ export default function HotelDashboard() {
                         key={item.id}
                         onClick={() => toggleAmenity(item.id)}
                         className={cn(
-                          "flex items-center gap-4 p-4 rounded-[1.5rem] border-2 transition-all",
+                          "flex items-center gap-4 p-4 rounded-none border-2 transition-all",
                           amenities.includes(item.id) 
                             ? "bg-primary/5 border-primary/20 text-primary" 
                             : "bg-gray-50 border-transparent text-muted"
@@ -370,7 +370,7 @@ export default function HotelDashboard() {
               exit={{ opacity: 0, y: -20 }}
               className="space-y-8"
             >
-              <div className="bg-white rounded-[3rem] p-10 shadow-xl shadow-black/5 border border-gray-100 space-y-8">
+              <div className="bg-white rounded-none p-10 shadow-xl shadow-black/5 border border-gray-100 space-y-8">
                 <div className="space-y-6">
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted ml-2">Media Center</label>
                   
@@ -382,8 +382,8 @@ export default function HotelDashboard() {
                       onChange={handleUploadImage}
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                     />
-                    <div className="h-48 border-4 border-dashed border-gray-100 rounded-[2.5rem] flex flex-col items-center justify-center gap-4 group-hover:bg-gray-50 transition-all">
-                      <div className="w-14 h-14 bg-primary/10 rounded-2xl flex items-center justify-center">
+                    <div className="h-48 border-4 border-dashed border-gray-100 rounded-none flex flex-col items-center justify-center gap-4 group-hover:bg-gray-50 transition-all">
+                      <div className="w-14 h-14 bg-primary/10 rounded-none flex items-center justify-center">
                         <Camera className="w-7 h-7 text-primary" />
                       </div>
                       <p className="text-[10px] font-black uppercase tracking-widest text-muted">Tomar Foto o Subir</p>
@@ -393,11 +393,11 @@ export default function HotelDashboard() {
                   {/* Image Grid */}
                   <div className="grid grid-cols-3 gap-4">
                     {images.map((img, idx) => (
-                      <div key={idx} className="relative aspect-square rounded-[1.5rem] overflow-hidden group shadow-sm">
+                      <div key={idx} className="relative aspect-square rounded-none overflow-hidden group shadow-sm">
                         <img src={img} alt="Hotel" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                         <button 
                           onClick={() => deleteImage(idx)}
-                          className="absolute top-2 right-2 w-8 h-8 bg-rose-500 rounded-xl flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
+                          className="absolute top-2 right-2 w-8 h-8 bg-rose-500 rounded-none flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
                         >
                           <Trash2 className="w-4 h-4 text-white" />
                         </button>
@@ -417,7 +417,7 @@ export default function HotelDashboard() {
               exit={{ opacity: 0, y: -20 }}
               className="space-y-8"
             >
-              <div className="bg-white rounded-[3rem] p-10 shadow-xl shadow-black/5 border border-gray-100 space-y-8">
+              <div className="bg-white rounded-none p-10 shadow-xl shadow-black/5 border border-gray-100 space-y-8">
                 <div className="space-y-3">
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted ml-2">Promoción del Día</label>
                   <div className="relative">
@@ -426,14 +426,14 @@ export default function HotelDashboard() {
                       value={promo}
                       onChange={(e) => setPromo(e.target.value)}
                       placeholder="Ej: Desayuno incluido..."
-                      className="w-full bg-gray-50 border-2 border-gray-100 rounded-[1.5rem] p-5 pl-14 text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all h-32 resize-none"
+                      className="w-full bg-gray-50 border-2 border-gray-100 rounded-none p-5 pl-14 text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all h-32 resize-none"
                     />
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between p-6 bg-amber-50 rounded-[2rem] border border-amber-100">
+                <div className="flex items-center justify-between p-6 bg-amber-50 rounded-none border border-amber-100">
                   <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-amber-500 rounded-2xl flex items-center justify-center shadow-lg shadow-amber-500/20">
+                    <div className="w-12 h-12 bg-amber-500 rounded-none flex items-center justify-center shadow-lg shadow-amber-500/20">
                       <Star className="w-6 h-6 text-white fill-white" />
                     </div>
                     <div>
@@ -444,12 +444,12 @@ export default function HotelDashboard() {
                   <button 
                     onClick={() => setIsPremium(!isPremium)}
                     className={cn(
-                      "w-14 h-7 rounded-full transition-all relative",
+                      "w-14 h-7 rounded-none transition-all relative",
                       isPremium ? "bg-amber-500" : "bg-gray-200"
                     )}
                   >
                     <div className={cn(
-                      "absolute top-1 w-5 h-5 rounded-full bg-white transition-all shadow-sm",
+                      "absolute top-1 w-5 h-5 rounded-none bg-white transition-all shadow-sm",
                       isPremium ? "right-1" : "left-1"
                     )} />
                   </button>
@@ -465,7 +465,7 @@ export default function HotelDashboard() {
         <button
           onClick={handleSaveChanges}
           disabled={saving}
-          className="w-full py-6 bg-primary text-white rounded-[2.5rem] font-black text-xs uppercase tracking-[0.3em] shadow-2xl shadow-primary/40 flex items-center justify-center gap-3 active:scale-95 transition-all hover:bg-primary/90"
+          className="w-full py-6 bg-primary text-white rounded-none font-black text-xs uppercase tracking-[0.3em] shadow-2xl shadow-primary/40 flex items-center justify-center gap-3 active:scale-95 transition-all hover:bg-primary/90"
         >
           {saving ? (
             <Loader2 className="w-6 h-6 animate-spin" />

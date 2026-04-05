@@ -138,7 +138,7 @@ export default function NegocioDashboard() {
       {/* Header Section */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
+          <div className="w-12 h-12 bg-primary rounded-none flex items-center justify-center shadow-lg shadow-primary/20">
             <Ship className="w-7 h-7 text-white" />
           </div>
           <div>
@@ -148,7 +148,7 @@ export default function NegocioDashboard() {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-3 bg-white px-5 py-2.5 rounded-2xl border border-gray-100 shadow-sm">
+        <div className="flex items-center gap-3 bg-white px-5 py-2.5 rounded-none border border-gray-100 shadow-sm">
           <Clock className="w-4 h-4 text-primary" />
           <span className="text-[10px] font-black text-dark uppercase tracking-widest">Estado en Vivo</span>
         </div>
@@ -169,13 +169,13 @@ export default function NegocioDashboard() {
             >
               {/* Open/Closed Toggle */}
               <div className={cn(
-                "p-8 rounded-[3rem] shadow-xl border transition-all duration-500",
+                "p-8 rounded-none shadow-xl border transition-all duration-500",
                 isOpen ? "bg-emerald-50 border-emerald-100" : "bg-gray-50 border-gray-200"
               )}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-5">
                     <div className={cn(
-                      "w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg",
+                      "w-14 h-14 rounded-none flex items-center justify-center shadow-lg",
                       isOpen ? "bg-emerald-500 text-white" : "bg-gray-400 text-white"
                     )}>
                       <Store className="w-7 h-7" />
@@ -190,12 +190,12 @@ export default function NegocioDashboard() {
                   <button 
                     onClick={() => setIsOpen(!isOpen)}
                     className={cn(
-                      "w-16 h-8 rounded-full transition-all relative p-1.5",
+                      "w-16 h-8 rounded-none transition-all relative p-1.5",
                       isOpen ? "bg-emerald-500" : "bg-gray-300"
                     )}
                   >
                     <div className={cn(
-                      "w-5 h-5 rounded-full bg-white shadow-md transition-all",
+                      "w-5 h-5 rounded-none bg-white shadow-md transition-all",
                       isOpen ? "translate-x-8" : "translate-x-0"
                     )} />
                   </button>
@@ -203,7 +203,7 @@ export default function NegocioDashboard() {
               </div>
 
               {/* Afluencia Selector */}
-              <div className="bg-white rounded-[3rem] p-10 shadow-xl shadow-black/5 border border-gray-100 space-y-8">
+              <div className="bg-white rounded-none p-10 shadow-xl shadow-black/5 border border-gray-100 space-y-8">
                 <h2 className="text-sm font-black uppercase tracking-[0.2em] text-dark flex items-center gap-3">
                   <Users className="w-6 h-6 text-primary" />
                   Nivel de Afluencia
@@ -218,7 +218,7 @@ export default function NegocioDashboard() {
                       key={level.id}
                       onClick={() => setAfluencia(level.id as any)}
                       className={cn(
-                        "flex flex-col items-center gap-4 p-6 rounded-[2rem] border-2 transition-all active:scale-95",
+                        "flex flex-col items-center gap-4 p-6 rounded-none border-2 transition-all active:scale-95",
                         afluencia === level.id 
                           ? `bg-${level.color}-50 border-${level.color}-500 text-${level.color}-700 shadow-lg shadow-${level.color}-500/10` 
                           : "bg-gray-50 border-transparent text-muted"
@@ -241,14 +241,14 @@ export default function NegocioDashboard() {
               exit={{ opacity: 0, y: -20 }}
               className="space-y-8"
             >
-              <div className="bg-white rounded-[3rem] p-10 shadow-xl shadow-black/5 border border-gray-100 space-y-8">
+              <div className="bg-white rounded-none p-10 shadow-xl shadow-black/5 border border-gray-100 space-y-8">
                 <div className="space-y-3">
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted ml-2">Nombre Comercial</label>
                   <input 
                     type="text" 
                     value={businessName}
                     onChange={(e) => setBusinessName(e.target.value)}
-                    className="w-full bg-gray-50 border-2 border-gray-100 rounded-[1.5rem] p-5 text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all uppercase tracking-tight"
+                    className="w-full bg-gray-50 border-2 border-gray-100 rounded-none p-5 text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all uppercase tracking-tight"
                   />
                 </div>
 
@@ -258,7 +258,7 @@ export default function NegocioDashboard() {
                     type="text" 
                     value={category}
                     onChange={(e) => setCategory(e.target.value)}
-                    className="w-full bg-gray-50 border-2 border-gray-100 rounded-[1.5rem] p-5 text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all uppercase tracking-tight"
+                    className="w-full bg-gray-50 border-2 border-gray-100 rounded-none p-5 text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all uppercase tracking-tight"
                   />
                 </div>
 
@@ -270,7 +270,7 @@ export default function NegocioDashboard() {
                       type="text" 
                       value={address}
                       onChange={(e) => setAddress(e.target.value)}
-                      className="w-full bg-gray-50 border-2 border-gray-100 rounded-[1.5rem] p-5 pl-14 text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all uppercase tracking-tight"
+                      className="w-full bg-gray-50 border-2 border-gray-100 rounded-none p-5 pl-14 text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all uppercase tracking-tight"
                     />
                   </div>
                 </div>
@@ -283,7 +283,7 @@ export default function NegocioDashboard() {
                       type="tel" 
                       value={whatsapp}
                       onChange={(e) => setWhatsapp(e.target.value)}
-                      className="w-full bg-gray-50 border-2 border-gray-100 rounded-[1.5rem] p-5 pl-14 text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all tracking-widest"
+                      className="w-full bg-gray-50 border-2 border-gray-100 rounded-none p-5 pl-14 text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all tracking-widest"
                     />
                   </div>
                 </div>
@@ -299,14 +299,14 @@ export default function NegocioDashboard() {
               exit={{ opacity: 0, y: -20 }}
               className="space-y-8"
             >
-              <div className="bg-white rounded-[3rem] p-10 shadow-xl shadow-black/5 border border-gray-100 space-y-8">
+              <div className="bg-white rounded-none p-10 shadow-xl shadow-black/5 border border-gray-100 space-y-8">
                 <div className="space-y-3">
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted ml-2">Oferta del Día ⚡</label>
                   <textarea 
                     value={offerText}
                     onChange={(e) => setOfferText(e.target.value)}
                     placeholder="Ej: Cubetazo 5x4..."
-                    className="w-full bg-gray-50 border-2 border-gray-100 rounded-[1.5rem] p-5 text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all h-32 resize-none"
+                    className="w-full bg-gray-50 border-2 border-gray-100 rounded-none p-5 text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all h-32 resize-none"
                   />
                 </div>
 
@@ -321,7 +321,7 @@ export default function NegocioDashboard() {
                         key={v.id}
                         onClick={() => setOfferValidity(v.id as any)}
                         className={cn(
-                          "flex-1 flex items-center justify-center gap-3 p-5 rounded-[1.5rem] border-2 transition-all",
+                          "flex-1 flex items-center justify-center gap-3 p-5 rounded-none border-2 transition-all",
                           offerValidity === v.id 
                             ? "bg-primary/5 border-primary/20 text-primary" 
                             : "bg-gray-50 border-transparent text-muted"
@@ -345,11 +345,11 @@ export default function NegocioDashboard() {
               exit={{ opacity: 0, y: -20 }}
               className="space-y-8"
             >
-              <div className="bg-white rounded-[3rem] p-10 shadow-xl shadow-black/5 border border-gray-100 space-y-10">
+              <div className="bg-white rounded-none p-10 shadow-xl shadow-black/5 border border-gray-100 space-y-10">
                 {/* Cover Image */}
                 <div className="space-y-5">
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted ml-2">Foto de Portada</label>
-                  <div className="relative aspect-video rounded-[2.5rem] overflow-hidden bg-gray-100 group shadow-sm">
+                  <div className="relative aspect-video rounded-none overflow-hidden bg-gray-100 group shadow-sm">
                     <img src={coverImage} alt="Cover" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <input type="file" accept="image/*" onChange={handleImageUpload('cover')} className="absolute inset-0 opacity-0 cursor-pointer" />
@@ -361,7 +361,7 @@ export default function NegocioDashboard() {
                 {/* Menu Image */}
                 <div className="space-y-5">
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted ml-2">Foto de Menú / Precios</label>
-                  <div className="relative aspect-[3/4] rounded-[2.5rem] overflow-hidden bg-gray-100 group max-w-[240px] mx-auto shadow-sm">
+                  <div className="relative aspect-[3/4] rounded-none overflow-hidden bg-gray-100 group max-w-[240px] mx-auto shadow-sm">
                     <img src={menuImage} alt="Menu" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <input type="file" accept="image/*" onChange={handleImageUpload('menu')} className="absolute inset-0 opacity-0 cursor-pointer" />
@@ -381,17 +381,17 @@ export default function NegocioDashboard() {
               exit={{ opacity: 0, y: -20 }}
               className="space-y-8"
             >
-              <div className="bg-dark rounded-[3rem] p-10 text-white shadow-2xl space-y-10 relative overflow-hidden">
-                <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl" />
+              <div className="bg-dark rounded-none p-10 text-white shadow-2xl space-y-10 relative overflow-hidden">
+                <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/10 rounded-none blur-3xl" />
                 <div className="flex items-center justify-between relative z-10">
                   <h2 className="text-sm font-black uppercase tracking-[0.2em] text-primary">Impacto Hoy</h2>
                   <TrendingUp className="w-6 h-6 text-emerald-400" />
                 </div>
 
                 <div className="grid grid-cols-1 gap-6 relative z-10">
-                  <div className="flex items-center justify-between p-6 bg-white/5 rounded-[1.5rem] border border-white/10">
+                  <div className="flex items-center justify-between p-6 bg-white/5 rounded-none border border-white/10">
                     <div className="flex items-center gap-5">
-                      <div className="w-12 h-12 bg-primary/20 rounded-2xl flex items-center justify-center">
+                      <div className="w-12 h-12 bg-primary/20 rounded-none flex items-center justify-center">
                         <Eye className="w-6 h-6 text-primary" />
                       </div>
                       <span className="text-[10px] font-black uppercase tracking-widest opacity-50">Vistas Hoy</span>
@@ -399,9 +399,9 @@ export default function NegocioDashboard() {
                     <span className="text-3xl font-black tracking-tighter">{stats.vistas}</span>
                   </div>
 
-                  <div className="flex items-center justify-between p-6 bg-white/5 rounded-[1.5rem] border border-white/10">
+                  <div className="flex items-center justify-between p-6 bg-white/5 rounded-none border border-white/10">
                     <div className="flex items-center gap-5">
-                      <div className="w-12 h-12 bg-amber-400/20 rounded-2xl flex items-center justify-center">
+                      <div className="w-12 h-12 bg-amber-400/20 rounded-none flex items-center justify-center">
                         <Zap className="w-6 h-6 text-amber-400" />
                       </div>
                       <span className="text-[10px] font-black uppercase tracking-widest opacity-50">Clics Oferta</span>
@@ -409,9 +409,9 @@ export default function NegocioDashboard() {
                     <span className="text-3xl font-black tracking-tighter">{stats.clicsOferta}</span>
                   </div>
 
-                  <div className="flex items-center justify-between p-6 bg-white/5 rounded-[1.5rem] border border-white/10">
+                  <div className="flex items-center justify-between p-6 bg-white/5 rounded-none border border-white/10">
                     <div className="flex items-center gap-5">
-                      <div className="w-12 h-12 bg-emerald-400/20 rounded-2xl flex items-center justify-center">
+                      <div className="w-12 h-12 bg-emerald-400/20 rounded-none flex items-center justify-center">
                         <Navigation className="w-6 h-6 text-emerald-400" />
                       </div>
                       <span className="text-[10px] font-black uppercase tracking-widest opacity-50">Cómo Llegar</span>
@@ -430,7 +430,7 @@ export default function NegocioDashboard() {
         <button
           onClick={handleSaveChanges}
           disabled={saving}
-          className="w-full py-6 bg-primary text-white rounded-[2.5rem] font-black text-xs uppercase tracking-[0.3em] shadow-2xl shadow-primary/40 flex items-center justify-center gap-3 active:scale-95 transition-all hover:bg-primary/90"
+          className="w-full py-6 bg-primary text-white rounded-none font-black text-xs uppercase tracking-[0.3em] shadow-2xl shadow-primary/40 flex items-center justify-center gap-3 active:scale-95 transition-all hover:bg-primary/90"
         >
           {saving ? (
             <Loader2 className="w-6 h-6 animate-spin" />

@@ -39,9 +39,9 @@ export default function ClienteReservations() {
               key={res.id}
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
-              className="bg-white rounded-[2.5rem] p-4 shadow-xl shadow-black/5 border border-gray-100 flex flex-col md:flex-row gap-6 group"
+              className="bg-white rounded-none p-4 shadow-xl shadow-black/5 border border-gray-100 flex flex-col md:flex-row gap-6 group"
             >
-              <div className="w-full md:w-48 aspect-square rounded-[2rem] overflow-hidden shrink-0">
+              <div className="w-full md:w-48 aspect-square rounded-none overflow-hidden shrink-0">
                 <img 
                   src={res.image} 
                   alt={res.hotel} 
@@ -60,7 +60,7 @@ export default function ClienteReservations() {
                         <span className="text-[10px] font-bold uppercase tracking-tight">Zona Dorada, Acapulco</span>
                       </div>
                     </div>
-                    <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${
+                    <span className={`px-3 py-1 rounded-none text-[9px] font-black uppercase tracking-widest ${
                       res.status === 'confirmada' ? 'bg-emerald-100 text-emerald-600' : 'bg-amber-100 text-amber-600'
                     }`}>
                       {res.status}
@@ -99,10 +99,10 @@ export default function ClienteReservations() {
                 </div>
                 
                 <div className="flex gap-4 pt-6 border-t border-gray-50">
-                  <button className="flex-1 py-3 bg-primary text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all">
+                  <button className="flex-1 py-3 bg-primary text-white rounded-none font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all">
                     Ver Voucher
                   </button>
-                  <button className="flex-1 py-3 bg-gray-50 text-muted rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-gray-100 transition-all">
+                  <button className="flex-1 py-3 bg-gray-50 text-muted rounded-none font-black text-[10px] uppercase tracking-widest hover:bg-gray-100 transition-all">
                     Cancelar
                   </button>
                 </div>
@@ -113,7 +113,7 @@ export default function ClienteReservations() {
 
         {MOCK_RESERVATIONS.length === 0 && (
           <div className="text-center py-20 space-y-4">
-            <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto shadow-sm">
+            <div className="w-20 h-20 bg-white rounded-none flex items-center justify-center mx-auto shadow-sm">
               <Calendar className="w-10 h-10 text-gray-200" />
             </div>
             <p className="text-sm font-bold text-muted uppercase tracking-widest">No tienes reservas aún</p>

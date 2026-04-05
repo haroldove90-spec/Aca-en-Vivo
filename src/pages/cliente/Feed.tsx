@@ -43,19 +43,19 @@ function PopularCard({ business }: { business: any, key?: string }) {
   return (
     <motion.div 
       whileTap={{ scale: 0.98 }}
-      className="bg-white rounded-[2.5rem] p-3 shadow-xl shadow-black/5 border border-gray-100 group flex flex-col gap-3"
+      className="bg-white rounded-none p-3 shadow-xl shadow-black/5 border border-gray-100 group flex flex-col gap-3"
     >
-      <div className="aspect-[4/5] relative overflow-hidden rounded-[2rem]">
+      <div className="aspect-[4/5] relative overflow-hidden rounded-none">
         <img 
           src={`https://picsum.photos/seed/${business.id}/600/750`} 
           alt={business.nombre}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
           referrerPolicy="no-referrer"
         />
-        <button className="absolute top-4 right-4 w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center border border-white/30">
+        <button className="absolute top-4 right-4 w-10 h-10 bg-white/20 backdrop-blur-md rounded-none flex items-center justify-center border border-white/30">
           <Heart className="w-5 h-5 text-white" />
         </button>
-        <div className="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur-md p-4 rounded-2xl shadow-lg">
+        <div className="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur-md p-4 rounded-none shadow-lg">
           <h3 className="font-black text-dark text-sm leading-tight uppercase tracking-tight truncate">{business.nombre}</h3>
           <div className="flex items-center justify-between mt-1">
             <div className="flex items-center gap-1 text-muted">
@@ -166,11 +166,11 @@ export default function ClienteFeed() {
             className="space-y-4"
           >
             <h1 className="text-5xl lg:text-7xl font-black text-white tracking-tighter leading-none">
-              Let's Enjoy The<br />
-              <span className="text-primary">Beautiful World!</span>
+              ¡Disfruta de este<br />
+              <span className="text-primary">Mundo Hermoso!</span>
             </h1>
             <p className="text-white/60 text-lg lg:text-xl font-medium max-w-md">
-              Explorer new places in the world and get new experiences
+              Explora nuevos lugares en el mundo y obtén nuevas experiencias
             </p>
           </motion.div>
 
@@ -184,7 +184,7 @@ export default function ClienteFeed() {
                 key={role.id}
                 onClick={() => navigate(role.path)}
                 className={cn(
-                  "px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest text-white shadow-xl transition-all active:scale-95",
+                  "px-6 py-3 rounded-none text-[10px] font-black uppercase tracking-widest text-white shadow-xl transition-all active:scale-95",
                   role.color
                 )}
               >
@@ -199,10 +199,10 @@ export default function ClienteFeed() {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             onClick={() => setShowOnboarding(false)}
-            className="w-full lg:w-auto px-10 py-6 bg-primary text-white rounded-[2rem] font-black text-lg uppercase tracking-widest shadow-2xl shadow-primary/40 flex items-center justify-center gap-4 group"
+            className="w-full lg:w-auto px-10 py-6 bg-primary text-white rounded-none font-black text-lg uppercase tracking-widest shadow-2xl shadow-primary/40 flex items-center justify-center gap-4 group"
           >
-            Get Started
-            <div className="w-10 h-10 bg-white/20 rounded-full flex items-center justify-center group-hover:translate-x-2 transition-transform">
+            Empezar
+            <div className="w-10 h-10 bg-white/20 rounded-none flex items-center justify-center group-hover:translate-x-2 transition-transform">
               <ChevronRight className="w-6 h-6" />
             </div>
           </motion.button>
@@ -214,22 +214,22 @@ export default function ClienteFeed() {
   return (
     <div className="space-y-10">
       {/* Featured Card */}
-        <section className="relative aspect-[16/9] lg:aspect-[21/9] rounded-[3rem] overflow-hidden shadow-2xl group">
+        <section className="relative aspect-[16/9] lg:aspect-[21/9] rounded-none overflow-hidden shadow-2xl group">
           <img 
             src="https://images.unsplash.com/photo-1506929199175-60933ee89334?auto=format&fit=crop&q=80&w=1920" 
-            alt="Featured" 
+            alt="Destacado" 
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
           />
           <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent" />
           <div className="absolute inset-y-0 left-0 p-8 lg:p-12 flex flex-col justify-center space-y-4">
-            <div className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-full border border-white/30 w-fit">
-              <span className="text-white text-[10px] font-black uppercase tracking-widest">Featured Destination</span>
+            <div className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-none border border-white/30 w-fit">
+              <span className="text-white text-[10px] font-black uppercase tracking-widest">Destino Destacado</span>
             </div>
             <h2 className="text-3xl lg:text-5xl font-black text-white tracking-tighter leading-tight">
-              Acapulco Bay<br />Experience
+              Experiencia en la<br />Bahía de Acapulco
             </h2>
-            <button className="bg-white text-dark px-6 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest shadow-xl w-fit hover:bg-primary hover:text-white transition-all">
-              Explore Now
+            <button className="bg-white text-dark px-6 py-3 rounded-none font-black text-[10px] uppercase tracking-widest shadow-xl w-fit hover:bg-primary hover:text-white transition-all">
+              Explorar Ahora
             </button>
           </div>
         </section>
@@ -237,7 +237,7 @@ export default function ClienteFeed() {
         {/* Categories Grid */}
         <section className="space-y-6">
           <div className="flex items-center justify-between">
-            <h2 className="text-xl font-black text-dark tracking-tight">Category</h2>
+            <h2 className="text-xl font-black text-dark tracking-tight">Categoría</h2>
           </div>
           <div className="flex gap-6 overflow-x-auto no-scrollbar pb-2">
             {CATEGORIES.map((cat) => (
@@ -247,7 +247,7 @@ export default function ClienteFeed() {
                 className="flex flex-col items-center gap-3 flex-shrink-0 group"
               >
                 <div className={cn(
-                  "w-16 h-16 rounded-full flex items-center justify-center transition-all shadow-lg",
+                  "w-16 h-16 rounded-none flex items-center justify-center transition-all shadow-lg",
                   selectedCategory === cat.id 
                     ? "bg-primary text-white scale-110" 
                     : "bg-white text-muted hover:bg-primary/10 hover:text-primary"
@@ -269,7 +269,7 @@ export default function ClienteFeed() {
         <section className="space-y-6 pb-20">
           <div className="flex items-center justify-between">
             <h2 className="text-xl font-black text-dark tracking-tight">Popular</h2>
-            <button className="text-primary text-[10px] font-black uppercase tracking-widest hover:underline">See all</button>
+            <button className="text-primary text-[10px] font-black uppercase tracking-widest hover:underline">Ver todo</button>
           </div>
           
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
@@ -280,10 +280,10 @@ export default function ClienteFeed() {
 
           {filteredBusinesses.length === 0 && (
             <div className="text-center py-20 space-y-4">
-              <div className="w-20 h-20 bg-white rounded-full flex items-center justify-center mx-auto shadow-sm">
+              <div className="w-20 h-20 bg-white rounded-none flex items-center justify-center mx-auto shadow-sm">
                 <Palmtree className="w-10 h-10 text-gray-200" />
               </div>
-              <p className="text-sm font-bold text-muted uppercase tracking-widest">No destinations found in this category</p>
+              <p className="text-sm font-bold text-muted uppercase tracking-widest">No se encontraron destinos en esta categoría</p>
             </div>
           )}
         </section>

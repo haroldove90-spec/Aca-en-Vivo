@@ -129,27 +129,27 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
             exit={{ opacity: 0, scale: 0.5, y: 100 }}
             className="fixed inset-x-0 bottom-10 z-[200] flex justify-center px-6"
           >
-            <div className="bg-dark text-white p-8 rounded-[3rem] shadow-[0_30px_100px_rgba(0,0,0,0.5)] border border-white/10 max-w-2xl w-full flex items-center gap-8 relative overflow-hidden">
-              <div className="absolute -top-20 -right-20 w-64 h-64 bg-primary/20 rounded-full blur-[80px]" />
+            <div className="bg-dark text-white p-8 rounded-none shadow-[0_30px_100px_rgba(0,0,0,0.5)] border border-white/10 max-w-2xl w-full flex items-center gap-8 relative overflow-hidden">
+              <div className="absolute -top-20 -right-20 w-64 h-64 bg-primary/20 rounded-none blur-[80px]" />
               
-              <div className="w-24 h-24 bg-primary rounded-[2rem] flex items-center justify-center shadow-2xl shadow-primary/40 shrink-0 rotate-3">
+              <div className="w-24 h-24 bg-primary rounded-none flex items-center justify-center shadow-2xl shadow-primary/40 shrink-0 rotate-3">
                 <Building2 className="w-12 h-12 text-white" />
               </div>
               
               <div className="flex-1 space-y-2">
                 <div className="flex items-center gap-3">
-                  <span className="px-3 py-1 bg-primary/20 text-primary rounded-full text-[10px] font-black uppercase tracking-widest">Nuevo Registro</span>
+                  <span className="px-3 py-1 bg-primary/20 text-primary rounded-none text-[10px] font-black uppercase tracking-widest">Nuevo Registro</span>
                   <span className="text-white/40 text-[10px] font-bold uppercase tracking-widest">¡Justo ahora!</span>
                 </div>
                 <h2 className="text-3xl font-black tracking-tighter uppercase leading-none">¡NUEVO ALIADO REGISTRADO!</h2>
                 <p className="text-lg font-bold text-white/60">{newRegPopup.data?.nombre || 'Nuevo Negocio'}</p>
                 <div className="flex gap-4 pt-4">
-                  <button className="px-8 py-4 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl hover:bg-primary/90 transition-all">
+                  <button className="px-8 py-4 bg-primary text-white rounded-none font-black text-xs uppercase tracking-widest shadow-xl hover:bg-primary/90 transition-all">
                     Ver Perfil
                   </button>
                   <button 
                     onClick={() => setNewRegPopup(null)}
-                    className="px-8 py-4 bg-white/5 text-white/60 rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-white/10 transition-all"
+                    className="px-8 py-4 bg-white/5 text-white/60 rounded-none font-black text-xs uppercase tracking-widest hover:bg-white/10 transition-all"
                   >
                     Ignorar
                   </button>

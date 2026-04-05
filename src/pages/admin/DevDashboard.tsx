@@ -18,13 +18,13 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 
 const KPICard = ({ title, value, subValue, icon: Icon, trend }: any) => (
-  <div className="bg-white border border-gray-100 p-6 rounded-2xl shadow-sm space-y-4">
+  <div className="bg-white border border-gray-100 p-6 rounded-none shadow-sm space-y-4">
     <div className="flex justify-between items-start">
-      <div className="p-3 bg-primary/10 rounded-xl">
+      <div className="p-3 bg-primary/10 rounded-none">
         <Icon className="w-6 h-6 text-primary" />
       </div>
       {trend && (
-        <div className="flex items-center gap-1 text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg text-[10px] font-black uppercase">
+        <div className="flex items-center gap-1 text-emerald-600 bg-emerald-50 px-2 py-1 rounded-none text-[10px] font-black uppercase">
           <ArrowUpRight className="w-3 h-3" />
           {trend}
         </div>
@@ -39,9 +39,9 @@ const KPICard = ({ title, value, subValue, icon: Icon, trend }: any) => (
 );
 
 const StatusIndicator = ({ label, status, detail }: any) => (
-  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-xl border border-gray-100">
+  <div className="flex items-center justify-between p-3 bg-gray-50 rounded-none border border-gray-100">
     <div className="flex items-center gap-3">
-      <div className={cn("w-2 h-2 rounded-full", 
+      <div className={cn("w-2 h-2 rounded-none", 
         status === 'online' ? "bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)] animate-pulse" : "bg-rose-500"
       )} />
       <span className="text-[10px] font-black text-dark uppercase tracking-tight">{label}</span>
@@ -75,12 +75,12 @@ export default function DevDashboard() {
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <h1 className="text-3xl font-black text-dark tracking-tighter uppercase leading-none">Admin <span className="text-primary">Dev</span></h1>
-            <span className="bg-primary text-white text-[10px] font-black px-2 py-0.5 rounded uppercase">Master</span>
+            <span className="bg-primary text-white text-[10px] font-black px-2 py-0.5 rounded-none uppercase">Master</span>
           </div>
           <p className="text-muted text-sm font-medium">Panel de Supervisión Técnica y Financiera • Acapulco-CDMX</p>
         </div>
         
-        <button className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-primary/20">
+        <button className="flex items-center gap-2 bg-primary hover:bg-primary/90 text-white px-6 py-3 rounded-none font-black text-xs uppercase tracking-widest transition-all active:scale-95 shadow-lg shadow-primary/20">
           <Download className="w-4 h-4" />
           Exportar Reporte Mensual
         </button>
@@ -128,7 +128,7 @@ export default function DevDashboard() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
               {/* Revenue Chart Simulation */}
-              <div className="lg:col-span-2 bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-xl">
+              <div className="lg:col-span-2 bg-white border border-gray-100 rounded-none p-8 shadow-xl">
                 <div className="flex justify-between items-center mb-10">
                   <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-2 text-dark">
                     <ActivityIcon className="w-5 h-5 text-primary" />
@@ -136,11 +136,11 @@ export default function DevDashboard() {
                   </h3>
                   <div className="flex gap-4 text-[10px] font-bold uppercase tracking-widest">
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-gray-200 rounded-sm" />
+                      <div className="w-3 h-3 bg-gray-200 rounded-none" />
                       <span className="text-muted">Base</span>
                     </div>
                     <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-primary rounded-sm" />
+                      <div className="w-3 h-3 bg-primary rounded-none" />
                       <span className="text-primary">Pico</span>
                     </div>
                   </div>
@@ -158,11 +158,11 @@ export default function DevDashboard() {
                     <div key={i} className="flex-1 flex flex-col items-center gap-3">
                       <div className="w-full flex items-end justify-center gap-1 h-full">
                         <div 
-                          className="w-3 bg-gray-200 rounded-t-sm transition-all duration-1000" 
+                          className="w-3 bg-gray-200 rounded-none transition-all duration-1000" 
                           style={{ height: `${d.base}%` }} 
                         />
                         <div 
-                          className="w-3 bg-primary rounded-t-sm shadow-[0_0_15px_rgba(0,168,204,0.3)] transition-all duration-1000" 
+                          className="w-3 bg-primary rounded-none shadow-[0_0_15px_rgba(0,168,204,0.3)] transition-all duration-1000" 
                           style={{ height: `${d.pico}%` }} 
                         />
                       </div>
@@ -173,7 +173,7 @@ export default function DevDashboard() {
               </div>
 
               {/* Technical Monitor */}
-              <div className="bg-white border border-gray-100 rounded-[2.5rem] p-8 shadow-xl space-y-8">
+              <div className="bg-white border border-gray-100 rounded-none p-8 shadow-xl space-y-8">
                 <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-2 text-dark">
                   <Cpu className="w-5 h-5 text-primary" />
                   Monitor de Salud
@@ -191,7 +191,7 @@ export default function DevDashboard() {
                     <span className="text-[10px] font-black text-muted uppercase tracking-widest">Uptime Global</span>
                     <span className="text-xs font-black text-emerald-600">99.98%</span>
                   </div>
-                  <div className="w-full h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="w-full h-1.5 bg-gray-100 rounded-none overflow-hidden">
                     <div className="w-[99.98%] h-full bg-emerald-500" />
                   </div>
                 </div>
@@ -208,7 +208,7 @@ export default function DevDashboard() {
             exit={{ opacity: 0, y: -20 }}
           >
             {/* Recent Movements Table */}
-            <div className="bg-white border border-gray-100 rounded-[2.5rem] overflow-hidden shadow-xl">
+            <div className="bg-white border border-gray-100 rounded-none overflow-hidden shadow-xl">
               <div className="p-8 border-b border-gray-100 flex justify-between items-center">
                 <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-2 text-dark">
                   <Clock className="w-5 h-5 text-primary" />
@@ -238,7 +238,7 @@ export default function DevDashboard() {
                         </td>
                         <td className="px-8 py-5">
                           <span className={cn(
-                            "text-[9px] font-black px-3 py-1 rounded-xl uppercase tracking-widest",
+                            "text-[9px] font-black px-3 py-1 rounded-none uppercase tracking-widest",
                             m.type === 'alert' ? "bg-rose-100 text-rose-600" :
                             m.type === 'payment' ? "bg-emerald-100 text-emerald-600" :
                             m.type === 'new' ? "bg-primary/10 text-primary" :
@@ -265,9 +265,9 @@ export default function DevDashboard() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
-            className="bg-white p-10 rounded-[3rem] shadow-xl border border-gray-100 text-center space-y-6"
+            className="bg-white p-10 rounded-none shadow-xl border border-gray-100 text-center space-y-6"
           >
-            <div className="w-20 h-20 bg-primary/5 text-primary rounded-[2rem] flex items-center justify-center mx-auto">
+            <div className="w-20 h-20 bg-primary/5 text-primary rounded-none flex items-center justify-center mx-auto">
               <SettingsIcon className="w-10 h-10" />
             </div>
             <div>

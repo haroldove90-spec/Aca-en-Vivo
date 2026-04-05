@@ -48,7 +48,7 @@ interface LayoutProps {
 const getNavItems = (pathname: string) => {
   if (pathname.includes('/admin-agencia')) {
     return [
-      { id: 'dashboard', label: 'Dashboard', icon: Grid, path: '/admin-agencia' },
+      { id: 'dashboard', label: 'Panel', icon: Grid, path: '/admin-agencia' },
       { id: 'afiliados', label: 'Afiliados', icon: Users, path: '/admin-agencia?tab=afiliados' },
       { id: 'zonas', label: 'Zonas', icon: MapPin, path: '/admin-agencia?tab=zonas' },
       { id: 'pagos', label: 'Pagos', icon: DollarSign, path: '/admin-agencia?tab=pagos' },
@@ -73,7 +73,7 @@ const getNavItems = (pathname: string) => {
   }
   if (pathname.includes('/clasificados')) {
     return [
-      { id: 'dashboard', label: 'Dashboard', icon: Home, path: '/clasificados?tab=dashboard' },
+      { id: 'dashboard', label: 'Panel', icon: Home, path: '/clasificados?tab=dashboard' },
       { id: 'propiedad', label: 'Propiedad', icon: Building2, path: '/clasificados?tab=propiedad' },
       { id: 'disponibilidad', label: 'Disponibilidad', icon: Calendar, path: '/clasificados?tab=disponibilidad' },
       { id: 'contacto', label: 'Contacto', icon: Phone, path: '/clasificados?tab=contacto' },
@@ -88,7 +88,7 @@ const getNavItems = (pathname: string) => {
   }
   // Default (Cliente)
   return [
-    { id: 'explorar', label: 'Explorar', icon: Home, path: '/' },
+    { id: 'explorar', label: 'Inicio', icon: Home, path: '/' },
     { id: 'hoteles', label: 'Hoteles', icon: Hotel, path: '/?cat=hotel' },
     { id: 'clasificados', label: 'Rentas', icon: Building2, path: '/?cat=clasificados' },
     { id: 'favoritos', label: 'Favoritos', icon: Heart, path: '/favoritos' },
@@ -132,12 +132,12 @@ export function Layout({ children }: LayoutProps) {
           animate={{ opacity: 1, x: 0 }}
           className="flex items-center gap-4 mb-12"
         >
-          <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20 rotate-3 hover:rotate-0 transition-transform">
+          <div className="w-12 h-12 bg-primary rounded-none flex items-center justify-center shadow-lg shadow-primary/20 rotate-3 hover:rotate-0 transition-transform">
             <Palmtree className="w-7 h-7 text-white" />
           </div>
           <div>
             <h1 className="text-2xl font-black text-dark tracking-tighter leading-none uppercase">AcaEnVivo</h1>
-            <p className="text-[10px] font-bold text-primary uppercase tracking-[0.3em] mt-1">Experience</p>
+            <p className="text-[10px] font-bold text-primary uppercase tracking-[0.3em] mt-1">Experiencia</p>
           </div>
         </motion.div>
 
@@ -150,7 +150,7 @@ export function Layout({ children }: LayoutProps) {
               key={item.id}
               onClick={() => navigate(item.path)}
               className={cn(
-                "w-full flex items-center gap-4 px-5 py-4 rounded-[1.5rem] transition-all font-black text-sm uppercase tracking-widest group",
+                "w-full flex items-center gap-4 px-5 py-4 rounded-none transition-all font-black text-sm uppercase tracking-widest group",
                 isActive(item.path) 
                   ? "bg-primary text-white shadow-xl shadow-primary/20 scale-105" 
                   : "text-muted hover:bg-gray-50 hover:text-dark"
@@ -163,13 +163,13 @@ export function Layout({ children }: LayoutProps) {
         </nav>
 
         <div className="pt-8 border-t border-gray-100 space-y-3">
-          <button className="w-full flex items-center gap-4 px-5 py-4 rounded-[1.5rem] text-muted hover:bg-gray-50 hover:text-dark transition-all font-black text-sm uppercase tracking-widest group">
+          <button className="w-full flex items-center gap-4 px-5 py-4 rounded-none text-muted hover:bg-gray-50 hover:text-dark transition-all font-black text-sm uppercase tracking-widest group">
             <Settings className="w-5 h-5 group-hover:rotate-45 transition-transform" />
-            Settings
+            Ajustes
           </button>
           <button 
             onClick={handleLogout}
-            className="w-full flex items-center gap-4 px-5 py-4 rounded-[1.5rem] text-rose-500 hover:bg-rose-50 transition-all font-black text-sm uppercase tracking-widest"
+            className="w-full flex items-center gap-4 px-5 py-4 rounded-none text-rose-500 hover:bg-rose-50 transition-all font-black text-sm uppercase tracking-widest"
           >
             <LogOut className="w-5 h-5" />
             Cerrar Sesión
@@ -178,11 +178,11 @@ export function Layout({ children }: LayoutProps) {
       </aside>
 
       {/* Mobile/Tablet Top Nav */}
-      <header className="lg:hidden bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-50 shadow-md">
+      <header className="lg:hidden bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-50 shadow-sm">
         <div className="flex items-center justify-between gap-3">
           {/* App Logo & Name */}
           <div className="flex items-center gap-2 shrink-0">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-lg shadow-primary/20">
+            <div className="w-8 h-8 bg-primary rounded-none flex items-center justify-center shadow-lg shadow-primary/20">
               <Palmtree className="w-5 h-5 text-white" />
             </div>
             <h1 className="text-sm font-black text-dark tracking-tighter uppercase leading-none">AcaEnVivo</h1>
@@ -194,23 +194,23 @@ export function Layout({ children }: LayoutProps) {
             <input 
               type="text" 
               placeholder="Buscar..."
-              className="w-full bg-gray-100 text-dark rounded-lg py-2 pl-8 pr-3 text-[10px] font-bold placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary/10 border border-transparent focus:border-primary/20 transition-all"
+              className="w-full bg-gray-100 text-dark rounded-none py-2 pl-8 pr-3 text-[10px] font-bold placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary/10 border border-transparent focus:border-primary/20 transition-all"
             />
           </div>
 
           <div className="flex gap-1.5 shrink-0">
             <button 
               onClick={() => setIsNotifOpen(!isNotifOpen)}
-              className="w-9 h-9 bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200 relative text-muted"
+              className="w-9 h-9 bg-gray-100 rounded-none flex items-center justify-center border border-gray-200 relative text-muted"
             >
               <Bell className="w-4.5 h-4.5" />
               {unreadCount > 0 && (
-                <div className="absolute top-2 right-2 w-1.5 h-1.5 bg-rose-500 rounded-full border border-white" />
+                <div className="absolute top-2 right-2 w-1.5 h-1.5 bg-rose-500 rounded-none border border-white" />
               )}
             </button>
             <button 
               onClick={handleLogout}
-              className="w-9 h-9 bg-gray-100 rounded-lg flex items-center justify-center border border-gray-200 text-rose-500 hover:bg-rose-50 transition-all"
+              className="w-9 h-9 bg-gray-100 rounded-none flex items-center justify-center border border-gray-200 text-rose-500 hover:bg-rose-50 transition-all"
             >
               <LogOut className="w-4.5 h-4.5" />
             </button>
@@ -227,7 +227,7 @@ export function Layout({ children }: LayoutProps) {
             <input 
               type="text" 
               placeholder="Buscar destinos, hoteles, experiencias..."
-              className="w-full bg-gray-50 rounded-xl py-2.5 pl-14 pr-4 text-sm font-bold placeholder:text-muted focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all border border-transparent focus:border-primary/10"
+              className="w-full bg-gray-50 rounded-none py-2.5 pl-14 pr-4 text-sm font-bold placeholder:text-muted focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all border border-transparent focus:border-primary/10"
             />
           </div>
           <div className="flex items-center gap-8 ml-12">
@@ -238,7 +238,7 @@ export function Layout({ children }: LayoutProps) {
               >
                 <Bell className="w-7 h-7" />
                 {unreadCount > 0 && (
-                  <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-rose-500 rounded-full border-2 border-white flex items-center justify-center text-[8px] font-black text-white">
+                  <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-rose-500 rounded-none border-2 border-white flex items-center justify-center text-[8px] font-black text-white">
                     {unreadCount}
                   </div>
                 )}
@@ -251,7 +251,7 @@ export function Layout({ children }: LayoutProps) {
                     initial={{ opacity: 0, y: 10, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    className="absolute right-0 mt-6 w-96 bg-white rounded-[2.5rem] shadow-[0_30px_100px_rgba(0,0,0,0.15)] border border-gray-100 overflow-hidden z-50"
+                    className="absolute right-0 mt-6 w-96 bg-white rounded-none shadow-[0_30px_100px_rgba(0,0,0,0.15)] border border-gray-100 overflow-hidden z-50"
                   >
                     <div className="p-8 border-b border-gray-100 flex items-center justify-between">
                       <h3 className="text-sm font-black text-dark uppercase tracking-[0.2em]">Notificaciones</h3>
@@ -274,7 +274,7 @@ export function Layout({ children }: LayoutProps) {
                             )}
                           >
                             <div className={cn(
-                              "w-10 h-10 rounded-xl flex items-center justify-center shrink-0",
+                              "w-10 h-10 rounded-none flex items-center justify-center shrink-0",
                               n.type === 'registration' ? "bg-blue-100 text-blue-600" :
                               n.type === 'payment' ? "bg-emerald-100 text-emerald-600" :
                               n.type === 'message' ? "bg-amber-100 text-amber-600" :
@@ -290,7 +290,7 @@ export function Layout({ children }: LayoutProps) {
                               <p className="text-[11px] font-bold text-muted mt-1 line-clamp-2">{n.body}</p>
                               <p className="text-[9px] font-black text-primary uppercase tracking-widest mt-2">Hace 5 min</p>
                             </div>
-                            {!n.read && <div className="w-2 h-2 bg-primary rounded-full mt-2" />}
+                            {!n.read && <div className="w-2 h-2 bg-primary rounded-none mt-2" />}
                           </button>
                         ))
                       )}
@@ -304,19 +304,19 @@ export function Layout({ children }: LayoutProps) {
             </div>
             <button 
               onClick={handleLogout}
-              className="w-12 h-12 bg-bg rounded-2xl flex items-center justify-center text-rose-500 hover:bg-rose-50 transition-all shadow-sm border border-gray-100"
+              className="w-12 h-12 bg-bg rounded-none flex items-center justify-center text-rose-500 hover:bg-rose-50 transition-all shadow-sm border border-gray-100"
             >
               <LogOut className="w-6 h-6" />
             </button>
             <div className="flex items-center gap-4 pl-8 border-l border-gray-100">
               <div className="text-right">
                 <p className="text-sm font-black text-dark tracking-tight leading-none">Jack Fitzgerald</p>
-                <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] mt-1">Premium Member</p>
+                <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] mt-1">Miembro Premium</p>
               </div>
-              <div className="w-12 h-12 rounded-2xl overflow-hidden border-2 border-gray-50 shadow-lg hover:rotate-3 transition-transform cursor-pointer">
+              <div className="w-12 h-12 rounded-none overflow-hidden border-2 border-gray-50 shadow-lg hover:rotate-3 transition-transform cursor-pointer">
                 <img 
                   src="https://api.dicebear.com/7.x/avataaars/svg?seed=Jack" 
-                  alt="User" 
+                  alt="Usuario" 
                   className="w-full h-full object-cover"
                 />
               </div>
@@ -338,23 +338,24 @@ export function Layout({ children }: LayoutProps) {
       <SupportChat isAdmin={isAdmin} />
 
       {/* Mobile Bottom Nav */}
-      <nav className="lg:hidden fixed bottom-8 left-8 right-8 bg-white/90 backdrop-blur-2xl rounded-[2.5rem] p-4 flex justify-around items-center shadow-[0_20px_50px_rgba(0,0,0,0.1)] border border-white/50 z-50">
-        {navItems.map((item) => (
+      <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl flex justify-around items-center border-t border-gray-100 z-50 h-16">
+        {navItems.slice(0, 5).map((item) => (
           <button
             key={item.id}
             onClick={() => navigate(item.path)}
             className={cn(
-              "p-4 rounded-[1.5rem] transition-all relative group",
+              "flex flex-col items-center justify-center w-full h-full transition-all relative group",
               isActive(item.path) 
-                ? "bg-primary text-white shadow-xl shadow-primary/30 scale-110 -translate-y-2" 
+                ? "text-primary" 
                 : "text-muted hover:text-primary"
             )}
           >
-            <item.icon className="w-6 h-6" />
+            <item.icon className={cn("w-5 h-5", isActive(item.path) && "scale-110")} />
+            <span className="text-[8px] font-black uppercase tracking-tighter mt-1">{item.label}</span>
             {isActive(item.path) && (
               <motion.div 
                 layoutId="activeTab"
-                className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-white rounded-full"
+                className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-primary rounded-none"
               />
             )}
           </button>

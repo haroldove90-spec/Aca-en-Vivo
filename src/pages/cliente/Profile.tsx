@@ -37,12 +37,12 @@ export default function ClienteProfile() {
   return (
     <div className="space-y-10 pb-20">
       {/* Profile Header Card */}
-        <section className="bg-white rounded-[3rem] p-8 lg:p-12 shadow-2xl shadow-black/5 border border-gray-100 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full blur-3xl -mr-32 -mt-32" />
+        <section className="bg-white rounded-none p-8 lg:p-12 shadow-2xl shadow-black/5 border border-gray-100 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-none blur-3xl -mr-32 -mt-32" />
           
           <div className="flex flex-col lg:flex-row items-center gap-10 relative z-10">
             <div className="relative group">
-              <div className="w-40 h-40 rounded-[2.5rem] overflow-hidden shadow-2xl shadow-primary/20 border-4 border-white">
+              <div className="w-40 h-40 rounded-none overflow-hidden shadow-2xl shadow-primary/20 border-4 border-white">
                 <img 
                   src={MOCK_USER.avatar} 
                   alt={MOCK_USER.name} 
@@ -52,7 +52,7 @@ export default function ClienteProfile() {
               </div>
               <button 
                 onClick={() => navigate('/settings')}
-                className="absolute -bottom-2 -right-2 w-12 h-12 bg-primary text-white rounded-2xl flex items-center justify-center shadow-xl border-4 border-white hover:scale-110 transition-transform"
+                className="absolute -bottom-2 -right-2 w-12 h-12 bg-primary text-white rounded-none flex items-center justify-center shadow-xl border-4 border-white hover:scale-110 transition-transform"
               >
                 <Edit3 className="w-5 h-5" />
               </button>
@@ -80,15 +80,15 @@ export default function ClienteProfile() {
 
         {/* Profile Options Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <section className="bg-white rounded-[2.5rem] p-8 shadow-xl shadow-black/5 border border-gray-100 space-y-8">
+          <section className="bg-white rounded-none p-8 shadow-xl shadow-black/5 border border-gray-100 space-y-8">
             <h3 className="text-sm font-black text-dark uppercase tracking-widest flex items-center gap-2">
               <User className="w-5 h-5 text-primary" />
               Información de Contacto
             </h3>
             
             <div className="space-y-6">
-              <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
+              <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-none border border-gray-100">
+                <div className="w-10 h-10 bg-white rounded-none flex items-center justify-center shadow-sm">
                   <Mail className="w-5 h-5 text-primary" />
                 </div>
                 <div>
@@ -96,8 +96,8 @@ export default function ClienteProfile() {
                   <p className="text-sm font-bold text-dark">{MOCK_USER.email}</p>
                 </div>
               </div>
-              <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-2xl border border-gray-100">
-                <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm">
+              <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-none border border-gray-100">
+                <div className="w-10 h-10 bg-white rounded-none flex items-center justify-center shadow-sm">
                   <Phone className="w-5 h-5 text-primary" />
                 </div>
                 <div>
@@ -108,7 +108,7 @@ export default function ClienteProfile() {
             </div>
           </section>
 
-          <section className="bg-white rounded-[2.5rem] p-8 shadow-xl shadow-black/5 border border-gray-100 space-y-8">
+          <section className="bg-white rounded-none p-8 shadow-xl shadow-black/5 border border-gray-100 space-y-8">
             <h3 className="text-sm font-black text-dark uppercase tracking-widest flex items-center gap-2">
               <Settings className="w-5 h-5 text-primary" />
               Acciones Rápidas
@@ -117,10 +117,10 @@ export default function ClienteProfile() {
             <div className="grid grid-cols-1 gap-4">
               <button 
                 onClick={() => navigate('/settings')}
-                className="flex items-center justify-between p-4 bg-gray-50 hover:bg-primary/5 rounded-2xl border border-gray-100 transition-all group"
+                className="flex items-center justify-between p-4 bg-gray-50 hover:bg-primary/5 rounded-none border border-gray-100 transition-all group"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm group-hover:bg-primary group-hover:text-white transition-all">
+                  <div className="w-10 h-10 bg-white rounded-none flex items-center justify-center shadow-sm group-hover:bg-primary group-hover:text-white transition-all">
                     <Shield className="w-5 h-5" />
                   </div>
                   <span className="text-xs font-black text-dark uppercase tracking-widest">Seguridad y Privacidad</span>
@@ -130,10 +130,10 @@ export default function ClienteProfile() {
               
               <button 
                 onClick={handleLogout}
-                className="flex items-center justify-between p-4 bg-rose-50 hover:bg-rose-100 rounded-2xl border border-rose-100 transition-all group"
+                className="flex items-center justify-between p-4 bg-rose-50 hover:bg-rose-100 rounded-none border border-rose-100 transition-all group"
               >
                 <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center shadow-sm text-rose-500">
+                  <div className="w-10 h-10 bg-white rounded-none flex items-center justify-center shadow-sm text-rose-500">
                     <LogOut className="w-5 h-5" />
                   </div>
                   <span className="text-xs font-black text-rose-600 uppercase tracking-widest">Cerrar Sesión</span>

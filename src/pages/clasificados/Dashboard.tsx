@@ -115,7 +115,7 @@ export default function ClasificadosDashboard() {
       {/* Header Section */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
+          <div className="w-12 h-12 bg-primary rounded-none flex items-center justify-center shadow-lg shadow-primary/20">
             <Home className="w-7 h-7 text-white" />
           </div>
           <div>
@@ -125,7 +125,7 @@ export default function ClasificadosDashboard() {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-3 bg-white px-5 py-2.5 rounded-2xl border border-gray-100 shadow-sm">
+        <div className="flex items-center gap-3 bg-white px-5 py-2.5 rounded-none border border-gray-100 shadow-sm">
           <Calendar className="w-4 h-4 text-primary" />
           <span className="text-[10px] font-black text-dark uppercase tracking-widest">Gestión de Anuncios</span>
         </div>
@@ -144,14 +144,14 @@ export default function ClasificadosDashboard() {
               exit={{ opacity: 0, y: -20 }}
               className="space-y-8"
             >
-              <div className="bg-white rounded-[3rem] p-10 shadow-xl shadow-black/5 border border-gray-100 space-y-8">
+              <div className="bg-white rounded-none p-10 shadow-xl shadow-black/5 border border-gray-100 space-y-8">
                 <div className="space-y-3">
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted ml-2">Título del Anuncio</label>
                   <input 
                     type="text" 
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="w-full bg-gray-50 border-2 border-gray-100 rounded-[1.5rem] p-5 text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all uppercase tracking-tight"
+                    className="w-full bg-gray-50 border-2 border-gray-100 rounded-none p-5 text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all uppercase tracking-tight"
                   />
                 </div>
 
@@ -160,7 +160,7 @@ export default function ClasificadosDashboard() {
                   <textarea 
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    className="w-full bg-gray-50 border-2 border-gray-100 rounded-[1.5rem] p-5 text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all h-32 resize-none"
+                    className="w-full bg-gray-50 border-2 border-gray-100 rounded-none p-5 text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all h-32 resize-none"
                   />
                 </div>
 
@@ -172,7 +172,7 @@ export default function ClasificadosDashboard() {
                       type="number" 
                       value={price}
                       onChange={(e) => setPrice(Number(e.target.value))}
-                      className="w-full bg-gray-50 border-2 border-gray-100 rounded-[1.5rem] p-5 pl-14 text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all tracking-widest"
+                      className="w-full bg-gray-50 border-2 border-gray-100 rounded-none p-5 pl-14 text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all tracking-widest"
                     />
                   </div>
                 </div>
@@ -180,21 +180,21 @@ export default function ClasificadosDashboard() {
                 <div className="grid grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <label className="text-[9px] font-black uppercase tracking-widest text-muted ml-2">Personas</label>
-                    <div className="flex items-center bg-gray-50 rounded-[1.5rem] border-2 border-gray-100 p-4">
+                    <div className="flex items-center bg-gray-50 rounded-none border-2 border-gray-100 p-4">
                       <Users className="w-4 h-4 text-primary mr-3" />
                       <input type="number" value={capacity.people} onChange={(e) => setCapacity({...capacity, people: Number(e.target.value)})} className="bg-transparent w-full text-xs font-black focus:outline-none" />
                     </div>
                   </div>
                   <div className="space-y-2">
                     <label className="text-[9px] font-black uppercase tracking-widest text-muted ml-2">Cuartos</label>
-                    <div className="flex items-center bg-gray-50 rounded-[1.5rem] border-2 border-gray-100 p-4">
+                    <div className="flex items-center bg-gray-50 rounded-none border-2 border-gray-100 p-4">
                       <Bed className="w-4 h-4 text-primary mr-3" />
                       <input type="number" value={capacity.bedrooms} onChange={(e) => setCapacity({...capacity, bedrooms: Number(e.target.value)})} className="bg-transparent w-full text-xs font-black focus:outline-none" />
                     </div>
                   </div>
                   <div className="space-y-2">
                     <label className="text-[9px] font-black uppercase tracking-widest text-muted ml-2">Baños</label>
-                    <div className="flex items-center bg-gray-50 rounded-[1.5rem] border-2 border-gray-100 p-4">
+                    <div className="flex items-center bg-gray-50 rounded-none border-2 border-gray-100 p-4">
                       <Bath className="w-4 h-4 text-primary mr-3" />
                       <input type="number" value={capacity.bathrooms} onChange={(e) => setCapacity({...capacity, bathrooms: Number(e.target.value)})} className="bg-transparent w-full text-xs font-black focus:outline-none" />
                     </div>
@@ -214,7 +214,7 @@ export default function ClasificadosDashboard() {
                         key={amenity.id}
                         onClick={() => toggleAmenity(amenity.id)}
                         className={cn(
-                          "flex items-center gap-3 p-4 rounded-[1.5rem] border-2 transition-all text-left",
+                          "flex items-center gap-3 p-4 rounded-none border-2 transition-all text-left",
                           amenities.includes(amenity.id) 
                             ? "bg-primary/5 border-primary/20 text-primary" 
                             : "bg-gray-50 border-transparent text-muted"
@@ -239,12 +239,12 @@ export default function ClasificadosDashboard() {
               className="space-y-8"
             >
               <div className={cn(
-                "p-10 rounded-[3rem] shadow-xl border transition-all duration-500",
+                "p-10 rounded-none shadow-xl border transition-all duration-500",
                 isAvailable ? "bg-emerald-50 border-emerald-100" : "bg-rose-50 border-rose-100"
               )}>
                 <div className="flex flex-col items-center text-center space-y-8">
                   <div className={cn(
-                    "w-24 h-24 rounded-[2.5rem] flex items-center justify-center shadow-lg",
+                    "w-24 h-24 rounded-none flex items-center justify-center shadow-lg",
                     isAvailable ? "bg-emerald-500 text-white" : "bg-rose-500 text-white"
                   )}>
                     <Calendar className="w-12 h-12" />
@@ -260,12 +260,12 @@ export default function ClasificadosDashboard() {
                   <button 
                     onClick={() => setIsAvailable(!isAvailable)}
                     className={cn(
-                      "w-20 h-10 rounded-full transition-all relative p-1.5",
+                      "w-20 h-10 rounded-none transition-all relative p-1.5",
                       isAvailable ? "bg-emerald-500" : "bg-rose-500"
                     )}
                   >
                     <div className={cn(
-                      "w-7 h-7 rounded-full bg-white shadow-md transition-all",
+                      "w-7 h-7 rounded-none bg-white shadow-md transition-all",
                       isAvailable ? "translate-x-10" : "translate-x-0"
                     )} />
                   </button>
@@ -282,7 +282,7 @@ export default function ClasificadosDashboard() {
               exit={{ opacity: 0, y: -20 }}
               className="space-y-8"
             >
-              <div className="bg-white rounded-[3rem] p-10 shadow-xl shadow-black/5 border border-gray-100 space-y-8">
+              <div className="bg-white rounded-none p-10 shadow-xl shadow-black/5 border border-gray-100 space-y-8">
                 <div className="space-y-3">
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted ml-2">WhatsApp de Contacto</label>
                   <div className="relative">
@@ -291,12 +291,12 @@ export default function ClasificadosDashboard() {
                       type="tel" 
                       value={whatsapp}
                       onChange={(e) => setWhatsapp(e.target.value)}
-                      className="w-full bg-gray-50 border-2 border-gray-100 rounded-[1.5rem] p-5 pl-14 text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all tracking-widest"
+                      className="w-full bg-gray-50 border-2 border-gray-100 rounded-none p-5 pl-14 text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all tracking-widest"
                     />
                   </div>
                 </div>
 
-                <div className="flex items-center justify-between p-6 bg-gray-50 rounded-[1.5rem] border-2 border-gray-100">
+                <div className="flex items-center justify-between p-6 bg-gray-50 rounded-none border-2 border-gray-100">
                   <div>
                     <p className="text-xs font-black text-primary uppercase tracking-widest">Ubicación Exacta</p>
                     <p className="text-[9px] font-bold text-muted uppercase mt-1">Mostrar mapa en el anuncio</p>
@@ -304,18 +304,18 @@ export default function ClasificadosDashboard() {
                   <button 
                     onClick={() => setShowExactLocation(!showExactLocation)}
                     className={cn(
-                      "w-14 h-7 rounded-full transition-all relative p-1.5",
+                      "w-14 h-7 rounded-none transition-all relative p-1.5",
                       showExactLocation ? "bg-primary" : "bg-gray-300"
                     )}
                   >
                     <div className={cn(
-                      "w-4 h-4 rounded-full bg-white shadow-md transition-all",
+                      "w-4 h-4 rounded-none bg-white shadow-md transition-all",
                       showExactLocation ? "translate-x-7" : "translate-x-0"
                     )} />
                   </button>
                 </div>
 
-                <button className="w-full py-5 bg-emerald-500 text-white rounded-[1.5rem] font-black text-[10px] uppercase tracking-[0.2em] shadow-lg shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-3">
+                <button className="w-full py-5 bg-emerald-500 text-white rounded-none font-black text-[10px] uppercase tracking-[0.2em] shadow-lg shadow-emerald-500/20 active:scale-95 transition-all flex items-center justify-center gap-3">
                   <Eye className="w-5 h-5" />
                   Ver cómo me contactarán
                 </button>
@@ -331,10 +331,10 @@ export default function ClasificadosDashboard() {
               exit={{ opacity: 0, y: -20 }}
               className="space-y-8"
             >
-              <div className="bg-white rounded-[3rem] p-10 shadow-xl shadow-black/5 border border-gray-100 space-y-8">
+              <div className="bg-white rounded-none p-10 shadow-xl shadow-black/5 border border-gray-100 space-y-8">
                 <div className="flex items-center justify-between">
                   <h3 className="text-[10px] font-black uppercase tracking-widest text-muted ml-2">Galería de Fotos</h3>
-                  <label className="bg-primary text-white p-3 rounded-2xl cursor-pointer hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20">
+                  <label className="bg-primary text-white p-3 rounded-none cursor-pointer hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20">
                     <Plus className="w-5 h-5" />
                     <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
                   </label>
@@ -342,13 +342,13 @@ export default function ClasificadosDashboard() {
 
                 <div className="grid grid-cols-2 gap-5">
                   {photos.map((photo, index) => (
-                    <div key={index} className="relative aspect-square rounded-[2rem] overflow-hidden group border-2 border-gray-100 shadow-sm">
+                    <div key={index} className="relative aspect-square rounded-none overflow-hidden group border-2 border-gray-100 shadow-sm">
                       <img src={photo} alt={`Property ${index}`} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center gap-3 p-4">
                         <button 
                           onClick={() => setMainPhotoIndex(index)}
                           className={cn(
-                            "w-full py-2 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all",
+                            "w-full py-2 rounded-none text-[9px] font-black uppercase tracking-widest transition-all",
                             mainPhotoIndex === index ? "bg-emerald-500 text-white" : "bg-white text-primary"
                           )}
                         >
@@ -356,19 +356,19 @@ export default function ClasificadosDashboard() {
                         </button>
                         <button 
                           onClick={() => removePhoto(index)}
-                          className="w-full py-2 bg-rose-500 text-white rounded-xl text-[9px] font-black uppercase tracking-widest"
+                          className="w-full py-2 bg-rose-500 text-white rounded-none text-[9px] font-black uppercase tracking-widest"
                         >
                           Eliminar
                         </button>
                       </div>
                       {mainPhotoIndex === index && (
-                        <div className="absolute top-3 left-3 bg-emerald-500 text-white px-3 py-1 rounded-full text-[8px] font-black uppercase tracking-widest shadow-lg">
+                        <div className="absolute top-3 left-3 bg-emerald-500 text-white px-3 py-1 rounded-none text-[8px] font-black uppercase tracking-widest shadow-lg">
                           Foto Principal
                         </div>
                       )}
                     </div>
                   ))}
-                  <label className="aspect-square rounded-[2rem] border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-gray-50 transition-all">
+                  <label className="aspect-square rounded-none border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-gray-50 transition-all">
                     <Camera className="w-8 h-8 text-muted" />
                     <span className="text-[9px] font-black text-muted uppercase tracking-widest">Añadir Foto</span>
                     <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
@@ -386,8 +386,8 @@ export default function ClasificadosDashboard() {
               exit={{ opacity: 0, y: -20 }}
               className="space-y-8"
             >
-              <div className="bg-dark rounded-[3rem] p-10 text-white shadow-2xl space-y-10 relative overflow-hidden">
-                <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/10 rounded-full blur-3xl" />
+              <div className="bg-dark rounded-none p-10 text-white shadow-2xl space-y-10 relative overflow-hidden">
+                <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/10 rounded-none blur-3xl" />
                 
                 <div className="flex items-center justify-between relative z-10">
                   <h2 className="text-sm font-black uppercase tracking-[0.2em] text-primary">Rendimiento del Anuncio</h2>
@@ -395,9 +395,9 @@ export default function ClasificadosDashboard() {
                 </div>
 
                 <div className="grid grid-cols-1 gap-6 relative z-10">
-                  <div className="flex items-center justify-between p-6 bg-white/5 rounded-[1.5rem] border border-white/10">
+                  <div className="flex items-center justify-between p-6 bg-white/5 rounded-none border border-white/10">
                     <div className="flex items-center gap-5">
-                      <div className="w-12 h-12 bg-primary/20 rounded-2xl flex items-center justify-center">
+                      <div className="w-12 h-12 bg-primary/20 rounded-none flex items-center justify-center">
                         <Eye className="w-6 h-6 text-primary" />
                       </div>
                       <span className="text-[10px] font-black uppercase tracking-widest opacity-50">Vistas Totales</span>
@@ -405,9 +405,9 @@ export default function ClasificadosDashboard() {
                     <span className="text-3xl font-black tracking-tighter">{stats.views}</span>
                   </div>
 
-                  <div className="flex items-center justify-between p-6 bg-white/5 rounded-[1.5rem] border border-white/10">
+                  <div className="flex items-center justify-between p-6 bg-white/5 rounded-none border border-white/10">
                     <div className="flex items-center gap-5">
-                      <div className="w-12 h-12 bg-emerald-400/20 rounded-2xl flex items-center justify-center">
+                      <div className="w-12 h-12 bg-emerald-400/20 rounded-none flex items-center justify-center">
                         <MessageCircle className="w-6 h-6 text-emerald-400" />
                       </div>
                       <span className="text-[10px] font-black uppercase tracking-widest opacity-50">Clics WhatsApp</span>
@@ -415,9 +415,9 @@ export default function ClasificadosDashboard() {
                     <span className="text-3xl font-black tracking-tighter">{stats.phoneClicks}</span>
                   </div>
 
-                  <div className="flex items-center justify-between p-6 bg-white/5 rounded-[1.5rem] border border-white/10">
+                  <div className="flex items-center justify-between p-6 bg-white/5 rounded-none border border-white/10">
                     <div className="flex items-center gap-5">
-                      <div className="w-12 h-12 bg-amber-400/20 rounded-2xl flex items-center justify-center">
+                      <div className="w-12 h-12 bg-amber-400/20 rounded-none flex items-center justify-center">
                         <Users className="w-6 h-6 text-amber-400" />
                       </div>
                       <span className="text-[10px] font-black uppercase tracking-widest opacity-50">Interesados Hoy</span>
@@ -427,7 +427,7 @@ export default function ClasificadosDashboard() {
                 </div>
               </div>
 
-              <div className="bg-white rounded-[2rem] p-8 border border-gray-100 text-center space-y-3 shadow-sm">
+              <div className="bg-white rounded-none p-8 border border-gray-100 text-center space-y-3 shadow-sm">
                 <p className="text-[10px] font-black text-primary uppercase tracking-[0.3em]">Consejo de Harold</p>
                 <p className="text-xs font-bold text-dark tracking-tight leading-relaxed">"Sube fotos de la alberca con buena luz para aumentar tus clics en un 40%"</p>
               </div>
@@ -441,7 +441,7 @@ export default function ClasificadosDashboard() {
         <button
           onClick={handleSaveChanges}
           disabled={saving}
-          className="w-full py-6 bg-primary text-white rounded-[2.5rem] font-black text-xs uppercase tracking-[0.3em] shadow-2xl shadow-primary/40 flex items-center justify-center gap-3 active:scale-95 transition-all hover:bg-primary/90"
+          className="w-full py-6 bg-primary text-white rounded-none font-black text-xs uppercase tracking-[0.3em] shadow-2xl shadow-primary/40 flex items-center justify-center gap-3 active:scale-95 transition-all hover:bg-primary/90"
         >
           {saving ? (
             <Loader2 className="w-6 h-6 animate-spin" />

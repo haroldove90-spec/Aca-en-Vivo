@@ -109,7 +109,7 @@ export default function ClienteSettings() {
         </header>
 
         {/* Tabs */}
-        <div className="flex gap-4 p-2 bg-gray-100 rounded-[2rem] w-fit">
+        <div className="flex gap-4 p-2 bg-gray-100 rounded-none w-fit">
           {[
             { id: 'profile', label: 'Perfil', icon: User },
             { id: 'notifications', label: 'Notificaciones', icon: Bell },
@@ -119,7 +119,7 @@ export default function ClienteSettings() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id as any)}
               className={cn(
-                "flex items-center gap-2 px-6 py-3 rounded-[1.5rem] text-[10px] font-black uppercase tracking-widest transition-all",
+                "flex items-center gap-2 px-6 py-3 rounded-none text-[10px] font-black uppercase tracking-widest transition-all",
                 activeTab === tab.id 
                   ? "bg-white text-primary shadow-lg" 
                   : "text-muted hover:text-dark"
@@ -138,14 +138,14 @@ export default function ClienteSettings() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="bg-white rounded-[3rem] p-8 lg:p-12 shadow-2xl shadow-black/5 border border-gray-100 space-y-10"
+              className="bg-white rounded-none p-8 lg:p-12 shadow-2xl shadow-black/5 border border-gray-100 space-y-10"
             >
               {/* Avatar Section */}
               <div className="flex flex-col md:flex-row items-center gap-10">
                 <div className="relative group">
-                  <div className="w-40 h-40 rounded-[2.5rem] overflow-hidden shadow-2xl shadow-primary/20 border-4 border-white bg-gray-50 flex items-center justify-center">
+                  <div className="w-40 h-40 rounded-none overflow-hidden shadow-2xl shadow-primary/20 border-4 border-white bg-gray-50 flex items-center justify-center">
                     {capturedImage ? (
-                      <img src={capturedImage} alt="Profile" className="w-full h-full object-cover" />
+                      <img src={capturedImage} alt="Perfil" className="w-full h-full object-cover" />
                     ) : (
                       <User className="w-16 h-16 text-gray-200" />
                     )}
@@ -153,13 +153,13 @@ export default function ClienteSettings() {
                   <div className="absolute -bottom-2 -right-2 flex flex-col gap-2">
                     <button 
                       onClick={startCamera}
-                      className="w-10 h-10 bg-primary text-white rounded-xl flex items-center justify-center shadow-xl border-2 border-white hover:scale-110 transition-transform"
+                      className="w-10 h-10 bg-primary text-white rounded-none flex items-center justify-center shadow-xl border-2 border-white hover:scale-110 transition-transform"
                     >
                       <Camera className="w-5 h-5" />
                     </button>
                     <button 
                       onClick={() => fileInputRef.current?.click()}
-                      className="w-10 h-10 bg-navy text-white rounded-xl flex items-center justify-center shadow-xl border-2 border-white hover:scale-110 transition-transform"
+                      className="w-10 h-10 bg-navy text-white rounded-none flex items-center justify-center shadow-xl border-2 border-white hover:scale-110 transition-transform"
                     >
                       <Upload className="w-5 h-5" />
                     </button>
@@ -189,7 +189,7 @@ export default function ClienteSettings() {
                     type="text" 
                     value={profileData.name}
                     onChange={(e) => setProfileData({...profileData, name: e.target.value})}
-                    className="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl font-bold text-dark focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                    className="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-none font-bold text-dark focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                   />
                 </div>
                 <div className="space-y-2">
@@ -200,7 +200,7 @@ export default function ClienteSettings() {
                       type="text" 
                       value={profileData.username}
                       onChange={(e) => setProfileData({...profileData, username: e.target.value})}
-                      className="w-full pl-10 pr-6 py-4 bg-gray-50 border border-gray-100 rounded-2xl font-bold text-dark focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                      className="w-full pl-10 pr-6 py-4 bg-gray-50 border border-gray-100 rounded-none font-bold text-dark focus:ring-2 focus:ring-primary/20 outline-none transition-all"
                     />
                   </div>
                 </div>
@@ -210,7 +210,7 @@ export default function ClienteSettings() {
                     type="email" 
                     value={profileData.email}
                     disabled
-                    className="w-full px-6 py-4 bg-gray-100 border border-gray-200 rounded-2xl font-bold text-muted cursor-not-allowed"
+                    className="w-full px-6 py-4 bg-gray-100 border border-gray-200 rounded-none font-bold text-muted cursor-not-allowed"
                   />
                 </div>
               </div>
@@ -219,7 +219,7 @@ export default function ClienteSettings() {
                 <button 
                   onClick={handleSave}
                   disabled={isSaving}
-                  className="flex items-center gap-3 px-10 py-5 bg-primary text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-2xl shadow-primary/30 hover:bg-primary/90 transition-all active:scale-95 disabled:opacity-50"
+                  className="flex items-center gap-3 px-10 py-5 bg-primary text-white rounded-none font-black text-xs uppercase tracking-widest shadow-2xl shadow-primary/30 hover:bg-primary/90 transition-all active:scale-95 disabled:opacity-50"
                 >
                   {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
                   Guardar Cambios
@@ -234,7 +234,7 @@ export default function ClienteSettings() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -20 }}
-              className="bg-white rounded-[3rem] p-8 lg:p-12 shadow-2xl shadow-black/5 border border-gray-100 space-y-10"
+              className="bg-white rounded-none p-8 lg:p-12 shadow-2xl shadow-black/5 border border-gray-100 space-y-10"
             >
               <div className="flex items-center justify-between">
                 <div className="space-y-1">
@@ -243,7 +243,7 @@ export default function ClienteSettings() {
                 </div>
                 <button 
                   onClick={requestNotificationPermission}
-                  className="px-6 py-3 bg-primary/10 text-primary rounded-xl text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all"
+                  className="px-6 py-3 bg-primary/10 text-primary rounded-none text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all"
                 >
                   Probar Permisos
                 </button>
@@ -255,9 +255,9 @@ export default function ClienteSettings() {
                   { id: 'email', label: 'Correo Electrónico', desc: 'Resúmenes semanales y confirmaciones', icon: ImageIcon },
                   { id: 'sms', label: 'Mensajes SMS', desc: 'Alertas críticas de seguridad', icon: Smartphone },
                 ].map((item) => (
-                  <div key={item.id} className="flex items-center justify-between p-6 bg-gray-50 rounded-[2rem] border border-gray-100">
+                  <div key={item.id} className="flex items-center justify-between p-6 bg-gray-50 rounded-none border border-gray-100">
                     <div className="flex items-center gap-4">
-                      <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-sm text-primary">
+                      <div className="w-12 h-12 bg-white rounded-none flex items-center justify-center shadow-sm text-primary">
                         <item.icon className="w-6 h-6" />
                       </div>
                       <div>
@@ -271,12 +271,12 @@ export default function ClienteSettings() {
                         notifications: { ...profileData.notifications, [item.id]: !profileData.notifications[item.id as keyof typeof profileData.notifications] }
                       })}
                       className={cn(
-                        "w-14 h-8 rounded-full p-1 transition-all duration-300",
+                        "w-14 h-8 rounded-none p-1 transition-all duration-300",
                         profileData.notifications[item.id as keyof typeof profileData.notifications] ? "bg-primary" : "bg-gray-300"
                       )}
                     >
                       <div className={cn(
-                        "w-6 h-6 bg-white rounded-full shadow-md transition-all duration-300",
+                        "w-6 h-6 bg-white rounded-none shadow-md transition-all duration-300",
                         profileData.notifications[item.id as keyof typeof profileData.notifications] ? "translate-x-6" : "translate-x-0"
                       )} />
                     </button>
@@ -296,7 +296,7 @@ export default function ClienteSettings() {
               exit={{ opacity: 0 }}
               className="fixed inset-0 z-[200] bg-dark/90 backdrop-blur-xl flex items-center justify-center p-6"
             >
-              <div className="bg-white rounded-[3rem] overflow-hidden max-w-2xl w-full shadow-[0_30px_100px_rgba(0,0,0,0.5)] relative">
+              <div className="bg-white rounded-none overflow-hidden max-w-2xl w-full shadow-[0_30px_100px_rgba(0,0,0,0.5)] relative">
                 <div className="aspect-video bg-black relative">
                   <video ref={videoRef} autoPlay playsInline className="w-full h-full object-cover" />
                   <canvas ref={canvasRef} className="hidden" />
@@ -305,23 +305,23 @@ export default function ClienteSettings() {
                 <div className="p-8 flex justify-center gap-6">
                   <button 
                     onClick={stopCamera}
-                    className="w-16 h-16 bg-gray-100 text-muted rounded-full flex items-center justify-center hover:bg-gray-200 transition-all"
+                    className="w-16 h-16 bg-gray-100 text-muted rounded-none flex items-center justify-center hover:bg-gray-200 transition-all"
                   >
                     <X className="w-8 h-8" />
                   </button>
                   <button 
                     onClick={takePhoto}
-                    className="w-20 h-20 bg-primary text-white rounded-full flex items-center justify-center shadow-2xl shadow-primary/40 hover:scale-110 transition-all"
+                    className="w-20 h-20 bg-primary text-white rounded-none flex items-center justify-center shadow-2xl shadow-primary/40 hover:scale-110 transition-all"
                   >
-                    <div className="w-16 h-16 border-4 border-white/30 rounded-full flex items-center justify-center">
-                      <div className="w-12 h-12 bg-white rounded-full" />
+                    <div className="w-16 h-16 border-4 border-white/30 rounded-none flex items-center justify-center">
+                      <div className="w-12 h-12 bg-white rounded-none" />
                     </div>
                   </button>
                 </div>
                 
                 <button 
                   onClick={stopCamera}
-                  className="absolute top-6 right-6 w-10 h-10 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white border border-white/30"
+                  className="absolute top-6 right-6 w-10 h-10 bg-white/20 backdrop-blur-md rounded-none flex items-center justify-center text-white border border-white/30"
                 >
                   <X className="w-5 h-5" />
                 </button>
