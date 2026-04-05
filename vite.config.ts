@@ -12,12 +12,15 @@ export default defineConfig(({mode}) => {
       tailwindcss(),
       VitePWA({
         registerType: 'autoUpdate',
-        includeAssets: ['favicon.ico', 'apple-touch-icon.png', 'mask-icon.svg'],
+        includeAssets: ['favicon.svg', 'mask-icon.svg', 'pwa-192x192.png', 'pwa-512x512.png'],
         manifest: {
           name: 'AcaEnVivo',
           short_name: 'AcaEnVivo',
           description: 'App para Acapulco con disponibilidad de hoteles en tiempo real y directorio de negocios.',
           theme_color: '#142850',
+          background_color: '#142850',
+          display: 'standalone',
+          start_url: '/',
           icons: [
             {
               src: 'pwa-192x192.png',

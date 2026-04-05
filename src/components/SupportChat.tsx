@@ -50,6 +50,15 @@ export function SupportChat({ isAdmin = false }: { isAdmin?: boolean }) {
   const currentUser = auth.currentUser;
   const adminId = 'admin-agencia-1'; // Fixed admin ID for support
 
+  // Get or create guest ID
+  const [guestId] = useState(() => {
+    const saved = localStorage.getItem('aca_guest_id');
+    if (saved) return saved;
+    const newId = 'guest_' + Math.random().toString(36).substring(2, 11);
+    localStorage.setItem('aca_guest_id', newId);
+    return newId;
+  });
+
   // Scroll to bottom
   useEffect(() => {
     if (scrollRef.current) {
@@ -100,7 +109,7 @@ export function SupportChat({ isAdmin = false }: { isAdmin?: boolean }) {
       }
     } else {
       // For business owner, listen to their chat with admin
-      const sessionId = currentUser?.uid || 'guest';
+      const sessionId = currentUser?.uid || guestId;
       q = query(
         collection(db, 'messages'),
         where('session_id', '==', sessionId),
@@ -112,16 +121,18 @@ export function SupportChat({ isAdmin = false }: { isAdmin?: boolean }) {
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const msgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Message));
       setMessages(msgs);
+    }, (error) => {
+      console.error("Chat error:", error);
     });
 
     return () => unsubscribe();
-  }, [isOpen, isAdmin, activeChat, currentUser]);
+  }, [isOpen, isAdmin, activeChat, currentUser, guestId]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim()) return;
 
-    const sessionId = isAdmin ? activeChat : (currentUser?.uid || 'guest');
+    const sessionId = isAdmin ? activeChat : (currentUser?.uid || guestId);
     if (!sessionId) return;
 
     try {
@@ -131,7 +142,7 @@ export function SupportChat({ isAdmin = false }: { isAdmin?: boolean }) {
 
       await addDoc(collection(db, 'messages'), {
         session_id: sessionId,
-        sender_id: currentUser?.uid || 'guest',
+        sender_id: currentUser?.uid || guestId,
         receiver_id: isAdmin ? sessionId : adminId,
         text: newMessage,
         created_at: serverTimestamp(),
