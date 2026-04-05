@@ -156,7 +156,7 @@ export function SupportChat({ isAdmin = false }: { isAdmin?: boolean }) {
   };
 
   return (
-    <div className="fixed bottom-24 lg:bottom-10 right-6 lg:right-10 z-[150]">
+    <div className="fixed bottom-20 lg:bottom-10 right-6 lg:right-10 z-[150]">
       <AnimatePresence>
         {isOpen && (
           <motion.div
