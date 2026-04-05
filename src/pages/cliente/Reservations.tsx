@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Calendar, MapPin, Clock, CheckCircle2, Loader2, X, Download, Share2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
+import { onAuthStateChanged } from 'firebase/auth';
 import { db, auth } from '../../lib/firebase';
 
 export default function ClienteReservations() {
@@ -10,26 +11,30 @@ export default function ClienteReservations() {
   const [selectedVoucher, setSelectedVoucher] = useState<any | null>(null);
 
   useEffect(() => {
-    const userId = auth.currentUser?.uid || 'demo-user';
-    const q = query(
-      collection(db, 'reservas'),
-      where('userId', '==', userId),
-      orderBy('createdAt', 'desc')
-    );
+    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
+      const userId = user?.uid || 'demo-user';
+      const q = query(
+        collection(db, 'reservas'),
+        where('userId', '==', userId),
+        orderBy('createdAt', 'desc')
+      );
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const resData = snapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-      setReservations(resData);
-      setLoading(false);
-    }, (err) => {
-      console.error("Error fetching reservations:", err);
-      setLoading(false);
+      const unsubscribeSnapshot = onSnapshot(q, (snapshot) => {
+        const resData = snapshot.docs.map(doc => ({
+          id: doc.id,
+          ...doc.data()
+        }));
+        setReservations(resData);
+        setLoading(false);
+      }, (err) => {
+        console.error("Error fetching reservations:", err);
+        setLoading(false);
+      });
+
+      return () => unsubscribeSnapshot();
     });
 
-    return () => unsubscribe();
+    return () => unsubscribeAuth();
   }, []);
 
   if (loading) {

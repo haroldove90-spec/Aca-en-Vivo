@@ -61,6 +61,37 @@
         "timestamp": { "type": "string", "format": "date-time" }
       },
       "required": ["id_establecimiento", "nombre_cliente", "telefono_cliente"]
+    },
+    "reservas": {
+      "title": "Reserva",
+      "description": "Reserva confirmada de un cliente.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "businessId": { "type": "string" },
+        "businessName": { "type": "string" },
+        "businessImage": { "type": "string" },
+        "status": { "type": "string" },
+        "date": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "businessId", "businessName", "status", "date"]
+    },
+    "favorites": {
+      "title": "Favorito",
+      "description": "Establecimiento guardado por un usuario.",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "itemId": { "type": "string" },
+        "name": { "type": "string" },
+        "category": { "type": "string" },
+        "image": { "type": "string" },
+        "price": { "type": "string" },
+        "rating": { "type": "number" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "itemId", "name"]
     }
   },
   "firestore": {
@@ -83,6 +114,14 @@
     "/reservas_leads/{id}": {
       "schema": "reservas_leads",
       "description": "Reservation leads for hotels"
+    },
+    "/reservas/{id}": {
+      "schema": "reservas",
+      "description": "Client reservations"
+    },
+    "/favorites/{id}": {
+      "schema": "favorites",
+      "description": "User favorites"
     }
   }
 }

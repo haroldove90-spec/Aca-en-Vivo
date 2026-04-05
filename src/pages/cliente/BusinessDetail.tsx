@@ -74,7 +74,7 @@ export default function BusinessDetail() {
         userId: auth.currentUser?.uid || 'demo-user',
         businessId: id,
         businessName: business.nombre,
-        businessImage: business.galeria?.[0] || `https://picsum.photos/seed/${id}/600/400`,
+        businessImage: business.image || business.galeria?.[0] || `https://picsum.photos/seed/${id}/600/400`,
         status: 'confirmada',
         date: new Date().toISOString(),
         createdAt: Timestamp.now()
@@ -106,7 +106,7 @@ export default function BusinessDetail() {
       {/* Hero Gallery */}
       <div className="relative h-[50vh] lg:h-[60vh] bg-dark overflow-hidden">
         <img 
-          src={business.galeria?.[0] || `https://picsum.photos/seed/${id}/1200/800`} 
+          src={business.image || business.galeria?.[0] || `https://picsum.photos/seed/${id}/1200/800`} 
           alt={business.nombre}
           className="w-full h-full object-cover opacity-80"
           referrerPolicy="no-referrer"
@@ -130,7 +130,7 @@ export default function BusinessDetail() {
                 id: business.id,
                 name: business.nombre,
                 category: business.tipo,
-                image: business.galeria?.[0] || `https://picsum.photos/seed/${id}/600/400`,
+                image: business.image || business.galeria?.[0] || `https://picsum.photos/seed/${id}/600/400`,
                 price: '$2,500',
                 rating: business.estrellas
               })}

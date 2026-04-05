@@ -125,5 +125,17 @@ service cloud.firestore {
       allow create, update: if isAdmin() || isHotel() || isAuthenticated(); // Simplified for now
       allow delete: if isAdmin();
     }
+
+    match /reservas/{id} {
+      allow read: if isAuthenticated() && (request.auth.uid == resource.data.userId || isAdmin()) || resource.data.userId == 'demo-user';
+      allow create: if isAuthenticated() || request.resource.data.userId == 'demo-user';
+      allow update, delete: if isAuthenticated() && (request.auth.uid == resource.data.userId || isAdmin());
+    }
+
+    match /favorites/{id} {
+      allow read: if isAuthenticated() && (request.auth.uid == resource.data.userId || isAdmin()) || resource.data.userId == 'demo-user';
+      allow create: if isAuthenticated() || request.resource.data.userId == 'demo-user';
+      allow update, delete: if isAuthenticated() && (request.auth.uid == resource.data.userId || isAdmin());
+    }
   }
 }

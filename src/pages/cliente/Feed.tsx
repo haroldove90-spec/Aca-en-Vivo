@@ -47,7 +47,6 @@ const CATEGORIES = [
 // --- Popular Card ---
 function PopularCard({ business }: { business: any, key?: string }) {
   const { toggleFavorite, isFavorite } = useFavorites();
-  const { searchQuery } = useSearch();
   const navigate = useNavigate();
   const active = isFavorite(business.id);
 
@@ -58,14 +57,11 @@ function PopularCard({ business }: { business: any, key?: string }) {
         userId: auth.currentUser?.uid || 'demo-user',
         businessId: business.id,
         businessName: business.nombre,
-        businessImage: `https://picsum.photos/seed/${business.id}/600/750`,
+        businessImage: business.image || `https://picsum.photos/seed/${business.id}/600/750`,
         status: 'confirmada',
         date: new Date().toISOString(),
         createdAt: Timestamp.now()
       });
-      // Use a more visual feedback if possible, but for now alert is okay if it works
-      // Maybe the user didn't see the alert or it was blocked.
-      // Let's navigate to reservations page to show it worked.
       navigate('/reservas');
     } catch (err) {
       console.error("Error reserving:", err);
@@ -76,13 +72,13 @@ function PopularCard({ business }: { business: any, key?: string }) {
     <motion.div 
       whileTap={{ scale: 0.98 }}
       onClick={() => navigate(`/business/${business.id}`)}
-      className="bg-white rounded-none p-3 shadow-xl shadow-black/5 border border-gray-100 group flex flex-col gap-3 cursor-pointer"
+      className="bg-white rounded-none p-3 shadow-xl shadow-black/5 border border-gray-100 group flex flex-col gap-3 cursor-pointer relative"
     >
       <div className="aspect-[4/5] relative overflow-hidden rounded-none">
         <img 
-          src={`https://picsum.photos/seed/${business.id}/600/750`} 
+          src={business.image || `https://picsum.photos/seed/${business.id}/600/750`} 
           alt={business.nombre}
-          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+          className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 pointer-events-none"
           referrerPolicy="no-referrer"
         />
         <button 
@@ -92,13 +88,13 @@ function PopularCard({ business }: { business: any, key?: string }) {
               id: business.id,
               name: business.nombre,
               category: business.tipo,
-              image: `https://picsum.photos/seed/${business.id}/600/750`,
+              image: business.image || `https://picsum.photos/seed/${business.id}/600/750`,
               price: business.tipo === 'hotel' ? '$2,500' : '$1,200',
               rating: business.estrellas || 4.5
             });
           }}
           className={cn(
-            "absolute top-4 right-4 w-12 h-12 backdrop-blur-xl rounded-none flex items-center justify-center border transition-all z-10 shadow-2xl",
+            "absolute top-4 right-4 w-12 h-12 backdrop-blur-xl rounded-none flex items-center justify-center border transition-all z-20 shadow-2xl",
             active 
               ? "bg-rose-500 border-rose-500 text-white" 
               : "bg-white/40 border-white/50 text-dark hover:bg-white/60"
@@ -106,7 +102,7 @@ function PopularCard({ business }: { business: any, key?: string }) {
         >
           <Heart className={cn("w-6 h-6", active && "fill-current")} />
         </button>
-        <div className="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur-md p-4 rounded-none shadow-lg">
+        <div className="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur-md p-4 rounded-none shadow-lg z-10">
           <h3 className="font-black text-dark text-sm leading-tight uppercase tracking-tight truncate">{business.nombre}</h3>
           <div className="flex items-center justify-between mt-1">
             <div className="flex items-center gap-1 text-muted">
@@ -162,20 +158,25 @@ export default function ClienteFeed() {
     const seedData = async () => {
       try {
         const snapshot = await getDocs(collection(db, 'establecimientos'));
-        if (snapshot.empty) {
-          const mockData = [
-            { nombre: 'Hotel Emporio Acapulco', tipo: 'hotel', zona: 'Zona Dorada', estrellas: 4.8, createdAt: Timestamp.now(), descripcion: 'Lujo frente al mar.' },
-            { nombre: 'Princess Mundo Imperial', tipo: 'hotel', zona: 'Diamante', estrellas: 4.9, createdAt: Timestamp.now(), descripcion: 'Arquitectura icónica.' },
-            { nombre: 'Yates Bonanza', tipo: 'yates', zona: 'Zona Tradicional', estrellas: 4.9, createdAt: Timestamp.now(), descripcion: 'Paseos por la bahía.' },
-            { nombre: 'La Cabaña de Caleta', tipo: 'negocio', zona: 'Caleta', estrellas: 4.5, createdAt: Timestamp.now(), descripcion: 'Mariscos frescos.' },
-            { nombre: 'Dr. García - Médico 24/7', tipo: 'medicos', zona: 'Zona Dorada', estrellas: 4.9, createdAt: Timestamp.now(), descripcion: 'Atención médica inmediata.' },
-            { nombre: 'Condo Diamante Lakes', tipo: 'clasificados', zona: 'Zona Diamante', estrellas: 4.9, createdAt: Timestamp.now(), descripcion: 'Renta vacacional de lujo.' },
-            { nombre: 'Villa Vista Mar', tipo: 'clasificados', zona: 'Las Brisas', estrellas: 4.8, createdAt: Timestamp.now(), descripcion: 'Privacidad y vista.' },
-            { nombre: 'Motos Express', tipo: 'negocio', zona: 'Costera', estrellas: 4.6, createdAt: Timestamp.now(), descripcion: 'Renta de motonetas.' },
-            { nombre: 'Yate Sea Ray 45', tipo: 'yates', zona: 'Marina', estrellas: 4.8, createdAt: Timestamp.now(), descripcion: 'Lujo en el mar.' },
-            { nombre: 'Clínica del Mar', tipo: 'medicos', zona: 'Costera', estrellas: 4.7, createdAt: Timestamp.now(), descripcion: 'Urgencias y consultas.' },
-          ];
-          for (const item of mockData) {
+        const existingNames = snapshot.docs.map(doc => doc.data().nombre);
+        
+        const mockData = [
+          { nombre: 'Hotel Emporio Acapulco', tipo: 'hotel', zona: 'Zona Dorada', estrellas: 4.8, createdAt: Timestamp.now(), descripcion: 'Lujo frente al mar.', image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=800' },
+          { nombre: 'Princess Mundo Imperial', tipo: 'hotel', zona: 'Diamante', estrellas: 4.9, createdAt: Timestamp.now(), descripcion: 'Arquitectura icónica.', image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&q=80&w=800' },
+          { nombre: 'Yates Bonanza', tipo: 'yates', zona: 'Zona Tradicional', estrellas: 4.9, createdAt: Timestamp.now(), descripcion: 'Paseos por la bahía.', image: 'https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&q=80&w=800' },
+          { nombre: 'La Cabaña de Caleta', tipo: 'negocio', zona: 'Caleta', estrellas: 4.5, createdAt: Timestamp.now(), descripcion: 'Mariscos frescos.', image: 'https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&q=80&w=800' },
+          { nombre: 'Dr. García - Médico 24/7', tipo: 'medicos', zona: 'Zona Dorada', estrellas: 4.9, createdAt: Timestamp.now(), descripcion: 'Atención médica inmediata.', image: 'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&q=80&w=800' },
+          { nombre: 'Condo Diamante Lakes', tipo: 'clasificados', zona: 'Zona Diamante', estrellas: 4.9, createdAt: Timestamp.now(), descripcion: 'Renta vacacional de lujo.', image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=800' },
+          { nombre: 'Villa Vista Mar', tipo: 'clasificados', zona: 'Las Brisas', estrellas: 4.8, createdAt: Timestamp.now(), descripcion: 'Privacidad y vista.', image: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&q=80&w=800' },
+          { nombre: 'Motos Express', tipo: 'negocio', zona: 'Costera', estrellas: 4.6, createdAt: Timestamp.now(), descripcion: 'Renta de motonetas.', image: 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&q=80&w=800' },
+          { nombre: 'Yate Sea Ray 45', tipo: 'yates', zona: 'Marina', estrellas: 4.8, createdAt: Timestamp.now(), descripcion: 'Lujo en el mar.', image: 'https://images.unsplash.com/photo-1544413647-ad6717a26f98?auto=format&fit=crop&q=80&w=800' },
+          { nombre: 'Clínica del Mar', tipo: 'medicos', zona: 'Costera', estrellas: 4.7, createdAt: Timestamp.now(), descripcion: 'Urgencias y consultas.', image: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&q=80&w=800' },
+          { nombre: 'Penthouse Bay View', tipo: 'clasificados', zona: 'Zona Dorada', estrellas: 5.0, createdAt: Timestamp.now(), descripcion: 'Vista panorámica increíble.', image: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&q=80&w=800' },
+          { nombre: 'Estudio Moderno Costera', tipo: 'clasificados', zona: 'Costera', estrellas: 4.7, createdAt: Timestamp.now(), descripcion: 'Ideal para parejas.', image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&q=80&w=800' },
+        ];
+
+        for (const item of mockData) {
+          if (!existingNames.includes(item.nombre)) {
             await addDoc(collection(db, 'establecimientos'), item);
           }
         }
