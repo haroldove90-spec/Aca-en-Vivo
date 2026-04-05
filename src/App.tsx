@@ -8,6 +8,7 @@ import ClienteFavorites from './pages/cliente/Favorites';
 import ClienteReservations from './pages/cliente/Reservations';
 import ClienteProfile from './pages/cliente/Profile';
 import ClienteSettings from './pages/cliente/Settings';
+import BusinessDetail from './pages/cliente/BusinessDetail';
 import HotelDashboard from './pages/hotel/Dashboard';
 import DevDashboard from './pages/admin/DevDashboard';
 import AgenciaDashboard from './pages/admin/AgenciaDashboard';
@@ -80,6 +81,7 @@ function App() {
             <Route path="/reservas" element={<Layout><ClienteReservations /></Layout>} />
             <Route path="/perfil" element={<Layout><ClienteProfile /></Layout>} />
             <Route path="/settings" element={<Layout><ClienteSettings /></Layout>} />
+            <Route path="/business/:id" element={<Layout><BusinessDetail /></Layout>} />
             
             {/* Hotel Dashboard (Protected) */}
             <Route 

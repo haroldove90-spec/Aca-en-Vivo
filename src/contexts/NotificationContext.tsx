@@ -88,26 +88,34 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     const mockNotifications: NotificationEvent[] = [
       {
         id: 'mock-1',
-        title: 'Nuevo Mensaje',
-        body: 'Hotel Emporio: ¿Cómo puedo actualizar mi plan?',
-        type: 'message',
-        timestamp: new Date(Date.now() - 1000 * 60 * 5),
+        title: '¡NUEVO HOTEL REGISTRADO!',
+        body: 'Hotel Emporio Acapulco se ha unido a la plataforma. Pendiente de validación.',
+        type: 'registration',
+        timestamp: new Date(Date.now() - 1000 * 60 * 2), // 2 min ago
         read: false
       },
       {
         id: 'mock-2',
-        title: 'Nuevo Clasificado',
-        body: 'Depa con vista al mar en Zona Diamante registrado.',
-        type: 'registration',
-        timestamp: new Date(Date.now() - 1000 * 60 * 60),
-        read: true
+        title: 'Nuevo Mensaje de Soporte',
+        body: 'Cliente Harold: ¿Tienen disponibilidad en Yates para hoy?',
+        type: 'message',
+        timestamp: new Date(Date.now() - 1000 * 60 * 15), // 15 min ago
+        read: false
       },
       {
         id: 'mock-3',
-        title: 'Pago Recibido',
-        body: 'Yates Bonanza ha renovado su suscripción Premium.',
+        title: 'Pago de Suscripción',
+        body: 'Princess Mundo Imperial ha renovado su plan Premium.',
         type: 'payment',
-        timestamp: new Date(Date.now() - 1000 * 60 * 120),
+        timestamp: new Date(Date.now() - 1000 * 60 * 60), // 1 hour ago
+        read: true
+      },
+      {
+        id: 'mock-4',
+        title: 'Nueva Renta Clasificada',
+        body: 'Villa Vista Mar ha publicado un nuevo anuncio en Zona Diamante.',
+        type: 'registration',
+        timestamp: new Date(Date.now() - 1000 * 60 * 120), // 2 hours ago
         read: true
       }
     ];

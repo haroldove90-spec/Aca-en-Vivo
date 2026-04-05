@@ -257,7 +257,7 @@ export function Layout({ children }: LayoutProps) {
                     initial={{ opacity: 0, y: 10, scale: 0.95 }}
                     animate={{ opacity: 1, y: 0, scale: 1 }}
                     exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                    className="absolute right-0 mt-6 w-96 bg-white rounded-none shadow-[0_30px_100px_rgba(0,0,0,0.15)] border border-gray-100 overflow-hidden z-50"
+                    className="fixed lg:absolute right-4 lg:right-0 top-20 lg:top-auto mt-0 lg:mt-6 w-[calc(100vw-2rem)] lg:w-96 bg-white rounded-none shadow-[0_30px_100px_rgba(0,0,0,0.15)] border border-gray-100 overflow-hidden z-[100]"
                   >
                     <div className="p-8 border-b border-gray-100 flex items-center justify-between">
                       <h3 className="text-sm font-black text-dark uppercase tracking-[0.2em]">Notificaciones</h3>

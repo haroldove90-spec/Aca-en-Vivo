@@ -16,6 +16,7 @@ import {
   Palmtree
 } from 'lucide-react';
 import { cn } from '../lib/utils';
+import { useNavigate, useLocation } from 'react-router-dom';
 
 interface Message {
   id: string;
@@ -37,6 +38,8 @@ interface ChatSession {
 }
 
 export function SupportChat({ isAdmin = false }: { isAdmin?: boolean }) {
+  const navigate = useNavigate();
+  const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
@@ -122,14 +125,18 @@ export function SupportChat({ isAdmin = false }: { isAdmin?: boolean }) {
     if (!sessionId) return;
 
     try {
+      const userRole = location.pathname.includes('hotel') ? 'hotel' : 
+                       location.pathname.includes('negocio') ? 'negocio' : 
+                       location.pathname.includes('clasificados') ? 'clasificados' : 'cliente';
+
       await addDoc(collection(db, 'messages'), {
         session_id: sessionId,
         sender_id: currentUser?.uid || 'guest',
         receiver_id: isAdmin ? sessionId : adminId,
         text: newMessage,
         created_at: serverTimestamp(),
-        sender_name: isAdmin ? 'Admin Agencia' : (currentUser?.displayName || 'Socio'),
-        sender_role: isAdmin ? 'admin' : 'socio'
+        sender_name: isAdmin ? 'Admin Agencia' : (currentUser?.displayName || 'Usuario'),
+        sender_role: isAdmin ? 'admin' : userRole
       });
       setNewMessage('');
     } catch (error) {

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { collection, onSnapshot, query, orderBy, addDoc, getDocs, Timestamp } from 'firebase/firestore';
-import { db } from '../../lib/firebase';
+import { db, auth } from '../../lib/firebase';
 import { 
   Loader2, 
   Search, 
@@ -55,7 +55,7 @@ function PopularCard({ business }: { business: any, key?: string }) {
     e.stopPropagation();
     try {
       await addDoc(collection(db, 'reservas'), {
-        userId: 'demo-user', // In real app use auth.currentUser.uid
+        userId: auth.currentUser?.uid || 'demo-user',
         businessId: business.id,
         businessName: business.nombre,
         businessImage: `https://picsum.photos/seed/${business.id}/600/750`,
@@ -63,7 +63,9 @@ function PopularCard({ business }: { business: any, key?: string }) {
         date: new Date().toISOString(),
         createdAt: Timestamp.now()
       });
-      alert('¡Reserva realizada con éxito!');
+      // Use a more visual feedback if possible, but for now alert is okay if it works
+      // Maybe the user didn't see the alert or it was blocked.
+      // Let's navigate to reservations page to show it worked.
       navigate('/reservas');
     } catch (err) {
       console.error("Error reserving:", err);
@@ -73,7 +75,8 @@ function PopularCard({ business }: { business: any, key?: string }) {
   return (
     <motion.div 
       whileTap={{ scale: 0.98 }}
-      className="bg-white rounded-none p-3 shadow-xl shadow-black/5 border border-gray-100 group flex flex-col gap-3"
+      onClick={() => navigate(`/business/${business.id}`)}
+      className="bg-white rounded-none p-3 shadow-xl shadow-black/5 border border-gray-100 group flex flex-col gap-3 cursor-pointer"
     >
       <div className="aspect-[4/5] relative overflow-hidden rounded-none">
         <img 
@@ -95,13 +98,13 @@ function PopularCard({ business }: { business: any, key?: string }) {
             });
           }}
           className={cn(
-            "absolute top-4 right-4 w-10 h-10 backdrop-blur-md rounded-none flex items-center justify-center border transition-all",
+            "absolute top-4 right-4 w-12 h-12 backdrop-blur-xl rounded-none flex items-center justify-center border transition-all z-10 shadow-2xl",
             active 
               ? "bg-rose-500 border-rose-500 text-white" 
-              : "bg-white/20 border-white/30 text-white hover:bg-white/40"
+              : "bg-white/40 border-white/50 text-dark hover:bg-white/60"
           )}
         >
-          <Heart className={cn("w-5 h-5", active && "fill-current")} />
+          <Heart className={cn("w-6 h-6", active && "fill-current")} />
         </button>
         <div className="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur-md p-4 rounded-none shadow-lg">
           <h3 className="font-black text-dark text-sm leading-tight uppercase tracking-tight truncate">{business.nombre}</h3>
@@ -161,16 +164,16 @@ export default function ClienteFeed() {
         const snapshot = await getDocs(collection(db, 'establecimientos'));
         if (snapshot.empty) {
           const mockData = [
-            { nombre: 'Hotel Emporio Acapulco', tipo: 'hotel', zona: 'Zona Dorada', estrellas: 4.8, createdAt: Timestamp.now() },
-            { nombre: 'Princess Mundo Imperial', tipo: 'hotel', zona: 'Diamante', estrellas: 4.9, createdAt: Timestamp.now() },
-            { nombre: 'HS Hotsson Smart', tipo: 'hotel', zona: 'Costera', estrellas: 4.7, createdAt: Timestamp.now() },
-            { nombre: 'Las Brisas Acapulco', tipo: 'hotel', zona: 'Escénica', estrellas: 5.0, createdAt: Timestamp.now() },
-            { nombre: 'Condo Diamante Lakes', tipo: 'clasificados', zona: 'Zona Diamante', estrellas: 4.9, createdAt: Timestamp.now() },
-            { nombre: 'Villa Vista Mar', tipo: 'clasificados', zona: 'Las Brisas', estrellas: 4.8, createdAt: Timestamp.now() },
-            { nombre: 'Penthouse Costera', tipo: 'clasificados', zona: 'Zona Dorada', estrellas: 4.6, createdAt: Timestamp.now() },
-            { nombre: 'Loft Moderno Condesa', tipo: 'clasificados', zona: 'Condesa', estrellas: 4.5, createdAt: Timestamp.now() },
-            { nombre: 'Casa de Playa Bonfil', tipo: 'clasificados', zona: 'Playa Bonfil', estrellas: 4.7, createdAt: Timestamp.now() },
-            { nombre: 'Hotel Pierre Mundo Imperial', tipo: 'hotel', zona: 'Diamante', estrellas: 4.8, createdAt: Timestamp.now() },
+            { nombre: 'Hotel Emporio Acapulco', tipo: 'hotel', zona: 'Zona Dorada', estrellas: 4.8, createdAt: Timestamp.now(), descripcion: 'Lujo frente al mar.' },
+            { nombre: 'Princess Mundo Imperial', tipo: 'hotel', zona: 'Diamante', estrellas: 4.9, createdAt: Timestamp.now(), descripcion: 'Arquitectura icónica.' },
+            { nombre: 'Yates Bonanza', tipo: 'yates', zona: 'Zona Tradicional', estrellas: 4.9, createdAt: Timestamp.now(), descripcion: 'Paseos por la bahía.' },
+            { nombre: 'La Cabaña de Caleta', tipo: 'negocio', zona: 'Caleta', estrellas: 4.5, createdAt: Timestamp.now(), descripcion: 'Mariscos frescos.' },
+            { nombre: 'Dr. García - Médico 24/7', tipo: 'medicos', zona: 'Zona Dorada', estrellas: 4.9, createdAt: Timestamp.now(), descripcion: 'Atención médica inmediata.' },
+            { nombre: 'Condo Diamante Lakes', tipo: 'clasificados', zona: 'Zona Diamante', estrellas: 4.9, createdAt: Timestamp.now(), descripcion: 'Renta vacacional de lujo.' },
+            { nombre: 'Villa Vista Mar', tipo: 'clasificados', zona: 'Las Brisas', estrellas: 4.8, createdAt: Timestamp.now(), descripcion: 'Privacidad y vista.' },
+            { nombre: 'Motos Express', tipo: 'negocio', zona: 'Costera', estrellas: 4.6, createdAt: Timestamp.now(), descripcion: 'Renta de motonetas.' },
+            { nombre: 'Yate Sea Ray 45', tipo: 'yates', zona: 'Marina', estrellas: 4.8, createdAt: Timestamp.now(), descripcion: 'Lujo en el mar.' },
+            { nombre: 'Clínica del Mar', tipo: 'medicos', zona: 'Costera', estrellas: 4.7, createdAt: Timestamp.now(), descripcion: 'Urgencias y consultas.' },
           ];
           for (const item of mockData) {
             await addDoc(collection(db, 'establecimientos'), item);

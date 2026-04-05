@@ -1,17 +1,19 @@
 import React, { useEffect, useState } from 'react';
-import { Calendar, MapPin, Clock, CheckCircle2, Loader2 } from 'lucide-react';
-import { motion } from 'motion/react';
+import { Calendar, MapPin, Clock, CheckCircle2, Loader2, X, Download, Share2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
 import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
-import { db } from '../../lib/firebase';
+import { db, auth } from '../../lib/firebase';
 
 export default function ClienteReservations() {
   const [reservations, setReservations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedVoucher, setSelectedVoucher] = useState<any | null>(null);
 
   useEffect(() => {
+    const userId = auth.currentUser?.uid || 'demo-user';
     const q = query(
       collection(db, 'reservas'),
-      where('userId', '==', 'demo-user'), // In real app use auth.currentUser.uid
+      where('userId', '==', userId),
       orderBy('createdAt', 'desc')
     );
 
@@ -111,7 +113,10 @@ export default function ClienteReservations() {
               </div>
               
               <div className="flex gap-4 pt-6 border-t border-gray-50">
-                <button className="flex-1 py-3 bg-primary text-white rounded-none font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all">
+                <button 
+                  onClick={() => setSelectedVoucher(res)}
+                  className="flex-1 py-3 bg-primary text-white rounded-none font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all"
+                >
                   Ver Voucher
                 </button>
                 <button className="flex-1 py-3 bg-gray-50 text-muted rounded-none font-black text-[10px] uppercase tracking-widest hover:bg-gray-100 transition-all">
@@ -122,6 +127,79 @@ export default function ClienteReservations() {
           </motion.div>
         ))}
       </div>
+
+      {/* Voucher Modal */}
+      <AnimatePresence>
+        {selectedVoucher && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setSelectedVoucher(null)}
+              className="absolute inset-0 bg-dark/95 backdrop-blur-xl"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="bg-white w-full max-w-md rounded-none overflow-hidden relative shadow-2xl"
+            >
+              <div className="bg-primary p-8 text-white text-center space-y-2">
+                <h2 className="text-2xl font-black uppercase tracking-tighter">Voucher de Reserva</h2>
+                <p className="text-[10px] font-bold uppercase tracking-widest opacity-60">ID: {selectedVoucher.id.slice(0, 8)}</p>
+              </div>
+              
+              <div className="p-8 space-y-8">
+                <div className="flex items-center gap-6">
+                  <div className="w-20 h-20 bg-gray-100 rounded-none overflow-hidden shrink-0">
+                    <img src={selectedVoucher.businessImage} alt="" className="w-full h-full object-cover" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-black text-dark uppercase tracking-tight">{selectedVoucher.businessName}</h3>
+                    <p className="text-[10px] font-bold text-muted uppercase tracking-widest">Acapulco, México</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-8 py-8 border-y border-dashed border-gray-200">
+                  <div className="space-y-1">
+                    <p className="text-[9px] font-black text-muted uppercase tracking-widest">Fecha</p>
+                    <p className="text-sm font-bold text-dark">{new Date(selectedVoucher.date).toLocaleDateString()}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[9px] font-black text-muted uppercase tracking-widest">Estado</p>
+                    <p className="text-sm font-black text-emerald-500 uppercase">{selectedVoucher.status}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[9px] font-black text-muted uppercase tracking-widest">Titular</p>
+                    <p className="text-sm font-bold text-dark">Harold O.</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[9px] font-black text-muted uppercase tracking-widest">Total</p>
+                    <p className="text-sm font-black text-primary">$2,500 MXN</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <button className="flex-1 py-4 bg-dark text-white rounded-none font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2">
+                    <Download className="w-4 h-4" /> Descargar
+                  </button>
+                  <button className="flex-1 py-4 bg-gray-100 text-dark rounded-none font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2">
+                    <Share2 className="w-4 h-4" /> Compartir
+                  </button>
+                </div>
+              </div>
+
+              <button 
+                onClick={() => setSelectedVoucher(null)}
+                className="absolute top-4 right-4 text-white/50 hover:text-white transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {reservations.length === 0 && (
         <div className="text-center py-20 space-y-4">

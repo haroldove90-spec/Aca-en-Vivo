@@ -1,5 +1,5 @@
 {
   "name": "AcaEnVivo",
   "description": "App para Acapulco con disponibilidad de hoteles en tiempo real y directorio de negocios.",
-  "requestFramePermissions": []
+  "requestFramePermissions": ["camera", "microphone", "geolocation"]
 }
