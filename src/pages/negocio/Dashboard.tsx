@@ -28,6 +28,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { doc, onSnapshot, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
+import { CameraModal } from '../../components/CameraModal';
 
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -46,6 +47,8 @@ export default function NegocioDashboard() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  const [showCamera, setShowCamera] = useState(false);
+  const [cameraTarget, setCameraTarget] = useState<'cover' | 'menu' | null>(null);
 
   // Business State
   const [isOpen, setIsOpen] = useState(true);
@@ -352,8 +355,12 @@ export default function NegocioDashboard() {
                   <div className="relative aspect-video rounded-none overflow-hidden bg-gray-100 group shadow-sm">
                     <img src={coverImage} alt="Cover" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <input type="file" accept="image/*" onChange={handleImageUpload('cover')} className="absolute inset-0 opacity-0 cursor-pointer" />
-                      <Camera className="w-10 h-10 text-white" />
+                      <button 
+                        onClick={() => { setCameraTarget('cover'); setShowCamera(true); }}
+                        className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-none flex items-center justify-center border border-white/30 text-white"
+                      >
+                        <Camera className="w-8 h-8" />
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -364,8 +371,12 @@ export default function NegocioDashboard() {
                   <div className="relative aspect-[3/4] rounded-none overflow-hidden bg-gray-100 group max-w-[240px] mx-auto shadow-sm">
                     <img src={menuImage} alt="Menu" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <input type="file" accept="image/*" onChange={handleImageUpload('menu')} className="absolute inset-0 opacity-0 cursor-pointer" />
-                      <Camera className="w-10 h-10 text-white" />
+                      <button 
+                        onClick={() => { setCameraTarget('menu'); setShowCamera(true); }}
+                        className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-none flex items-center justify-center border border-white/30 text-white"
+                      >
+                        <Camera className="w-8 h-8" />
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -460,6 +471,15 @@ export default function NegocioDashboard() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <CameraModal 
+        isOpen={showCamera}
+        onClose={() => { setShowCamera(false); setCameraTarget(null); }}
+        onCapture={(img) => {
+          if (cameraTarget === 'cover') setCoverImage(img);
+          else if (cameraTarget === 'menu') setMenuImage(img);
+        }}
+      />
     </div>
   );
 }

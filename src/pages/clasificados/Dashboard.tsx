@@ -29,6 +29,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { doc, onSnapshot, updateDoc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
+import { CameraModal } from '../../components/CameraModal';
 
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -47,6 +48,7 @@ export default function ClasificadosDashboard() {
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showToast, setShowToast] = useState(false);
+  const [showCamera, setShowCamera] = useState(false);
 
   // Property State
   const [title, setTitle] = useState("Depa con vista al mar en Condesa");
@@ -334,10 +336,12 @@ export default function ClasificadosDashboard() {
               <div className="bg-white rounded-none p-10 shadow-xl shadow-black/5 border border-gray-100 space-y-8">
                 <div className="flex items-center justify-between">
                   <h3 className="text-[10px] font-black uppercase tracking-widest text-muted ml-2">Galería de Fotos</h3>
-                  <label className="bg-primary text-white p-3 rounded-none cursor-pointer hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20">
+                  <button 
+                    onClick={() => setShowCamera(true)}
+                    className="bg-primary text-white p-3 rounded-none cursor-pointer hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20"
+                  >
                     <Plus className="w-5 h-5" />
-                    <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
-                  </label>
+                  </button>
                 </div>
 
                 <div className="grid grid-cols-2 gap-5">
@@ -368,11 +372,13 @@ export default function ClasificadosDashboard() {
                       )}
                     </div>
                   ))}
-                  <label className="aspect-square rounded-none border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-gray-50 transition-all">
+                  <button 
+                    onClick={() => setShowCamera(true)}
+                    className="aspect-square rounded-none border-2 border-dashed border-gray-200 flex flex-col items-center justify-center gap-3 cursor-pointer hover:bg-gray-50 transition-all"
+                  >
                     <Camera className="w-8 h-8 text-muted" />
                     <span className="text-[9px] font-black text-muted uppercase tracking-widest">Añadir Foto</span>
-                    <input type="file" accept="image/*" onChange={handlePhotoUpload} className="hidden" />
-                  </label>
+                  </button>
                 </div>
               </div>
             </motion.div>
@@ -471,6 +477,12 @@ export default function ClasificadosDashboard() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <CameraModal 
+        isOpen={showCamera}
+        onClose={() => setShowCamera(false)}
+        onCapture={(img) => setPhotos(prev => [...prev, img])}
+      />
     </div>
   );
 }

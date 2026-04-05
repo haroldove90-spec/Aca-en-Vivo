@@ -1,14 +1,11 @@
 import React from 'react';
 import { Heart, MapPin, Star, Trash2 } from 'lucide-react';
 import { motion } from 'motion/react';
-
-const MOCK_FAVORITES = [
-  { id: '1', name: 'Hotel Emporio Acapulco', category: 'Hotel', rating: 4.8, price: '$2,500', image: 'https://picsum.photos/seed/emp/400/300' },
-  { id: '2', name: 'Princess Mundo Imperial', category: 'Hotel', rating: 4.9, price: '$3,800', image: 'https://picsum.photos/seed/pri/400/300' },
-  { id: '3', name: 'Condo Diamante Lakes', category: 'Renta', rating: 4.9, price: '$5,000', image: 'https://picsum.photos/seed/dia/400/300' },
-];
+import { useFavorites } from '../../contexts/FavoritesContext';
 
 export default function ClienteFavorites() {
+  const { favorites, toggleFavorite } = useFavorites();
+
   return (
     <div className="space-y-10 pb-20">
       <header className="space-y-2">
@@ -17,7 +14,7 @@ export default function ClienteFavorites() {
         </header>
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {MOCK_FAVORITES.map((fav) => (
+          {favorites.map((fav) => (
             <motion.div 
               key={fav.id}
               initial={{ opacity: 0, y: 20 }}
@@ -32,7 +29,10 @@ export default function ClienteFavorites() {
                   referrerPolicy="no-referrer"
                 />
                 <div className="absolute top-4 right-4 flex gap-2">
-                  <button className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-none flex items-center justify-center border border-white/30 text-white hover:bg-rose-500 hover:text-white transition-all">
+                  <button 
+                    onClick={() => toggleFavorite({ id: fav.itemId, name: fav.name })}
+                    className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-none flex items-center justify-center border border-white/30 text-white hover:bg-rose-500 hover:text-white transition-all"
+                  >
                     <Trash2 className="w-5 h-5" />
                   </button>
                 </div>
@@ -67,7 +67,7 @@ export default function ClienteFavorites() {
           ))}
         </div>
 
-        {MOCK_FAVORITES.length === 0 && (
+        {favorites.length === 0 && (
           <div className="text-center py-20 space-y-4">
             <div className="w-20 h-20 bg-white rounded-none flex items-center justify-center mx-auto shadow-sm">
               <Heart className="w-10 h-10 text-gray-200" />

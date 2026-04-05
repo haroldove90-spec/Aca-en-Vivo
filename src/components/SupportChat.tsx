@@ -119,19 +119,19 @@ export function SupportChat({ isAdmin = false }: { isAdmin?: boolean }) {
   };
 
   return (
-    <div className="fixed bottom-10 right-10 z-[150]">
+    <div className="fixed bottom-20 lg:bottom-10 right-6 lg:right-10 z-[150]">
       <AnimatePresence>
         {isOpen && (
           <motion.div
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="bg-white rounded-[3rem] shadow-[0_30px_100px_rgba(0,0,0,0.2)] border border-gray-100 w-[400px] h-[600px] flex flex-col overflow-hidden mb-6"
+            className="bg-white rounded-none shadow-[0_30px_100px_rgba(0,0,0,0.2)] border border-gray-100 w-[calc(100vw-3rem)] sm:w-[400px] h-[500px] sm:h-[600px] flex flex-col overflow-hidden mb-6"
           >
             {/* Header */}
-            <div className="bg-primary p-8 text-white flex items-center justify-between">
+            <div className="bg-primary p-6 sm:p-8 text-white flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-md">
+                <div className="w-12 h-12 bg-white/20 rounded-none flex items-center justify-center backdrop-blur-md">
                   {isAdmin ? <ShieldCheck className="w-6 h-6" /> : <MessageSquare className="w-6 h-6" />}
                 </div>
                 <div>
@@ -148,7 +148,7 @@ export function SupportChat({ isAdmin = false }: { isAdmin?: boolean }) {
                   if (isAdmin && activeChat) setActiveChat(null);
                   else setIsOpen(false);
                 }}
-                className="w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center hover:bg-white/20 transition-all"
+                className="w-10 h-10 bg-white/10 rounded-none flex items-center justify-center hover:bg-white/20 transition-all"
               >
                 <X className="w-5 h-5" />
               </button>
@@ -164,20 +164,20 @@ export function SupportChat({ isAdmin = false }: { isAdmin?: boolean }) {
                     <input 
                       type="text" 
                       placeholder="Buscar socio..."
-                      className="w-full bg-gray-50 border-none rounded-2xl py-3 pl-12 pr-4 text-xs font-bold focus:ring-2 focus:ring-primary/20"
+                      className="w-full bg-gray-50 border-none rounded-none py-3 pl-12 pr-4 text-xs font-bold focus:ring-2 focus:ring-primary/20"
                     />
                   </div>
                   {sessions.map((session) => (
                     <button
                       key={session.userId}
                       onClick={() => setActiveChat(session.userId)}
-                      className="w-full p-4 rounded-2xl hover:bg-gray-50 transition-all flex items-center gap-4 group text-left border border-transparent hover:border-gray-100"
+                      className="w-full p-4 rounded-none hover:bg-gray-50 transition-all flex items-center gap-4 group text-left border border-transparent hover:border-gray-100"
                     >
-                      <div className="w-12 h-12 bg-gray-100 rounded-2xl flex items-center justify-center group-hover:bg-white transition-colors relative">
+                      <div className="w-12 h-12 bg-gray-100 rounded-none flex items-center justify-center group-hover:bg-white transition-colors relative">
                         {session.userRole === 'hotel' ? <Building2 className="w-6 h-6 text-blue-500" /> : 
                          session.userRole === 'negocio' ? <Store className="w-6 h-6 text-amber-500" /> : 
                          <Palmtree className="w-6 h-6 text-emerald-500" />}
-                        {session.unread && <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-rose-500 rounded-full border-2 border-white" />}
+                        {session.unread && <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-rose-500 rounded-none border-2 border-white" />}
                       </div>
                       <div className="flex-1 min-w-0">
                         <div className="flex justify-between items-center mb-1">
@@ -218,10 +218,10 @@ export function SupportChat({ isAdmin = false }: { isAdmin?: boolean }) {
                         )}
                       >
                         <div className={cn(
-                          "p-4 rounded-[1.5rem] text-sm font-bold shadow-sm",
+                          "p-4 rounded-none text-sm font-bold shadow-sm",
                           msg.sender_id === currentUser?.uid 
-                            ? "bg-primary text-white rounded-tr-none" 
-                            : "bg-gray-100 text-dark rounded-tl-none"
+                            ? "bg-primary text-white" 
+                            : "bg-gray-100 text-dark"
                         )}>
                           {msg.text}
                         </div>
@@ -245,12 +245,12 @@ export function SupportChat({ isAdmin = false }: { isAdmin?: boolean }) {
                       value={newMessage}
                       onChange={(e) => setNewMessage(e.target.value)}
                       placeholder="Escribe un mensaje..."
-                      className="flex-1 bg-gray-50 border-none rounded-2xl px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-primary/20"
+                      className="flex-1 bg-gray-50 border-none rounded-none px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-primary/20"
                     />
                     <button 
                       type="submit"
                       disabled={!newMessage.trim()}
-                      className="w-14 h-14 bg-primary text-white rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20 active:scale-90 transition-all disabled:opacity-50"
+                      className="w-14 h-14 bg-primary text-white rounded-none flex items-center justify-center shadow-lg shadow-primary/20 active:scale-90 transition-all disabled:opacity-50"
                     >
                       <Send className="w-6 h-6" />
                     </button>
@@ -268,13 +268,13 @@ export function SupportChat({ isAdmin = false }: { isAdmin?: boolean }) {
         whileTap={{ scale: 0.95 }}
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
-          "w-20 h-20 rounded-[2rem] flex items-center justify-center shadow-2xl transition-all relative group",
+          "w-16 h-16 sm:w-20 sm:h-20 rounded-none flex items-center justify-center shadow-2xl transition-all relative group",
           isOpen ? "bg-dark text-white" : "bg-primary text-white shadow-primary/40"
         )}
       >
-        {isOpen ? <X className="w-8 h-8" /> : <MessageSquare className="w-8 h-8 group-hover:rotate-12 transition-transform" />}
+        {isOpen ? <X className="w-6 h-6 sm:w-8 sm:h-8" /> : <MessageSquare className="w-6 h-6 sm:w-8 sm:h-8 group-hover:rotate-12 transition-transform" />}
         {!isOpen && (
-          <div className="absolute -top-1 -right-1 w-6 h-6 bg-rose-500 rounded-full border-4 border-bg flex items-center justify-center text-[10px] font-black">
+          <div className="absolute -top-1 -right-1 w-6 h-6 bg-rose-500 rounded-none border-4 border-bg flex items-center justify-center text-[10px] font-black">
             2
           </div>
         )}

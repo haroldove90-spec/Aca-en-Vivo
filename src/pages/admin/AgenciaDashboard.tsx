@@ -41,11 +41,63 @@ const TOP_CATEGORIES = [
 ];
 
 const AFFILIATES = [
-  { id: '1', name: 'Hotel Emporio', cat: 'hotel', plan: 'Premium', lastUpdate: 'Hace 5 min', status: 'Pagado', phone: '7441234567' },
-  { id: '2', name: 'Yates Bonanza', cat: 'yate', plan: 'Premium', lastUpdate: 'Hace 12 min', status: 'Pagado', phone: '7449876543' },
-  { id: '3', name: 'La Cabaña', cat: 'restaurante', plan: 'Básico', lastUpdate: 'Hace 1 h', status: 'Pendiente', phone: '7445556677' },
-  { id: '4', name: 'Hotel Calinda', cat: 'hotel', plan: 'Básico', lastUpdate: 'Hace 2 h', status: 'Pagado', phone: '7441112233' },
-  { id: '5', name: 'Motos Express', cat: 'renta', plan: 'Básico', lastUpdate: 'Hace 4 h', status: 'Vencido', phone: '7444445555' },
+  { 
+    id: '1', 
+    name: 'Hotel Emporio', 
+    cat: 'hotel', 
+    plan: 'Premium', 
+    lastUpdate: 'Hace 5 min', 
+    status: 'Pagado', 
+    phone: '7441234567',
+    rooms: [
+      { id: 101, type: 'Estándar', status: 'Ocupada' },
+      { id: 102, type: 'Estándar', status: 'Disponible' },
+      { id: 103, type: 'Suite', status: 'Ocupada' },
+      { id: 104, type: 'Suite', status: 'Disponible' },
+      { id: 105, type: 'Penthouse', status: 'Ocupada' },
+    ]
+  },
+  { 
+    id: '2', 
+    name: 'Yates Bonanza', 
+    cat: 'yate', 
+    plan: 'Premium', 
+    lastUpdate: 'Hace 12 min', 
+    status: 'Pagado', 
+    phone: '7449876543' 
+  },
+  { 
+    id: '3', 
+    name: 'La Cabaña', 
+    cat: 'restaurante', 
+    plan: 'Básico', 
+    lastUpdate: 'Hace 1 h', 
+    status: 'Pendiente', 
+    phone: '7445556677' 
+  },
+  { 
+    id: '4', 
+    name: 'Hotel Calinda', 
+    cat: 'hotel', 
+    plan: 'Básico', 
+    lastUpdate: 'Hace 2 h', 
+    status: 'Pagado', 
+    phone: '7441112233',
+    rooms: [
+      { id: 201, type: 'Estándar', status: 'Disponible' },
+      { id: 202, type: 'Estándar', status: 'Disponible' },
+      { id: 203, type: 'Doble', status: 'Ocupada' },
+    ]
+  },
+  { 
+    id: '5', 
+    name: 'Motos Express', 
+    cat: 'renta', 
+    plan: 'Básico', 
+    lastUpdate: 'Hace 4 h', 
+    status: 'Vencido', 
+    phone: '7444445555' 
+  },
 ];
 
 const ACTIVITY_LOG = [
@@ -145,6 +197,7 @@ export default function AgenciaDashboard() {
   };
 
   const [filter, setFilter] = useState('all');
+  const [selectedHotel, setSelectedHotel] = useState<any>(null);
 
   const filteredAffiliates = useMemo(() => {
     if (filter === 'all') return AFFILIATES;
@@ -286,14 +339,17 @@ export default function AgenciaDashboard() {
                           className="hover:bg-gray-50/50 transition-colors group"
                         >
                           <td className="px-10 py-6">
-                            <div className="flex items-center gap-4">
+                            <div 
+                              className="flex items-center gap-4 cursor-pointer group/item"
+                              onClick={() => a.cat === 'hotel' && setSelectedHotel(a)}
+                            >
                               <div className="w-12 h-12 rounded-none bg-gray-100 flex items-center justify-center group-hover:bg-white transition-colors shadow-sm group-hover:rotate-3">
                                 {a.cat === 'hotel' ? <Building2 className="w-6 h-6 text-blue-500" /> : 
                                  a.cat === 'yate' ? <Ship className="w-6 h-6 text-cyan-500" /> : 
                                  <Utensils className="w-6 h-6 text-orange-500" />}
                               </div>
                               <div>
-                                <p className="text-sm font-black text-dark uppercase tracking-tight">{a.name}</p>
+                                <p className="text-sm font-black text-dark uppercase tracking-tight group-hover/item:text-primary transition-colors">{a.name}</p>
                                 <p className="text-[10px] text-muted font-bold uppercase tracking-widest">{a.cat}</p>
                               </div>
                             </div>
@@ -367,6 +423,90 @@ export default function AgenciaDashboard() {
               <h3 className="text-xl font-black text-dark uppercase tracking-tight">Gestión de Pagos</h3>
               <p className="text-xs text-muted font-bold uppercase tracking-widest mt-2">Próximamente: Pasarela de cobro integrada</p>
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Hotel Room Monitor Modal */}
+      <AnimatePresence>
+        {selectedHotel && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] bg-dark/60 backdrop-blur-sm flex items-center justify-center p-6"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="bg-white rounded-none shadow-2xl max-w-2xl w-full overflow-hidden"
+            >
+              <div className="bg-primary p-8 text-white flex justify-between items-center">
+                <div>
+                  <h3 className="text-2xl font-black uppercase tracking-tighter leading-none">{selectedHotel.name}</h3>
+                  <p className="text-[10px] font-bold text-white/60 uppercase tracking-widest mt-2">Monitor de Habitaciones en Tiempo Real</p>
+                </div>
+                <button 
+                  onClick={() => setSelectedHotel(null)}
+                  className="w-10 h-10 bg-white/10 rounded-none flex items-center justify-center hover:bg-white/20 transition-all"
+                >
+                  <XCircle className="w-6 h-6" />
+                </button>
+              </div>
+              
+              <div className="p-8 space-y-8">
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="p-4 bg-gray-50 border border-gray-100 rounded-none">
+                    <p className="text-[9px] font-black text-muted uppercase tracking-widest">Total</p>
+                    <p className="text-xl font-black text-dark">{selectedHotel.rooms?.length || 0}</p>
+                  </div>
+                  <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-none">
+                    <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Disponibles</p>
+                    <p className="text-xl font-black text-emerald-600">{selectedHotel.rooms?.filter((r: any) => r.status === 'Disponible').length || 0}</p>
+                  </div>
+                  <div className="p-4 bg-rose-50 border border-rose-100 rounded-none">
+                    <p className="text-[9px] font-black text-rose-600 uppercase tracking-widest">Ocupadas</p>
+                    <p className="text-xl font-black text-rose-600">{selectedHotel.rooms?.filter((r: any) => r.status === 'Ocupada').length || 0}</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <h4 className="text-[10px] font-black text-dark uppercase tracking-widest border-b border-gray-100 pb-2">Inventario Detallado</h4>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-2 no-scrollbar">
+                    {selectedHotel.rooms?.map((room: any) => (
+                      <div key={room.id} className="flex items-center justify-between p-4 bg-gray-50 border border-gray-100 rounded-none">
+                        <div className="flex items-center gap-3">
+                          <div className={cn(
+                            "w-2 h-2 rounded-none",
+                            room.status === 'Disponible' ? "bg-emerald-500" : "bg-rose-500"
+                          )} />
+                          <div>
+                            <p className="text-xs font-black text-dark uppercase tracking-tight">Hab. {room.id}</p>
+                            <p className="text-[9px] font-bold text-muted uppercase">{room.type}</p>
+                          </div>
+                        </div>
+                        <span className={cn(
+                          "text-[9px] font-black uppercase tracking-widest",
+                          room.status === 'Disponible' ? "text-emerald-600" : "text-rose-600"
+                        )}>
+                          {room.status}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-8 bg-gray-50 border-t border-gray-100 flex justify-end">
+                <button 
+                  onClick={() => setSelectedHotel(null)}
+                  className="px-8 py-3 bg-dark text-white rounded-none font-black text-[10px] uppercase tracking-widest shadow-xl"
+                >
+                  Cerrar Monitor
+                </button>
+              </div>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

@@ -34,6 +34,7 @@ import {
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
+import { CameraModal } from '../../components/CameraModal';
 
 import { useNavigate, useLocation } from 'react-router-dom';
 
@@ -56,6 +57,7 @@ export default function HotelDashboard() {
   const [alertsEnabled, setAlertsEnabled] = useState(true);
   const [showToast, setShowToast] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [showCamera, setShowCamera] = useState(false);
 
   // Form states
   const [hotelName, setHotelName] = useState("Hotel Emporio Acapulco");
@@ -383,9 +385,12 @@ export default function HotelDashboard() {
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
                     />
                     <div className="h-48 border-4 border-dashed border-gray-100 rounded-none flex flex-col items-center justify-center gap-4 group-hover:bg-gray-50 transition-all">
-                      <div className="w-14 h-14 bg-primary/10 rounded-none flex items-center justify-center">
+                      <button 
+                        onClick={() => setShowCamera(true)}
+                        className="w-14 h-14 bg-primary/10 rounded-none flex items-center justify-center"
+                      >
                         <Camera className="w-7 h-7 text-primary" />
-                      </div>
+                      </button>
                       <p className="text-[10px] font-black uppercase tracking-widest text-muted">Tomar Foto o Subir</p>
                     </div>
                   </div>
@@ -495,6 +500,12 @@ export default function HotelDashboard() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      <CameraModal 
+        isOpen={showCamera}
+        onClose={() => setShowCamera(false)}
+        onCapture={(img) => setImages(prev => [...prev, img])}
+      />
     </div>
   );
 }

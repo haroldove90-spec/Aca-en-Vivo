@@ -25,6 +25,7 @@ import {
   Home
 } from 'lucide-react';
 import { useRealtimeAvailability } from '../../hooks/useRealtimeAvailability';
+import { useFavorites } from '../../contexts/FavoritesContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { DemoAccess } from '../../components/DemoAccess';
@@ -40,6 +41,9 @@ const CATEGORIES = [
 
 // --- Popular Card ---
 function PopularCard({ business }: { business: any, key?: string }) {
+  const { toggleFavorite, isFavorite } = useFavorites();
+  const active = isFavorite(business.id);
+
   return (
     <motion.div 
       whileTap={{ scale: 0.98 }}
@@ -52,8 +56,26 @@ function PopularCard({ business }: { business: any, key?: string }) {
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
           referrerPolicy="no-referrer"
         />
-        <button className="absolute top-4 right-4 w-10 h-10 bg-white/20 backdrop-blur-md rounded-none flex items-center justify-center border border-white/30">
-          <Heart className="w-5 h-5 text-white" />
+        <button 
+          onClick={(e) => {
+            e.stopPropagation();
+            toggleFavorite({
+              id: business.id,
+              name: business.nombre,
+              category: business.tipo,
+              image: `https://picsum.photos/seed/${business.id}/600/750`,
+              price: business.tipo === 'hotel' ? '$2,500' : '$1,200',
+              rating: business.estrellas || 4.5
+            });
+          }}
+          className={cn(
+            "absolute top-4 right-4 w-10 h-10 backdrop-blur-md rounded-none flex items-center justify-center border transition-all",
+            active 
+              ? "bg-rose-500 border-rose-500 text-white" 
+              : "bg-white/20 border-white/30 text-white hover:bg-white/40"
+          )}
+        >
+          <Heart className={cn("w-5 h-5", active && "fill-current")} />
         </button>
         <div className="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur-md p-4 rounded-none shadow-lg">
           <h3 className="font-black text-dark text-sm leading-tight uppercase tracking-tight truncate">{business.nombre}</h3>

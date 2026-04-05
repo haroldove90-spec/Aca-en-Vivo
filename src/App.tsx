@@ -16,6 +16,7 @@ import ClasificadosDashboard from './pages/clasificados/Dashboard';
 import { Loader2 } from 'lucide-react';
 import { Layout } from './components/Layout';
 import { NotificationProvider } from './contexts/NotificationContext';
+import { FavoritesProvider } from './contexts/FavoritesContext';
 
 // --- Route Guard Component ---
 function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode, allowedRoles: string[] }) {
@@ -67,9 +68,10 @@ function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode,
 function App() {
   return (
     <NotificationProvider>
-      <Router>
-        <div className="min-h-screen bg-bg font-sans">
-          <Routes>
+      <FavoritesProvider>
+        <Router>
+          <div className="min-h-screen bg-bg font-sans">
+            <Routes>
             {/* Public Feed */}
             <Route path="/" element={<Layout><ClienteFeed /></Layout>} />
             <Route path="/favoritos" element={<Layout><ClienteFavorites /></Layout>} />
@@ -142,6 +144,7 @@ function App() {
           </Routes>
         </div>
       </Router>
+      </FavoritesProvider>
     </NotificationProvider>
   );
 }
