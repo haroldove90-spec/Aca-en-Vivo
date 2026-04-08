@@ -205,7 +205,7 @@ export default function ClasificadosDashboard() {
       {/* Main Content */}
 
       {/* Main Content */}
-      <div className="max-w-2xl mx-auto w-full">
+      <div className="max-w-2xl mx-auto w-full px-4 lg:px-0">
         <AnimatePresence mode="wait">
           {activeTab === 'anuncio' && (
             <motion.div
@@ -215,14 +215,14 @@ export default function ClasificadosDashboard() {
               exit={{ opacity: 0, y: -20 }}
               className="space-y-8"
             >
-              <div className="bg-white rounded-none p-10 shadow-xl shadow-black/5 border border-gray-100 space-y-8">
+              <div className="bg-white rounded-none p-6 lg:p-10 shadow-xl shadow-black/5 border border-gray-100 space-y-6 lg:space-y-8">
                 <div className="space-y-3">
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted ml-2">Título del Anuncio</label>
                   <input 
                     type="text" 
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                    className="w-full bg-gray-50 border-2 border-gray-100 rounded-none p-5 text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all uppercase tracking-tight"
+                    className="w-full bg-gray-50 border-2 border-gray-100 rounded-none p-4 lg:p-5 text-xs lg:text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all uppercase tracking-tight"
                   />
                 </div>
 
@@ -231,50 +231,50 @@ export default function ClasificadosDashboard() {
                   <textarea 
                     value={description}
                     onChange={(e) => setDescription(e.target.value)}
-                    className="w-full bg-gray-50 border-2 border-gray-100 rounded-none p-5 text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all h-32 resize-none"
+                    className="w-full bg-gray-50 border-2 border-gray-100 rounded-none p-4 lg:p-5 text-xs lg:text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all h-32 resize-none"
                   />
                 </div>
 
                 <div className="space-y-3">
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted ml-2">Precio por Noche (MXN)</label>
                   <div className="relative">
-                    <DollarSign className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-primary" />
+                    <DollarSign className="absolute left-4 lg:left-5 top-1/2 -translate-y-1/2 w-4 h-4 lg:w-5 lg:h-5 text-primary" />
                     <input 
                       type="number" 
                       value={price}
                       onChange={(e) => setPrice(Number(e.target.value))}
-                      className="w-full bg-gray-50 border-2 border-gray-100 rounded-none p-5 pl-14 text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all tracking-widest"
+                      className="w-full bg-gray-50 border-2 border-gray-100 rounded-none p-4 lg:p-5 pl-12 lg:pl-14 text-xs lg:text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all tracking-widest"
                     />
                   </div>
                 </div>
 
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-3 gap-2 lg:gap-4">
                   <div className="space-y-2">
-                    <label className="text-[9px] font-black uppercase tracking-widest text-muted ml-2">Personas</label>
-                    <div className="flex items-center bg-gray-50 rounded-none border-2 border-gray-100 p-4">
-                      <Users className="w-4 h-4 text-primary mr-3" />
-                      <input type="number" value={capacity.people} onChange={(e) => setCapacity({...capacity, people: Number(e.target.value)})} className="bg-transparent w-full text-xs font-black focus:outline-none" />
+                    <label className="text-[8px] lg:text-[9px] font-black uppercase tracking-widest text-muted ml-1 lg:ml-2">Personas</label>
+                    <div className="flex items-center bg-gray-50 rounded-none border-2 border-gray-100 p-3 lg:p-4">
+                      <Users className="w-3 h-3 lg:w-4 lg:h-4 text-primary mr-2 lg:mr-3" />
+                      <input type="number" value={capacity.people} onChange={(e) => setCapacity({...capacity, people: Number(e.target.value)})} className="bg-transparent w-full text-[10px] lg:text-xs font-black focus:outline-none" />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[9px] font-black uppercase tracking-widest text-muted ml-2">Cuartos</label>
-                    <div className="flex items-center bg-gray-50 rounded-none border-2 border-gray-100 p-4">
-                      <Bed className="w-4 h-4 text-primary mr-3" />
-                      <input type="number" value={capacity.bedrooms} onChange={(e) => setCapacity({...capacity, bedrooms: Number(e.target.value)})} className="bg-transparent w-full text-xs font-black focus:outline-none" />
+                    <label className="text-[8px] lg:text-[9px] font-black uppercase tracking-widest text-muted ml-1 lg:ml-2">Cuartos</label>
+                    <div className="flex items-center bg-gray-50 rounded-none border-2 border-gray-100 p-3 lg:p-4">
+                      <Bed className="w-3 h-3 lg:w-4 lg:h-4 text-primary mr-2 lg:mr-3" />
+                      <input type="number" value={capacity.bedrooms} onChange={(e) => setCapacity({...capacity, bedrooms: Number(e.target.value)})} className="bg-transparent w-full text-[10px] lg:text-xs font-black focus:outline-none" />
                     </div>
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[9px] font-black uppercase tracking-widest text-muted ml-2">Baños</label>
-                    <div className="flex items-center bg-gray-50 rounded-none border-2 border-gray-100 p-4">
-                      <Bath className="w-4 h-4 text-primary mr-3" />
-                      <input type="number" value={capacity.bathrooms} onChange={(e) => setCapacity({...capacity, bathrooms: Number(e.target.value)})} className="bg-transparent w-full text-xs font-black focus:outline-none" />
+                    <label className="text-[8px] lg:text-[9px] font-black uppercase tracking-widest text-muted ml-1 lg:ml-2">Baños</label>
+                    <div className="flex items-center bg-gray-50 rounded-none border-2 border-gray-100 p-3 lg:p-4">
+                      <Bath className="w-3 h-3 lg:w-4 lg:h-4 text-primary mr-2 lg:mr-3" />
+                      <input type="number" value={capacity.bathrooms} onChange={(e) => setCapacity({...capacity, bathrooms: Number(e.target.value)})} className="bg-transparent w-full text-[10px] lg:text-xs font-black focus:outline-none" />
                     </div>
                   </div>
                 </div>
 
-                <div className="space-y-5">
+                <div className="space-y-4 lg:space-y-5">
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted ml-2">Amenidades</label>
-                  <div className="grid grid-cols-2 gap-3">
+                  <div className="grid grid-cols-2 gap-2 lg:gap-3">
                     {[
                       { id: 'Alberca privada', icon: Waves },
                       { id: 'Acceso a playa', icon: MapPin },
@@ -285,14 +285,14 @@ export default function ClasificadosDashboard() {
                         key={amenity.id}
                         onClick={() => toggleAmenity(amenity.id)}
                         className={cn(
-                          "flex items-center gap-3 p-4 rounded-none border-2 transition-all text-left",
+                          "flex items-center gap-2 lg:gap-3 p-3 lg:p-4 rounded-none border-2 transition-all text-left",
                           amenities.includes(amenity.id) 
                             ? "bg-primary/5 border-primary/20 text-primary" 
                             : "bg-gray-50 border-transparent text-muted"
                         )}
                       >
-                        <amenity.icon className="w-5 h-5" />
-                        <span className="text-[10px] font-black uppercase tracking-widest">{amenity.id}</span>
+                        <amenity.icon className="w-4 h-4 lg:w-5 lg:h-5" />
+                        <span className="text-[8px] lg:text-[10px] font-black uppercase tracking-widest">{amenity.id}</span>
                       </button>
                     ))}
                   </div>

@@ -53,58 +53,58 @@ export function HotelUpdatePanel({
   }
 
   return (
-    <div className="w-full max-w-md mx-auto bg-white rounded-[2.5rem] shadow-2xl border-8 border-[#142850] overflow-hidden">
+    <div className="w-full max-w-md mx-auto bg-white rounded-[2rem] lg:rounded-[2.5rem] shadow-2xl border-4 lg:border-8 border-[#142850] overflow-hidden">
       {/* Top Section: Status */}
-      <div className="bg-[#142850] p-6 text-center space-y-2">
+      <div className="bg-[#142850] p-4 lg:p-6 text-center space-y-2">
         <div className="inline-flex items-center gap-2 bg-[#00A8CC]/20 px-3 py-1 rounded-full">
-          <Clock className="w-4 h-4 text-[#00A8CC]" />
-          <span className="text-[10px] font-black text-[#00A8CC] uppercase tracking-widest">
+          <Clock className="w-3 h-3 lg:w-4 lg:h-4 text-[#00A8CC]" />
+          <span className="text-[8px] lg:text-[10px] font-black text-[#00A8CC] uppercase tracking-widest">
             Última actualización: {lastUpdate}
           </span>
         </div>
-        <h2 className="text-white/60 text-xs font-bold uppercase tracking-widest">
+        <h2 className="text-white/60 text-[10px] lg:text-xs font-bold uppercase tracking-widest">
           Control de Disponibilidad
         </h2>
       </div>
 
       {/* Main Counter Section */}
-      <div className="p-10 flex flex-col items-center justify-center space-y-12 bg-gradient-to-b from-white to-gray-50">
+      <div className="p-6 lg:p-10 flex flex-col items-center justify-center space-y-8 lg:space-y-12 bg-gradient-to-b from-white to-gray-50">
         <div className="relative">
           {/* Decorative Ring */}
-          <div className="absolute inset-0 -m-8 border-4 border-dashed border-gray-100 rounded-full animate-[spin_20s_linear_infinite]" />
+          <div className="absolute inset-0 -m-4 lg:-m-8 border-2 lg:border-4 border-dashed border-gray-100 rounded-full animate-[spin_20s_linear_infinite]" />
           
-          <div className="w-48 h-48 rounded-full bg-white shadow-[0_20px_50px_rgba(20,40,80,0.1)] flex flex-col items-center justify-center border-2 border-gray-50 relative z-10">
-            <span className="text-8xl font-black text-[#142850] leading-none select-none">
+          <div className="w-32 h-32 lg:w-48 lg:h-48 rounded-full bg-white shadow-[0_20px_50px_rgba(20,40,80,0.1)] flex flex-col items-center justify-center border-2 border-gray-50 relative z-10">
+            <span className="text-5xl lg:text-8xl font-black text-[#142850] leading-none select-none">
               {disponibles ?? 0}
             </span>
-            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-2">
+            <span className="text-[8px] lg:text-[10px] font-bold text-gray-400 uppercase tracking-widest mt-1 lg:mt-2">
               Habitaciones
             </span>
           </div>
         </div>
 
         {/* Massive Control Buttons */}
-        <div className="grid grid-cols-2 gap-8 w-full px-4">
+        <div className="grid grid-cols-2 gap-4 lg:gap-8 w-full px-2 lg:px-4">
           <button
             onClick={() => handleUpdate(-1)}
             disabled={updating || (disponibles ?? 0) <= 0}
             className={cn(
-              "h-32 rounded-3xl flex items-center justify-center transition-all active:scale-90 shadow-lg border-b-8 border-red-700",
+              "h-20 lg:h-32 rounded-2xl lg:rounded-3xl flex items-center justify-center transition-all active:scale-90 shadow-lg border-b-4 lg:border-b-8 border-red-700",
               "bg-red-500 text-white hover:bg-red-600 disabled:opacity-50 disabled:grayscale"
             )}
           >
-            <Minus className="w-16 h-16 stroke-[3]" />
+            <Minus className="w-8 h-8 lg:w-16 lg:h-16 stroke-[3]" />
           </button>
 
           <button
             onClick={() => handleUpdate(1)}
             disabled={updating}
             className={cn(
-              "h-32 rounded-3xl flex items-center justify-center transition-all active:scale-90 shadow-lg border-b-8 border-green-700",
+              "h-20 lg:h-32 rounded-2xl lg:rounded-3xl flex items-center justify-center transition-all active:scale-90 shadow-lg border-b-4 lg:border-b-8 border-green-700",
               "bg-green-500 text-white hover:bg-green-600 disabled:opacity-50 disabled:grayscale"
             )}
           >
-            <Plus className="w-16 h-16 stroke-[3]" />
+            <Plus className="w-8 h-8 lg:w-16 lg:h-16 stroke-[3]" />
           </button>
         </div>
 
@@ -113,11 +113,11 @@ export function HotelUpdatePanel({
           onClick={handleClose}
           disabled={updating || (disponibles ?? 0) === 0}
           className={cn(
-            "w-full py-6 rounded-2xl flex items-center justify-center gap-3 font-black text-sm uppercase tracking-widest transition-all active:scale-95",
+            "w-full py-4 lg:py-6 rounded-xl lg:rounded-2xl flex items-center justify-center gap-2 lg:gap-3 font-black text-[10px] lg:text-sm uppercase tracking-widest transition-all active:scale-95",
             "bg-[#142850] text-white hover:bg-black shadow-xl disabled:opacity-30"
           )}
         >
-          <XCircle className="w-6 h-6 text-red-500" />
+          <XCircle className="w-4 h-4 lg:w-6 lg:h-6 text-red-500" />
           <span>Cerrar Inventario (Lleno)</span>
         </button>
       </div>

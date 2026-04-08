@@ -100,9 +100,9 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="bg-white w-full max-w-md rounded-none overflow-hidden relative shadow-2xl"
+            className="bg-white w-full max-w-md rounded-none overflow-hidden relative shadow-2xl flex flex-col max-h-[90vh]"
           >
-            <div className="bg-navy p-10 text-white text-center relative overflow-hidden">
+            <div className="bg-navy p-6 lg:p-10 text-white text-center relative overflow-hidden shrink-0">
               <div className="absolute top-0 right-0 w-48 h-48 bg-primary/20 rounded-full -mr-24 -mt-24 blur-3xl animate-pulse" />
               <div className="absolute bottom-0 left-0 w-32 h-32 bg-accent/10 rounded-full -ml-16 -mb-16 blur-2xl" />
               
@@ -111,18 +111,18 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 animate={{ scale: 1, opacity: 1 }}
                 transition={{ type: "spring", damping: 12 }}
               >
-                <Palmtree className="w-14 h-14 mx-auto mb-6 text-accent" />
+                <Palmtree className="w-10 h-10 lg:w-14 lg:h-14 mx-auto mb-4 lg:mb-6 text-accent" />
               </motion.div>
               
-              <h2 className="text-3xl font-black uppercase tracking-tighter leading-none">
+              <h2 className="text-2xl lg:text-3xl font-black uppercase tracking-tighter leading-none">
                 {isLogin ? 'Bienvenido' : 'Únete'}
               </h2>
-              <p className="text-white/50 text-[10px] font-black uppercase tracking-[0.3em] mt-4">
+              <p className="text-white/50 text-[8px] lg:text-[10px] font-black uppercase tracking-[0.3em] mt-2 lg:mt-4">
                 {isLogin ? 'Ingresa a tu cuenta' : 'Crea tu perfil en AcaEnVivo'}
               </p>
             </div>
 
-            <div className="p-10">
+            <div className="p-6 lg:p-10 overflow-y-auto no-scrollbar">
               {success ? (
                 <motion.div 
                   initial={{ opacity: 0, scale: 0.9 }}
@@ -244,7 +244,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                                 type="button"
                                 onClick={() => setRole(option.id)}
                                 className={cn(
-                                  "py-3 text-[9px] font-black uppercase tracking-widest border-2 transition-all",
+                                  "py-3 lg:py-4 px-1 rounded-none text-[8px] lg:text-[10px] font-black uppercase tracking-widest border-2 transition-all",
                                   role === option.id 
                                     ? "border-primary bg-primary text-white shadow-lg shadow-primary/20" 
                                     : "border-gray-100 bg-gray-50 text-muted hover:border-gray-200"
@@ -323,9 +323,9 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
             </div>
             <button
               onClick={onClose}
-              className="absolute top-6 right-6 text-white/40 hover:text-white transition-colors z-10"
+              className="absolute top-4 right-4 lg:top-6 lg:right-6 text-white/60 hover:text-white transition-colors z-10 p-2"
             >
-              <X className="w-6 h-6" />
+              <X className="w-5 h-5 lg:w-6 lg:h-6" />
             </button>
           </motion.div>
         </div>

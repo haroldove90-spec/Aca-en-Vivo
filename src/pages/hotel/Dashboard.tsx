@@ -291,7 +291,7 @@ export default function HotelDashboard() {
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto w-full">
+      <div className="max-w-2xl mx-auto w-full px-4 lg:px-0">
         <AnimatePresence mode="wait">
           {activeTab === 'inventario' && (
             <motion.div
@@ -301,47 +301,47 @@ export default function HotelDashboard() {
               exit={{ opacity: 0, y: -20 }}
               className="space-y-8"
             >
-              <div className="bg-white rounded-none p-10 shadow-xl shadow-black/5 border border-gray-100 text-center space-y-10">
+              <div className="bg-white rounded-none p-6 lg:p-10 shadow-xl shadow-black/5 border border-gray-100 text-center space-y-6 lg:space-y-10">
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted mb-4">Disponibles Ahora</p>
                   <div className={cn(
-                    "text-[12rem] font-black leading-none tabular-nums transition-colors duration-500 tracking-tighter",
+                    "text-[8rem] lg:text-[12rem] font-black leading-none tabular-nums transition-colors duration-500 tracking-tighter",
                     displayCount > 5 ? "text-emerald-500" : displayCount > 0 ? "text-amber-500" : "text-rose-500"
                   )}>
                     {displayCount}
                   </div>
                 </div>
 
-                <div className="flex items-center justify-center gap-10">
+                <div className="flex items-center justify-center gap-6 lg:gap-10">
                   <button
                     onClick={() => handleUpdateInventory(-1)}
                     disabled={displayCount <= 0}
-                    className="w-24 h-24 rounded-none bg-gray-50 flex items-center justify-center active:scale-90 transition-all disabled:opacity-20 hover:bg-gray-100"
+                    className="w-16 h-16 lg:w-24 lg:h-24 rounded-none bg-gray-50 flex items-center justify-center active:scale-90 transition-all disabled:opacity-20 hover:bg-gray-100"
                   >
-                    <Minus className="w-10 h-10 text-dark stroke-[3]" />
+                    <Minus className="w-6 h-6 lg:w-10 lg:h-10 text-dark stroke-[3]" />
                   </button>
                   <button
                     onClick={() => handleUpdateInventory(1)}
                     disabled={displayCount >= (inventario?.habitaciones_totales ?? 99)}
-                    className="w-24 h-24 rounded-none bg-primary/10 border-2 border-primary/20 flex items-center justify-center active:scale-90 transition-all hover:bg-primary/20"
+                    className="w-16 h-16 lg:w-24 lg:h-24 rounded-none bg-primary/10 border-2 border-primary/20 flex items-center justify-center active:scale-90 transition-all hover:bg-primary/20"
                   >
-                    <Plus className="w-10 h-10 text-primary stroke-[3]" />
+                    <Plus className="w-6 h-6 lg:w-10 lg:h-10 text-primary stroke-[3]" />
                   </button>
                 </div>
 
-                <div className="grid grid-cols-2 gap-4 pt-6">
+                <div className="grid grid-cols-2 gap-3 lg:gap-4 pt-4 lg:pt-6">
                   <button
                     onClick={() => handleQuickAction(0)}
-                    className="py-5 rounded-none bg-rose-50 text-rose-600 font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all hover:bg-rose-100"
+                    className="py-4 lg:py-5 rounded-none bg-rose-50 text-rose-600 font-black text-[8px] lg:text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all hover:bg-rose-100"
                   >
-                    <AlertCircle className="w-5 h-5" />
+                    <AlertCircle className="w-4 h-4 lg:w-5 lg:h-5" />
                     Agotado
                   </button>
                   <button
                     onClick={() => handleQuickAction(inventario?.habitaciones_totales ?? 50)}
-                    className="py-5 rounded-none bg-gray-50 text-dark font-black text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all hover:bg-gray-100"
+                    className="py-4 lg:py-5 rounded-none bg-gray-50 text-dark font-black text-[8px] lg:text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all hover:bg-gray-100"
                   >
-                    <RotateCcw className="w-5 h-5" />
+                    <RotateCcw className="w-4 h-4 lg:w-5 lg:h-5" />
                     Restablecer
                   </button>
                 </div>
