@@ -37,6 +37,32 @@ export default function BusinessDetail() {
   const [loading, setLoading] = useState(true);
   const [reserving, setReserving] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [checkIn, setCheckIn] = useState<string>('');
+  const [checkOut, setCheckOut] = useState<string>('');
+  const [guests, setGuests] = useState(2);
+  const [totalPrice, setTotalPrice] = useState(0);
+  const [nights, setNights] = useState(0);
+
+  const basePrice = 2500;
+
+  useEffect(() => {
+    if (checkIn && checkOut) {
+      const start = new Date(checkIn);
+      const end = new Date(checkOut);
+      const diffTime = Math.abs(end.getTime() - start.getTime());
+      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+      if (diffDays > 0) {
+        setNights(diffDays);
+        setTotalPrice(diffDays * basePrice);
+      } else {
+        setNights(0);
+        setTotalPrice(0);
+      }
+    } else {
+      setNights(0);
+      setTotalPrice(0);
+    }
+  }, [checkIn, checkOut]);
 
   useEffect(() => {
     const fetchBusiness = async () => {
@@ -74,6 +100,10 @@ export default function BusinessDetail() {
   }, [id]);
 
   const handleReserve = async () => {
+    if (!checkIn || !checkOut) {
+      alert('Por favor selecciona las fechas de tu estancia');
+      return;
+    }
     setReserving(true);
     try {
       await addDoc(collection(db, 'reservas'), {
@@ -82,7 +112,11 @@ export default function BusinessDetail() {
         businessName: business.nombre,
         businessImage: business.image || business.galeria?.[0] || HOTEL_IMAGES.EXTERIOR,
         status: 'confirmada',
-        date: new Date().toISOString(),
+        checkIn,
+        checkOut,
+        nights,
+        totalPrice: totalPrice || basePrice,
+        guests,
         createdAt: Timestamp.now()
       });
       setShowSuccess(true);
@@ -237,24 +271,47 @@ export default function BusinessDetail() {
               <div>
                 <div className="flex items-baseline gap-2">
                   <span className="text-muted line-through text-sm">$2,950</span>
-                  <span className="text-2xl font-black text-dark">$2,500</span>
+                  <span className="text-2xl font-black text-dark">
+                    {totalPrice > 0 ? `$${totalPrice.toLocaleString()}` : `$${basePrice.toLocaleString()}`}
+                  </span>
                 </div>
-                <p className="text-xs text-muted">por noche (impuestos incluidos)</p>
+                <p className="text-xs text-muted">
+                  {nights > 0 ? `Total por ${nights} noches` : 'por noche'} (impuestos incluidos)
+                </p>
               </div>
 
               <div className="space-y-3">
-                <div className="p-3 border border-gray-200 rounded-sm flex items-center gap-3 cursor-pointer hover:border-primary transition-colors">
-                  <Calendar className="w-5 h-5 text-muted" />
-                  <div>
-                    <p className="text-[10px] font-bold text-muted uppercase">Entrada — Salida</p>
-                    <p className="text-xs font-bold text-dark">Seleccionar fechas</p>
+                <div className="grid grid-cols-2 gap-2">
+                  <div className="p-3 border border-gray-200 rounded-sm space-y-1 focus-within:border-primary transition-colors">
+                    <label className="text-[10px] font-black text-muted uppercase block">Entrada</label>
+                    <input 
+                      type="date" 
+                      value={checkIn}
+                      onChange={(e) => setCheckIn(e.target.value)}
+                      className="w-full bg-transparent text-xs font-bold text-dark outline-none cursor-pointer"
+                    />
+                  </div>
+                  <div className="p-3 border border-gray-200 rounded-sm space-y-1 focus-within:border-primary transition-colors">
+                    <label className="text-[10px] font-black text-muted uppercase block">Salida</label>
+                    <input 
+                      type="date" 
+                      value={checkOut}
+                      onChange={(e) => setCheckOut(e.target.value)}
+                      className="w-full bg-transparent text-xs font-bold text-dark outline-none cursor-pointer"
+                    />
                   </div>
                 </div>
-                <div className="p-3 border border-gray-200 rounded-sm flex items-center gap-3 cursor-pointer hover:border-primary transition-colors">
-                  <Users className="w-5 h-5 text-muted" />
-                  <div>
-                    <p className="text-[10px] font-bold text-muted uppercase">Huéspedes</p>
-                    <p className="text-xs font-bold text-dark">2 adultos · 1 habitación</p>
+                <div className="p-3 border border-gray-200 rounded-sm flex items-center justify-between cursor-pointer hover:border-primary transition-colors">
+                  <div className="flex items-center gap-3">
+                    <Users className="w-5 h-5 text-muted" />
+                    <div>
+                      <p className="text-[10px] font-bold text-muted uppercase">Huéspedes</p>
+                      <p className="text-xs font-bold text-dark">{guests} adultos · 1 habitación</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button onClick={() => setGuests(Math.max(1, guests - 1))} className="w-6 h-6 border border-gray-200 flex items-center justify-center text-dark hover:bg-gray-50">-</button>
+                    <button onClick={() => setGuests(guests + 1)} className="w-6 h-6 border border-gray-200 flex items-center justify-center text-dark hover:bg-gray-50">+</button>
                   </div>
                 </div>
               </div>
@@ -273,7 +330,7 @@ export default function BusinessDetail() {
                     name: business.nombre,
                     category: business.tipo,
                     image: business.image || business.galeria?.[0] || HOTEL_IMAGES.EXTERIOR,
-                    price: '$2,500'
+                    price: totalPrice > 0 ? `$${totalPrice.toLocaleString()}` : `$${basePrice.toLocaleString()}`
                   })}
                   className="w-full py-4 bg-white text-primary border border-primary rounded-sm font-black text-sm uppercase tracking-widest hover:bg-primary/5 transition-all"
                 >
@@ -286,6 +343,41 @@ export default function BusinessDetail() {
                 <span>Reserva ahora y paga después</span>
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* Recommended Sponsors Section */}
+        <div className="mt-20 border-t border-gray-100 pt-12">
+          <div className="flex items-center justify-between mb-8">
+            <div>
+              <h2 className="text-2xl font-black text-dark tracking-tight">Patrocinadores Recomendados</h2>
+              <p className="text-muted text-sm font-medium">Otros lugares que podrían interesarte en Acapulco</p>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {[
+              { id: '1', name: 'Hotel Emporio', price: '$2,800', rating: 4.8, img: HOTEL_IMAGES.EXTERIOR },
+              { id: '2', name: 'Princess Mundo Imperial', price: '$3,500', rating: 4.9, img: HOTEL_IMAGES.ROOM },
+              { id: '3', name: 'Las Brisas Acapulco', price: '$4,200', rating: 4.7, img: HOTEL_IMAGES.POOL },
+            ].map((sponsor) => (
+              <div key={sponsor.id} className="bg-white rounded-sm border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow group cursor-pointer">
+                <div className="aspect-video relative overflow-hidden">
+                  <img src={sponsor.img} alt={sponsor.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" referrerPolicy="no-referrer" />
+                  <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-sm flex items-center gap-1">
+                    <Star className="w-3 h-3 fill-accent text-accent" />
+                    <span className="text-[10px] font-bold text-dark">{sponsor.rating}</span>
+                  </div>
+                </div>
+                <div className="p-4 space-y-2">
+                  <h3 className="font-bold text-dark group-hover:text-primary transition-colors">{sponsor.name}</h3>
+                  <div className="flex items-center justify-between">
+                    <span className="text-primary font-black text-sm">{sponsor.price} <span className="text-[10px] text-muted font-bold">/ noche</span></span>
+                    <button className="text-[10px] font-black uppercase tracking-widest text-dark hover:text-primary">Ver más</button>
+                  </div>
+                </div>
+              </div>
+            ))}
           </div>
         </div>
       </div>
