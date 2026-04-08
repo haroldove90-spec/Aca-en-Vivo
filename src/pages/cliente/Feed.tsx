@@ -88,7 +88,7 @@ function PopularCard({ business }: { business: any, key?: string }) {
     >
       <div className="aspect-[4/3] relative overflow-hidden">
         <img 
-          src={business.image || HOTEL_IMAGES.EXTERIOR} 
+          src={business.imagen || business.image || HOTEL_IMAGES.EXTERIOR} 
           alt={business.nombre}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 pointer-events-none"
           referrerPolicy="no-referrer"
@@ -100,7 +100,7 @@ function PopularCard({ business }: { business: any, key?: string }) {
               id: business.id,
               name: business.nombre,
               category: business.tipo,
-              image: business.image || HOTEL_IMAGES.EXTERIOR,
+              image: business.imagen || business.image || HOTEL_IMAGES.EXTERIOR,
               price: business.tipo === 'hotel' ? '$2,500' : '$1,200',
               rating: business.estrellas || 4.5
             });
@@ -152,7 +152,7 @@ function PopularCard({ business }: { business: any, key?: string }) {
                   id: business.id,
                   name: business.nombre,
                   category: business.tipo,
-                  image: business.image || HOTEL_IMAGES.EXTERIOR,
+                  image: business.imagen || business.image || HOTEL_IMAGES.EXTERIOR,
                   price: business.tipo === 'hotel' ? '$2,500' : '$1,200'
                 });
               }}
