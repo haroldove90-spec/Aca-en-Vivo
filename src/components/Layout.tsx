@@ -54,7 +54,8 @@ const getNavItems = (pathname: string) => {
   if (pathname.startsWith('/admin-agencia')) {
     return [
       { id: 'dashboard', label: 'Panel', icon: Grid, path: '/admin-agencia' },
-      { id: 'afiliados', label: 'Afiliados', icon: Users, path: '/admin-agencia?tab=afiliados' },
+      { id: 'afiliados', label: 'Afiliados', icon: Building2, path: '/admin-agencia?tab=afiliados' },
+      { id: 'usuarios', label: 'Usuarios', icon: Users, path: '/admin-agencia?tab=usuarios' },
       { id: 'zonas', label: 'Zonas', icon: MapPin, path: '/admin-agencia?tab=zonas' },
       { id: 'pagos', label: 'Pagos', icon: DollarSign, path: '/admin-agencia?tab=pagos' },
     ];

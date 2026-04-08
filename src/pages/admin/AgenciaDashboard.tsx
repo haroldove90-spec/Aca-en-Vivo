@@ -106,7 +106,7 @@ const ZoneHeatmap = () => (
   </div>
 );
 
-type Tab = 'dashboard' | 'afiliados' | 'zonas' | 'pagos';
+type Tab = 'dashboard' | 'afiliados' | 'usuarios' | 'zonas' | 'pagos';
 
 export default function AgenciaDashboard() {
   const navigate = useNavigate();
@@ -119,47 +119,62 @@ export default function AgenciaDashboard() {
   const [filter, setFilter] = useState('all');
   const [selectedHotel, setSelectedHotel] = useState<any>(null);
   const [establishments, setEstablishments] = useState<any[]>([]);
+  const [profiles, setProfiles] = useState<any[]>([]);
   const [inventory, setInventory] = useState<any[]>([]);
 
+  const fetchData = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session) {
+      navigate('/');
+      return;
+    }
+
+    const [ests, inv, profs] = await Promise.all([
+      supabase.from('establishments').select('*'),
+      supabase.from('inventario_hotel').select('*'),
+      supabase.from('profiles').select('*')
+    ]);
+
+    setEstablishments(ests.data || []);
+    setInventory(inv.data || []);
+    setProfiles(profs.data || []);
+    setLoading(false);
+  };
+
   useEffect(() => {
-    const fetchData = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate('/');
-        return;
-      }
-
-      const [ests, inv] = await Promise.all([
-        supabase.from('establishments').select('*'),
-        supabase.from('inventario_hotel').select('*')
-      ]);
-
-      setEstablishments(ests.data || []);
-      setInventory(inv.data || []);
-      setLoading(false);
-    };
-
     fetchData();
 
     // Subscriptions
     const estSub = supabase.channel('est_changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'establishments' }, (payload) => {
-        if (payload.eventType === 'INSERT') setEstablishments(prev => [...prev, payload.new]);
-        if (payload.eventType === 'UPDATE') setEstablishments(prev => prev.map(e => e.id === payload.new.id ? payload.new : e));
-        if (payload.eventType === 'DELETE') setEstablishments(prev => prev.filter(e => e.id === payload.old.id));
-      }).subscribe();
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'establishments' }, () => fetchData())
+      .subscribe();
 
     const invSub = supabase.channel('inv_changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'inventario_hotel' }, (payload) => {
-        if (payload.eventType === 'INSERT') setInventory(prev => [...prev, payload.new]);
-        if (payload.eventType === 'UPDATE') setInventory(prev => prev.map(i => i.id === payload.new.id ? payload.new : i));
-      }).subscribe();
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'inventario_hotel' }, () => fetchData())
+      .subscribe();
+
+    const profSub = supabase.channel('prof_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => fetchData())
+      .subscribe();
 
     return () => {
       estSub.unsubscribe();
       invSub.unsubscribe();
+      profSub.unsubscribe();
     };
   }, [navigate]);
+
+  const handleDeleteEstablishment = async (id: string) => {
+    if (!window.confirm('¿Estás seguro de eliminar este establecimiento?')) return;
+    const { error } = await supabase.from('establishments').delete().eq('id', id);
+    if (error) alert(error.message);
+  };
+
+  const handleDeleteProfile = async (id: string) => {
+    if (!window.confirm('¿Estás seguro de eliminar este usuario?')) return;
+    const { error } = await supabase.from('profiles').delete().eq('id', id);
+    if (error) alert(error.message);
+  };
 
   const filteredAffiliates = useMemo(() => {
     let list = establishments;
@@ -315,10 +330,85 @@ export default function AgenciaDashboard() {
                             <button className="w-10 h-10 flex items-center justify-center text-emerald-600 hover:bg-emerald-50 rounded-none transition-all">
                               <MessageSquare className="w-5 h-5" />
                             </button>
-                            <button className="w-10 h-10 flex items-center justify-center text-rose-600 hover:bg-rose-50 rounded-none transition-all">
+                            <button 
+                              onClick={() => handleDeleteEstablishment(a.id)}
+                              className="w-10 h-10 flex items-center justify-center text-rose-600 hover:bg-rose-50 rounded-none transition-all"
+                            >
                               <XCircle className="w-5 h-5" />
                             </button>
                           </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {activeTab === 'usuarios' && (
+          <motion.div
+            key="usuarios"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+          >
+            <div className="bg-white rounded-none shadow-xl shadow-black/5 border border-gray-100 overflow-hidden">
+              <div className="p-8 lg:p-10 border-b border-gray-100">
+                <h3 className="text-sm font-black text-dark uppercase tracking-[0.2em] flex items-center gap-3">
+                  <Users className="w-6 h-6 text-primary" />
+                  Directorio de Usuarios
+                </h3>
+              </div>
+              <div className="overflow-x-auto">
+                <table className="w-full text-left">
+                  <thead>
+                    <tr className="bg-gray-50/50">
+                      <th className="px-10 py-6 text-[10px] font-black text-muted uppercase tracking-widest">Usuario</th>
+                      <th className="px-10 py-6 text-[10px] font-black text-muted uppercase tracking-widest">Rol</th>
+                      <th className="px-10 py-6 text-[10px] font-black text-muted uppercase tracking-widest">Contacto</th>
+                      <th className="px-10 py-6 text-[10px] font-black text-muted uppercase tracking-widest text-right">Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {profiles.map((p) => (
+                      <tr key={p.id} className="hover:bg-gray-50/50 transition-colors group">
+                        <td className="px-10 py-6">
+                          <div className="flex items-center gap-4">
+                            <div className="w-10 h-10 rounded-none overflow-hidden border border-gray-100">
+                              <img src={p.avatar_url} alt="" className="w-full h-full object-cover" />
+                            </div>
+                            <div>
+                              <p className="text-sm font-black text-dark uppercase tracking-tight">{p.full_name}</p>
+                              <p className="text-[10px] text-muted font-bold">{p.email}</p>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-10 py-6">
+                          <span className={cn(
+                            "text-[9px] font-black px-3 py-1.5 rounded-none uppercase tracking-widest",
+                            p.role === 'admin' ? "bg-rose-100 text-rose-700" :
+                            p.role === 'hotel' ? "bg-blue-100 text-blue-700" :
+                            p.role === 'negocio' ? "bg-cyan-100 text-cyan-700" :
+                            "bg-slate-100 text-slate-700"
+                          )}>
+                            {p.role}
+                          </span>
+                        </td>
+                        <td className="px-10 py-6">
+                          <div className="space-y-1">
+                            <p className="text-[10px] font-bold text-dark uppercase">{p.phone || 'Sin tel'}</p>
+                            <p className="text-[10px] text-muted truncate max-w-[200px]">{p.address || 'Sin dir'}</p>
+                          </div>
+                        </td>
+                        <td className="px-10 py-6 text-right">
+                          <button 
+                            onClick={() => handleDeleteProfile(p.id)}
+                            className="w-10 h-10 flex items-center justify-center text-rose-600 hover:bg-rose-50 rounded-none transition-all"
+                          >
+                            <XCircle className="w-5 h-5" />
+                          </button>
                         </td>
                       </tr>
                     ))}

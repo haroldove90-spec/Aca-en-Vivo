@@ -19,6 +19,10 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [role, setRole] = useState('cliente');
+  const [businessName, setBusinessName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [whatsapp, setWhatsapp] = useState('');
+  const [address, setAddress] = useState('');
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,6 +45,10 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
             data: {
               full_name: fullName,
               role: role,
+              business_name: businessName,
+              phone: phone,
+              whatsapp: whatsapp,
+              address: address,
               avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${fullName}`,
             },
           },
@@ -103,7 +111,9 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                   {!isLogin && (
                     <>
                       <div className="space-y-1">
-                        <label className="text-[10px] font-black uppercase tracking-widest text-muted">Nombre Completo</label>
+                        <label className="text-[10px] font-black uppercase tracking-widest text-muted">
+                          {role === 'cliente' ? 'Nombre Completo' : 'Nombre del Representante'}
+                        </label>
                         <div className="relative">
                           <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
                           <input
@@ -112,10 +122,68 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                             value={fullName}
                             onChange={(e) => setFullName(e.target.value)}
                             className="w-full bg-gray-50 border-none rounded-none py-3 pl-12 pr-4 text-xs font-bold focus:ring-2 focus:ring-primary/20"
-                            placeholder="Juan Pérez"
+                            placeholder={role === 'cliente' ? 'Juan Pérez' : 'Nombre del titular'}
                           />
                         </div>
                       </div>
+
+                      {role !== 'cliente' && (
+                        <>
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-muted">
+                              {role === 'hotel' ? 'Nombre del Hotel' : 'Nombre del Negocio'}
+                            </label>
+                            <div className="relative">
+                              <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+                              <input
+                                type="text"
+                                required
+                                value={businessName}
+                                onChange={(e) => setBusinessName(e.target.value)}
+                                className="w-full bg-gray-50 border-none rounded-none py-3 pl-12 pr-4 text-xs font-bold focus:ring-2 focus:ring-primary/20"
+                                placeholder={role === 'hotel' ? 'Hotel Acapulco Plaza' : 'Restaurante La Perla'}
+                              />
+                            </div>
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-black uppercase tracking-widest text-muted">Teléfono</label>
+                              <input
+                                type="tel"
+                                required
+                                value={phone}
+                                onChange={(e) => setPhone(e.target.value)}
+                                className="w-full bg-gray-50 border-none rounded-none py-3 px-4 text-xs font-bold focus:ring-2 focus:ring-primary/20"
+                                placeholder="7441234567"
+                              />
+                            </div>
+                            <div className="space-y-1">
+                              <label className="text-[10px] font-black uppercase tracking-widest text-muted">WhatsApp</label>
+                              <input
+                                type="tel"
+                                required
+                                value={whatsapp}
+                                onChange={(e) => setWhatsapp(e.target.value)}
+                                className="w-full bg-gray-50 border-none rounded-none py-3 px-4 text-xs font-bold focus:ring-2 focus:ring-primary/20"
+                                placeholder="7441234567"
+                              />
+                            </div>
+                          </div>
+
+                          <div className="space-y-1">
+                            <label className="text-[10px] font-black uppercase tracking-widest text-muted">Dirección</label>
+                            <input
+                              type="text"
+                              required
+                              value={address}
+                              onChange={(e) => setAddress(e.target.value)}
+                              className="w-full bg-gray-50 border-none rounded-none py-3 px-4 text-xs font-bold focus:ring-2 focus:ring-primary/20"
+                              placeholder="Av. Costera Miguel Alemán #123"
+                            />
+                          </div>
+                        </>
+                      )}
 
                       <div className="space-y-1">
                         <label className="text-[10px] font-black uppercase tracking-widest text-muted">Tipo de Cuenta</label>
