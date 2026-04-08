@@ -28,11 +28,15 @@ import { CameraModal } from '../../components/CameraModal';
 import { HOTEL_IMAGES } from '../../constants/images';
 import { useNavigate, useLocation } from 'react-router-dom';
 
+import { useAcaData } from '../../hooks/useAcaData';
+import { BaseEntity, EntityStatus } from '../../constants/mockData';
+
 type Tab = 'inventario' | 'perfil' | 'galeria' | 'promociones' | 'reservas';
 
 export default function HotelDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { data, updateEntity, deleteEntity, getEntitiesByType } = useAcaData();
   
   const queryParams = new URLSearchParams(location.search);
   const activeTab = (queryParams.get('tab') as Tab) || 'inventario';
@@ -41,225 +45,89 @@ export default function HotelDashboard() {
     navigate(`/hotel?tab=${tab}`);
   };
 
-  const [inventario, setInventario] = useState<any>(null);
-  const [establecimiento, setEstablecimiento] = useState<any>(null);
+  const hotels = getEntitiesByType('hotel');
+  // For demo, we'll use the first hotel as the "current" one
+  const [selectedHotel, setSelectedHotel] = useState<BaseEntity | null>(hotels[0] || null);
+  
   const [loading, setLoading] = useState(true);
   const [optimisticCount, setOptimisticCount] = useState<number | null>(null);
   const [showToast, setShowToast] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
-  const [reservas, setReservas] = useState<any[]>([]);
-
-  // Form states
-  const [hotelName, setHotelName] = useState("");
-  const [description, setDescription] = useState("");
-  const [phone, setPhone] = useState("");
-  const [amenities, setAmenities] = useState<string[]>([]);
-  const [promo, setPromo] = useState("");
-  const [isPremium, setIsPremium] = useState(false);
-  const [images, setImages] = useState<string[]>([]);
-
-  // For demo, we'll try to find an establishment owned by the user
-  const [hotelId, setHotelId] = useState<string | null>(null);
+  const [reservas, setReservas] = useState<any[]>([
+    { id: '1', user_id: 'user_12345', created_at: new Date().toISOString(), guests: 2, status: 'pendiente' },
+    { id: '2', user_id: 'user_67890', created_at: new Date().toISOString(), guests: 4, status: 'confirmada' },
+  ]);
+  const [amenities, setAmenities] = useState<string[]>(['wifi', 'pool']);
+  const [promo, setPromo] = useState('Desayuno buffet incluido en tu estancia este fin de semana.');
+  const [isPremium, setIsPremium] = useState(true);
 
   useEffect(() => {
-    const initDashboard = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate('/');
-        return;
-      }
-
-      // Find user's establishment
-      let { data: ests, error: estError } = await supabase
-        .from('establishments')
-        .select('*')
-        .eq('owner_id', session.user.id)
-        .limit(1);
-
-      if (estError) console.error(estError);
-
-      let currentEst = ests?.[0];
-
-      if (!currentEst) {
-        // Create a default one for the user if none exists
-        const { data: newEst, error: createError } = await supabase
-          .from('establishments')
-          .insert({
-            owner_id: session.user.id,
-            nombre: 'Mi Hotel Acapulco',
-            tipo: 'hotel',
-            zona: 'Zona Dorada',
-            descripcion: 'Bienvenido a mi nuevo hotel.',
-            estrellas: 5.0,
-            image: HOTEL_IMAGES.EXTERIOR
-          })
-          .select()
-          .single();
-        
-        if (createError) {
-          console.error(createError);
-        } else {
-          currentEst = newEst;
-        }
-      }
-
-      if (currentEst) {
-        setHotelId(currentEst.id);
-        setEstablecimiento(currentEst);
-        setHotelName(currentEst.nombre);
-        setDescription(currentEst.descripcion || "");
-        setPhone(currentEst.telefono || "");
-        setAmenities(currentEst.amenidades || []);
-        setPromo(currentEst.promocion || "");
-        setIsPremium(currentEst.premium || false);
-        setImages(currentEst.galeria || [HOTEL_IMAGES.EXTERIOR, HOTEL_IMAGES.ROOM, HOTEL_IMAGES.POOL]);
-
-        // Fetch inventory
-        const { data: inv, error: invError } = await supabase
-          .from('inventario_hotel')
-          .select('*')
-          .eq('establishment_id', currentEst.id)
-          .single();
-
-        if (invError && invError.code === 'PGRST116') {
-          // Create inventory if missing
-          const { data: newInv } = await supabase
-            .from('inventario_hotel')
-            .insert({ establishment_id: currentEst.id })
-            .select()
-            .single();
-          setInventario(newInv);
-        } else {
-          setInventario(inv);
-        }
-
-        // Fetch reservations
-        const { data: res, error: resError } = await supabase
-          .from('reservations')
-          .select('*')
-          .eq('business_id', currentEst.id)
-          .order('created_at', { ascending: false });
-        
-        if (!resError) setReservas(res || []);
-      }
-      setLoading(false);
-    };
-
-    initDashboard();
-  }, [navigate]);
+    if (hotels.length > 0 && !selectedHotel) {
+      setSelectedHotel(hotels[0]);
+    }
+    setTimeout(() => setLoading(false), 800);
+  }, [hotels]);
 
   const handleUpdateInventory = async (delta: number) => {
-    if (!inventario || !hotelId) return;
-    const current = optimisticCount ?? inventario.disponibles_ahora;
-    const next = Math.max(0, Math.min(inventario.habitaciones_totales, current + delta));
+    if (!selectedHotel) return;
+    const current = optimisticCount ?? selectedHotel.capacidad ?? 0;
+    const next = Math.max(0, current + delta);
     setOptimisticCount(next);
-    try {
-      const { error } = await supabase
-        .from('inventario_hotel')
-        .update({ 
-          disponibles_ahora: next,
-          ultima_actualizacion: new Date().toISOString()
-        })
-        .eq('establishment_id', hotelId);
-      
-      if (error) throw error;
-      setInventario({ ...inventario, disponibles_ahora: next, ultima_actualizacion: new Date().toISOString() });
-    } catch (error) {
-      console.error(error);
-      setOptimisticCount(null);
-    }
+    updateEntity(selectedHotel.id, { capacidad: next });
   };
 
   const handleQuickAction = async (value: number) => {
-    if (!inventario || !hotelId) return;
+    if (!selectedHotel) return;
     setOptimisticCount(value);
-    try {
-      const { error } = await supabase
-        .from('inventario_hotel')
-        .update({ 
-          disponibles_ahora: value,
-          ultima_actualizacion: new Date().toISOString()
-        })
-        .eq('establishment_id', hotelId);
-      
-      if (error) throw error;
-      setInventario({ ...inventario, disponibles_ahora: value, ultima_actualizacion: new Date().toISOString() });
-    } catch (error) {
-      console.error(error);
-      setOptimisticCount(null);
-    }
+    updateEntity(selectedHotel.id, { capacidad: value });
   };
 
   const handleSaveChanges = async () => {
-    if (!hotelId) return;
+    if (!selectedHotel) return;
     setSaving(true);
-    try {
-      const { error } = await supabase
-        .from('establishments')
-        .update({
-          nombre: hotelName,
-          descripcion: description,
-          telefono: phone,
-          amenidades: amenities,
-          promocion: promo,
-          premium: isPremium,
-          galeria: images
-        })
-        .eq('id', hotelId);
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    updateEntity(selectedHotel.id, selectedHotel);
+    setSaving(false);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+  };
 
-      if (error) throw error;
-      setShowToast(true);
-      setTimeout(() => setShowToast(false), 3000);
-    } catch (error) {
-      console.error("Error saving changes:", error);
-    } finally {
-      setSaving(false);
+  const handleDeleteHotel = () => {
+    if (!selectedHotel) return;
+    if (window.confirm('¿Estás seguro de que deseas dar de baja este hotel?')) {
+      deleteEntity(selectedHotel.id);
+      setSelectedHotel(null);
     }
   };
 
-  const handleUploadImage = async (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAddPhoto = (img: string) => {
+    if (selectedHotel) {
+      updateEntity(selectedHotel.id, { imagen: img });
+    }
+    setShowCamera(false);
+  };
+
+  const handleUploadImage = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (file) {
+    if (file && selectedHotel) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        const img = reader.result as string;
-        setImages(prev => [...prev, img]);
+        updateEntity(selectedHotel.id, { imagen: reader.result as string });
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const deleteImage = (index: number) => {
-    setImages(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const handleAddPhoto = (img: string) => {
-    setImages(prev => [...prev, img]);
-    setShowCamera(false);
+  const handleUpdateReservaStatus = (id: string, status: string) => {
+    setReservas(prev => prev.map(r => r.id === id ? { ...r, status } : r));
   };
 
   const toggleAmenity = (id: string) => {
-    setAmenities(prev => 
-      prev.includes(id) ? prev.filter(a => a !== id) : [...prev, id]
-    );
+    setAmenities(prev => prev.includes(id) ? prev.filter(a => a !== id) : [...prev, id]);
   };
 
-  const handleUpdateReservaStatus = async (resId: string, newStatus: string) => {
-    try {
-      const { error } = await supabase
-        .from('reservations')
-        .update({ status: newStatus })
-        .eq('id', resId);
-      
-      if (error) throw error;
-      setReservas(prev => prev.map(r => r.id === resId ? { ...r, status: newStatus } : r));
-    } catch (error) {
-      console.error("Error updating reservation status:", error);
-    }
-  };
-
-  if (loading) {
+  if (loading || !selectedHotel) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[#F8FAFC]">
         <Loader2 className="w-12 h-12 text-[#00A8CC] animate-spin" />
@@ -267,7 +135,7 @@ export default function HotelDashboard() {
     );
   }
 
-  const displayCount = optimisticCount ?? inventario?.disponibles_ahora ?? 0;
+  const displayCount = optimisticCount ?? selectedHotel.capacidad ?? 0;
 
   return (
     <div className="space-y-10">
@@ -279,14 +147,14 @@ export default function HotelDashboard() {
           <div>
             <h1 className="text-2xl font-black text-dark tracking-tighter uppercase leading-none">Admin <span className="text-primary">Pro</span></h1>
             <p className="text-[10px] font-bold text-muted uppercase tracking-[0.3em] mt-1 truncate max-w-[200px]">
-              {hotelName}
+              {selectedHotel.nombre}
             </p>
           </div>
         </div>
         <div className="flex items-center gap-3 bg-white px-5 py-2.5 rounded-none border border-gray-100 shadow-sm">
           <Clock className="w-4 h-4 text-primary" />
           <span className="text-[10px] font-black text-dark uppercase tracking-widest">
-            {inventario?.ultima_actualizacion ? new Date(inventario.ultima_actualizacion).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Sincronizando...'}
+            {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
           </span>
         </div>
       </div>
@@ -322,13 +190,12 @@ export default function HotelDashboard() {
                   </button>
                   <button
                     onClick={() => handleUpdateInventory(1)}
-                    disabled={displayCount >= (inventario?.habitaciones_totales ?? 99)}
                     className="w-16 h-16 lg:w-24 lg:h-24 rounded-none bg-primary/10 border-2 border-primary/20 flex items-center justify-center active:scale-90 transition-all hover:bg-primary/20"
                   >
                     <Plus className="w-6 h-6 lg:w-10 lg:h-10 text-primary stroke-[3]" />
                   </button>
                 </div>
-
+ 
                 <div className="grid grid-cols-2 gap-3 lg:gap-4 pt-4 lg:pt-6">
                   <button
                     onClick={() => handleQuickAction(0)}
@@ -338,7 +205,7 @@ export default function HotelDashboard() {
                     Agotado
                   </button>
                   <button
-                    onClick={() => handleQuickAction(inventario?.habitaciones_totales ?? 50)}
+                    onClick={() => handleQuickAction(100)}
                     className="py-4 lg:py-5 rounded-none bg-gray-50 text-dark font-black text-[8px] lg:text-[10px] uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all hover:bg-gray-100"
                   >
                     <RotateCcw className="w-4 h-4 lg:w-5 lg:h-5" />
@@ -362,8 +229,8 @@ export default function HotelDashboard() {
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted ml-2">Nombre del Hotel</label>
                   <input 
                     type="text" 
-                    value={hotelName}
-                    onChange={(e) => setHotelName(e.target.value)}
+                    value={selectedHotel.nombre}
+                    onChange={(e) => setSelectedHotel({...selectedHotel, nombre: e.target.value})}
                     className="w-full bg-gray-50 border-2 border-gray-100 rounded-none p-5 text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all uppercase tracking-tight"
                   />
                 </div>
@@ -371,25 +238,41 @@ export default function HotelDashboard() {
                 <div className="space-y-3">
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted ml-2">Descripción Corta</label>
                   <textarea 
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    maxLength={150}
+                    value={selectedHotel.descripcion}
+                    onChange={(e) => setSelectedHotel({...selectedHotel, descripcion: e.target.value})}
                     className="w-full bg-gray-50 border-2 border-gray-100 rounded-none p-5 text-sm font-bold text-dark focus:outline-none focus:border-primary/30 transition-all h-32 resize-none"
                   />
-                  <p className="text-right text-[10px] font-black text-muted uppercase tracking-widest">{description.length}/150</p>
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted ml-2">Teléfono Recepción</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted ml-2">WhatsApp de Reservas</label>
                   <div className="relative">
                     <Phone className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
                     <input 
                       type="tel" 
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
+                      value={selectedHotel.whatsapp}
+                      onChange={(e) => setSelectedHotel({...selectedHotel, whatsapp: e.target.value})}
                       className="w-full bg-gray-50 border-2 border-gray-100 rounded-none p-5 pl-14 text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all tracking-widest"
                     />
                   </div>
+                </div>
+
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted ml-2">Estado del Hotel</label>
+                  <select 
+                    value={selectedHotel.status}
+                    onChange={(e) => setSelectedHotel({...selectedHotel, status: e.target.value as EntityStatus})}
+                    className={cn(
+                      "w-full p-5 font-black text-[10px] uppercase tracking-widest border-2 transition-all appearance-none",
+                      selectedHotel.status === 'activo' ? "bg-emerald-50 border-emerald-100 text-emerald-600" : 
+                      selectedHotel.status === 'pendiente' ? "bg-amber-50 border-amber-100 text-amber-600" :
+                      "bg-rose-50 border-rose-100 text-rose-600"
+                    )}
+                  >
+                    <option value="activo">Activo</option>
+                    <option value="inactivo">Inactivo</option>
+                    <option value="pendiente">Pendiente</option>
+                  </select>
                 </div>
 
                 <div className="space-y-5">
@@ -450,17 +333,15 @@ export default function HotelDashboard() {
                     </div>
                   </div>
                   <div className="grid grid-cols-3 gap-4">
-                    {images.map((img, idx) => (
-                      <div key={idx} className="relative aspect-square rounded-none overflow-hidden group shadow-sm">
-                        <img src={img} alt="Hotel" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                        <button 
-                          onClick={() => deleteImage(idx)}
-                          className="absolute top-2 right-2 w-8 h-8 bg-rose-500 rounded-none flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity shadow-lg"
-                        >
-                          <Trash2 className="w-4 h-4 text-white" />
-                        </button>
-                      </div>
-                    ))}
+                    <div className="relative aspect-square rounded-none overflow-hidden group shadow-sm">
+                      <img src={selectedHotel.imagen} alt="Hotel" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                      <button 
+                        onClick={() => setShowCamera(true)}
+                        className="absolute inset-0 bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <Camera className="w-6 h-6 text-white" />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -590,11 +471,17 @@ export default function HotelDashboard() {
         </AnimatePresence>
       </div>
 
-      <div className="fixed bottom-24 lg:bottom-10 left-1/2 -translate-x-1/2 w-full max-w-md px-6 z-40">
+      <div className="fixed bottom-24 lg:bottom-10 left-1/2 -translate-x-1/2 w-full max-w-md px-6 z-40 flex gap-4">
+        <button
+          onClick={handleDeleteHotel}
+          className="w-20 h-20 bg-rose-500 text-white flex items-center justify-center shadow-2xl active:scale-95 transition-all"
+        >
+          <Trash2 className="w-8 h-8" />
+        </button>
         <button
           onClick={handleSaveChanges}
           disabled={saving}
-          className="w-full py-6 bg-primary text-white rounded-none font-black text-xs uppercase tracking-[0.3em] shadow-2xl shadow-primary/40 flex items-center justify-center gap-3 active:scale-95 transition-all hover:bg-primary/90"
+          className="flex-1 py-6 bg-primary text-white rounded-none font-black text-xs uppercase tracking-[0.3em] shadow-2xl shadow-primary/40 flex items-center justify-center gap-3 active:scale-95 transition-all hover:bg-primary/90"
         >
           {saving ? (
             <Loader2 className="w-6 h-6 animate-spin" />

@@ -18,7 +18,8 @@ import {
   Calendar,
   ArrowUpRight,
   ArrowDownRight,
-  Loader2
+  Loader2,
+  Trash2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
@@ -106,86 +107,54 @@ const ZoneHeatmap = () => (
   </div>
 );
 
+import { useAcaData } from '../../hooks/useAcaData';
+import { BaseEntity, EntityStatus } from '../../constants/mockData';
+
 type Tab = 'dashboard' | 'afiliados' | 'usuarios' | 'zonas' | 'pagos';
 
 export default function AgenciaDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { data, updateEntity, deleteEntity } = useAcaData();
   
   const queryParams = new URLSearchParams(location.search);
   const activeTab = (queryParams.get('tab') as Tab) || 'dashboard';
 
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
-  const [selectedHotel, setSelectedHotel] = useState<any>(null);
-  const [establishments, setEstablishments] = useState<any[]>([]);
-  const [profiles, setProfiles] = useState<any[]>([]);
-  const [inventory, setInventory] = useState<any[]>([]);
-
-  const fetchData = async () => {
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      navigate('/');
-      return;
-    }
-
-    const [ests, inv, profs] = await Promise.all([
-      supabase.from('establishments').select('*'),
-      supabase.from('inventario_hotel').select('*'),
-      supabase.from('profiles').select('*')
-    ]);
-
-    setEstablishments(ests.data || []);
-    setInventory(inv.data || []);
-    setProfiles(profs.data || []);
-    setLoading(false);
-  };
+  const [selectedEntity, setSelectedEntity] = useState<BaseEntity | null>(null);
+  const [profiles, setProfiles] = useState<any[]>([
+    { id: '1', full_name: 'Harold Ove', email: 'haroldove90@gmail.com', role: 'admin', avatar_url: 'https://i.pravatar.cc/150?u=1' },
+    { id: '2', full_name: 'Juan Pérez', email: 'juan@hotel.com', role: 'hotel', avatar_url: 'https://i.pravatar.cc/150?u=2' },
+  ]);
 
   useEffect(() => {
-    fetchData();
+    setTimeout(() => setLoading(false), 800);
+  }, []);
 
-    // Subscriptions
-    const estSub = supabase.channel('est_changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'establishments' }, () => fetchData())
-      .subscribe();
-
-    const invSub = supabase.channel('inv_changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'inventario_hotel' }, () => fetchData())
-      .subscribe();
-
-    const profSub = supabase.channel('prof_changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'profiles' }, () => fetchData())
-      .subscribe();
-
-    return () => {
-      estSub.unsubscribe();
-      invSub.unsubscribe();
-      profSub.unsubscribe();
-    };
-  }, [navigate]);
-
-  const handleDeleteEstablishment = async (id: string) => {
-    if (!window.confirm('¿Estás seguro de eliminar este establecimiento?')) return;
-    const { error } = await supabase.from('establishments').delete().eq('id', id);
-    if (error) alert(error.message);
+  const handleDeleteEntity = (id: string) => {
+    if (window.confirm('¿Estás seguro de eliminar este registro?')) {
+      deleteEntity(id);
+    }
   };
 
-  const handleDeleteProfile = async (id: string) => {
-    if (!window.confirm('¿Estás seguro de eliminar este usuario?')) return;
-    const { error } = await supabase.from('profiles').delete().eq('id', id);
-    if (error) alert(error.message);
+  const handleDeleteProfile = (id: string) => {
+    if (window.confirm('¿Estás seguro de eliminar este usuario?')) {
+      setProfiles(prev => prev.filter(p => p.id !== id));
+    }
+  };
+
+  const handleUpdateStatus = (id: string, newStatus: EntityStatus) => {
+    updateEntity(id, { status: newStatus });
   };
 
   const filteredAffiliates = useMemo(() => {
-    let list = establishments;
+    let list = data;
     if (filter !== 'all') {
       list = list.filter(e => e.tipo === filter);
     }
-    return list.map(e => {
-      const inv = inventory.find(i => i.establishment_id === e.id);
-      return { ...e, inventory: inv };
-    });
-  }, [filter, establishments, inventory]);
+    return list;
+  }, [filter, data]);
 
   if (loading) {
     return (
@@ -220,7 +189,7 @@ export default function AgenciaDashboard() {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               <SummaryCard title="Comisiones Mes" value={42800} isCurrency trend="+15%" icon={DollarSign} />
               <SummaryCard title="Pagos Pendientes" value={12} trend="-2" icon={Clock} />
-              <SummaryCard title="Nuevos Afiliados" value={establishments.length} trend="+4" icon={UserCheck} />
+              <SummaryCard title="Nuevos Afiliados" value={data.length} trend="+4" icon={UserCheck} />
               <SummaryCard title="Proyección Semana Santa" value={185000} isCurrency trend="+22%" icon={TrendingUp} />
             </div>
 
@@ -277,7 +246,7 @@ export default function AgenciaDashboard() {
                   </h3>
                 </div>
                 <div className="flex gap-2 overflow-x-auto no-scrollbar w-full sm:w-auto">
-                  {['all', 'hotel', 'negocio'].map((cat) => (
+                  {['all', 'hotel', 'negocio', 'clasificado'].map((cat) => (
                     <button
                       key={cat}
                       onClick={() => setFilter(cat)}
@@ -307,19 +276,26 @@ export default function AgenciaDashboard() {
                     {filteredAffiliates.map((a) => (
                       <tr key={a.id} className="hover:bg-gray-50/50 transition-colors group">
                         <td className="px-10 py-6">
-                          <div className="flex items-center gap-4 cursor-pointer" onClick={() => a.tipo === 'hotel' && setSelectedHotel(a)}>
+                          <div className="flex items-center gap-4 cursor-pointer" onClick={() => setSelectedEntity(a)}>
                             <div className="w-12 h-12 rounded-none bg-gray-100 flex items-center justify-center">
-                              {a.tipo === 'hotel' ? <Building2 className="w-6 h-6 text-blue-500" /> : <Ship className="w-6 h-6 text-cyan-500" />}
+                              {a.tipo === 'hotel' ? <Building2 className="w-6 h-6 text-blue-500" /> : 
+                               a.tipo === 'negocio' ? <Ship className="w-6 h-6 text-cyan-500" /> :
+                               <MapIcon className="w-6 h-6 text-orange-500" />}
                             </div>
                             <div>
                               <p className="text-sm font-black text-dark uppercase tracking-tight">{a.nombre}</p>
-                              <p className="text-[10px] text-muted font-bold uppercase tracking-widest">{a.owner_id.slice(0, 8)}</p>
+                              <p className="text-[10px] text-muted font-bold uppercase tracking-widest">{a.id.slice(0, 8)}</p>
                             </div>
                           </div>
                         </td>
                         <td className="px-10 py-6">
-                          <span className="text-[9px] font-black px-3 py-1.5 rounded-none uppercase tracking-widest bg-slate-100 text-slate-700">
-                            {a.tipo}
+                          <span className={cn(
+                            "text-[9px] font-black px-3 py-1.5 rounded-none uppercase tracking-widest",
+                            a.status === 'activo' ? "bg-emerald-100 text-emerald-700" :
+                            a.status === 'pendiente' ? "bg-amber-100 text-amber-700" :
+                            "bg-rose-100 text-rose-700"
+                          )}>
+                            {a.status}
                           </span>
                         </td>
                         <td className="px-10 py-6">
@@ -327,14 +303,29 @@ export default function AgenciaDashboard() {
                         </td>
                         <td className="px-10 py-6 text-right">
                           <div className="flex items-center justify-end gap-3">
-                            <button className="w-10 h-10 flex items-center justify-center text-emerald-600 hover:bg-emerald-50 rounded-none transition-all">
-                              <MessageSquare className="w-5 h-5" />
-                            </button>
+                            {a.status === 'pendiente' && (
+                              <>
+                                <button 
+                                  onClick={() => handleUpdateStatus(a.id, 'activo')}
+                                  className="w-10 h-10 flex items-center justify-center text-emerald-600 hover:bg-emerald-50 rounded-none transition-all"
+                                  title="Aprobar"
+                                >
+                                  <CheckCircle2 className="w-5 h-5" />
+                                </button>
+                                <button 
+                                  onClick={() => handleUpdateStatus(a.id, 'inactivo')}
+                                  className="w-10 h-10 flex items-center justify-center text-rose-600 hover:bg-rose-50 rounded-none transition-all"
+                                  title="Rechazar"
+                                >
+                                  <XCircle className="w-5 h-5" />
+                                </button>
+                              </>
+                            )}
                             <button 
-                              onClick={() => handleDeleteEstablishment(a.id)}
-                              className="w-10 h-10 flex items-center justify-center text-rose-600 hover:bg-rose-50 rounded-none transition-all"
+                              onClick={() => handleDeleteEntity(a.id)}
+                              className="w-10 h-10 flex items-center justify-center text-gray-400 hover:bg-rose-50 hover:text-rose-600 rounded-none transition-all"
                             >
-                              <XCircle className="w-5 h-5" />
+                              <Trash2 className="w-5 h-5" />
                             </button>
                           </div>
                         </td>
@@ -421,12 +412,12 @@ export default function AgenciaDashboard() {
       </AnimatePresence>
 
       <AnimatePresence>
-        {selectedHotel && (
+        {selectedEntity && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setSelectedHotel(null)}
+            onClick={() => setSelectedEntity(null)}
             className="fixed inset-0 z-[200] bg-dark/60 backdrop-blur-sm flex items-center justify-center p-6"
           >
             <motion.div
@@ -438,11 +429,11 @@ export default function AgenciaDashboard() {
             >
               <div className="bg-primary p-8 text-white flex justify-between items-center">
                 <div>
-                  <h3 className="text-2xl font-black uppercase tracking-tighter leading-none">{selectedHotel.nombre}</h3>
-                  <p className="text-[10px] font-bold text-white/60 uppercase tracking-widest mt-2">Monitor de Inventario</p>
+                  <h3 className="text-2xl font-black uppercase tracking-tighter leading-none">{selectedEntity.nombre}</h3>
+                  <p className="text-[10px] font-bold text-white/60 uppercase tracking-widest mt-2">Detalles del Afiliado</p>
                 </div>
                 <button 
-                  onClick={() => setSelectedHotel(null)}
+                  onClick={() => setSelectedEntity(null)}
                   className="w-10 h-10 bg-white/10 rounded-none flex items-center justify-center hover:bg-white/20 transition-all"
                 >
                   <XCircle className="w-6 h-6" />
@@ -450,21 +441,36 @@ export default function AgenciaDashboard() {
               </div>
               
               <div className="p-8 space-y-8">
+                <div className="aspect-video w-full overflow-hidden">
+                  <img src={selectedEntity.imagen} alt="" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="p-4 bg-gray-50 border border-gray-100 rounded-none">
-                    <p className="text-[9px] font-black text-muted uppercase tracking-widest">Total Habitaciones</p>
-                    <p className="text-xl font-black text-dark">{selectedHotel.inventory?.habitaciones_totales || 0}</p>
+                    <p className="text-[9px] font-black text-muted uppercase tracking-widest">Capacidad / Info</p>
+                    <p className="text-xl font-black text-dark">{selectedEntity.capacidad || 0}</p>
                   </div>
                   <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-none">
-                    <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Disponibles</p>
-                    <p className="text-xl font-black text-emerald-600">{selectedHotel.inventory?.disponibles_ahora || 0}</p>
+                    <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Estado</p>
+                    <p className="text-xl font-black text-emerald-600 uppercase">{selectedEntity.status}</p>
                   </div>
+                </div>
+                <div className="space-y-2">
+                  <p className="text-[9px] font-black text-muted uppercase tracking-widest">Descripción</p>
+                  <p className="text-sm font-bold text-dark">{selectedEntity.descripcion}</p>
                 </div>
               </div>
 
-              <div className="p-8 bg-gray-50 border-t border-gray-100 flex justify-end">
+              <div className="p-8 bg-gray-50 border-t border-gray-100 flex justify-end gap-4">
+                {selectedEntity.status === 'pendiente' && (
+                  <button 
+                    onClick={() => { handleUpdateStatus(selectedEntity.id, 'activo'); setSelectedEntity(null); }}
+                    className="px-8 py-3 bg-emerald-500 text-white rounded-none font-black text-[10px] uppercase tracking-widest shadow-xl"
+                  >
+                    Aprobar Ahora
+                  </button>
+                )}
                 <button 
-                  onClick={() => setSelectedHotel(null)}
+                  onClick={() => setSelectedEntity(null)}
                   className="px-8 py-3 bg-dark text-white rounded-none font-black text-[10px] uppercase tracking-widest shadow-xl"
                 >
                   Cerrar

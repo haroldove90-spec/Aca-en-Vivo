@@ -10,10 +10,13 @@ import ClienteSettings from './pages/cliente/Settings';
 import NotificationHistory from './pages/cliente/NotificationHistory';
 import BusinessDetail from './pages/cliente/BusinessDetail';
 import HotelDashboard from './pages/hotel/Dashboard';
+import HotelRegistro from './pages/hotel/Registro';
 import DevDashboard from './pages/admin/DevDashboard';
 import AgenciaDashboard from './pages/admin/AgenciaDashboard';
 import NegocioDashboard from './pages/negocio/Dashboard';
+import NegocioRegistro from './pages/negocio/Registro';
 import ClasificadosDashboard from './pages/clasificados/Dashboard';
+import ClasificadosRegistro from './pages/clasificados/Registro';
 import { Loader2 } from 'lucide-react';
 import { Layout } from './components/Layout';
 import { NotificationProvider } from './contexts/NotificationContext';
@@ -118,6 +121,15 @@ function App() {
                   </ProtectedRoute>
                 } 
               />
+
+              <Route 
+                path="/hotel/registro" 
+                element={
+                  <ProtectedRoute allowedRoles={['hotel', 'admin', 'agencia']}>
+                    <HotelRegistro />
+                  </ProtectedRoute>
+                } 
+              />
               
               {/* Admin Agencia Panel (Protected) */}
               <Route 
@@ -143,6 +155,15 @@ function App() {
                 } 
               />
 
+              <Route 
+                path="/negocio/registro" 
+                element={
+                  <ProtectedRoute allowedRoles={['negocio', 'admin', 'agencia']}>
+                    <NegocioRegistro />
+                  </ProtectedRoute>
+                } 
+              />
+
               {/* Dev Dashboard (Protected) */}
               <Route 
                 path="/admin-dev" 
@@ -163,6 +184,15 @@ function App() {
                     <Layout onAuthClick={() => setIsAuthOpen(true)}>
                       <ClasificadosDashboard />
                     </Layout>
+                  </ProtectedRoute>
+                } 
+              />
+
+              <Route 
+                path="/clasificados/registro" 
+                element={
+                  <ProtectedRoute allowedRoles={['clasificados', 'admin', 'agencia']}>
+                    <ClasificadosRegistro />
                   </ProtectedRoute>
                 } 
               />

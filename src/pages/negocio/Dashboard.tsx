@@ -26,11 +26,15 @@ import { CameraModal } from '../../components/CameraModal';
 import { HOTEL_IMAGES } from '../../constants/images';
 import { useNavigate, useLocation } from 'react-router-dom';
 
+import { useAcaData } from '../../hooks/useAcaData';
+import { BaseEntity, EntityStatus } from '../../constants/mockData';
+
 type Tab = 'estado' | 'perfil' | 'ofertas' | 'multimedia' | 'impacto' | 'reservas';
 
 export default function NegocioDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { data, updateEntity, deleteEntity, getEntitiesByType } = useAcaData();
   
   const queryParams = new URLSearchParams(location.search);
   const activeTab = (queryParams.get('tab') as Tab) || 'estado';
@@ -39,131 +43,56 @@ export default function NegocioDashboard() {
     navigate(`/negocio?tab=${tab}`);
   };
 
+  const businesses = getEntitiesByType('negocio');
+  const [selectedBusiness, setSelectedBusiness] = useState<BaseEntity | null>(businesses[0] || null);
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
   const [cameraTarget, setCameraTarget] = useState<'cover' | 'menu' | null>(null);
-  const [reservas, setReservas] = useState<any[]>([]);
-  const [negocioId, setNegocioId] = useState<string | null>(null);
-
-  // Business State
-  const [isOpen, setIsOpen] = useState(true);
-  const [afluencia, setAfluencia] = useState<'baja' | 'media' | 'alta'>('baja');
-  
-  // Profile State
-  const [businessName, setBusinessName] = useState("");
-  const [category, setCategory] = useState("");
-  const [address, setAddress] = useState("");
-  const [whatsapp, setWhatsapp] = useState("");
-
-  // Offers State
-  const [offerText, setOfferText] = useState("");
-  const [offerValidity, setOfferValidity] = useState<'today' | 'permanent'>('today');
-
-  // Media State
-  const [coverImage, setCoverImage] = useState<string>(HOTEL_IMAGES.YACHT);
-  const [menuImage, setMenuImage] = useState<string>(HOTEL_IMAGES.RESTAURANT);
+  const [reservas, setReservas] = useState<any[]>([
+    { id: '1', user_id: 'user_12345', created_at: new Date().toISOString(), status: 'pendiente' },
+    { id: '2', user_id: 'user_67890', created_at: new Date().toISOString(), status: 'confirmada' },
+  ]);
 
   useEffect(() => {
-    const initDashboard = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (!session) {
-        navigate('/');
-        return;
-      }
+    if (businesses.length > 0 && !selectedBusiness) {
+      setSelectedBusiness(businesses[0]);
+    }
+    setTimeout(() => setLoading(false), 800);
+  }, [businesses]);
 
-      let { data: ests } = await supabase
-        .from('establishments')
-        .select('*')
-        .eq('owner_id', session.user.id)
-        .limit(1);
-
-      let currentEst = ests?.[0];
-
-      if (!currentEst) {
-        const { data: newEst } = await supabase
-          .from('establishments')
-          .insert({
-            owner_id: session.user.id,
-            nombre: 'Mi Negocio Acapulco',
-            tipo: 'negocio',
-            zona: 'Costera',
-            descripcion: 'Bienvenido a mi nuevo negocio.',
-            estrellas: 4.5,
-            image: HOTEL_IMAGES.YACHT
-          })
-          .select()
-          .single();
-        currentEst = newEst;
-      }
-
-      if (currentEst) {
-        setNegocioId(currentEst.id);
-        setBusinessName(currentEst.nombre);
-        setCategory(currentEst.giro || 'Negocio');
-        setAddress(currentEst.direccion || '');
-        setOfferText(currentEst.promocion || '');
-        setAfluencia(currentEst.afluencia || 'baja');
-        setIsOpen(currentEst.abierto !== false);
-        setCoverImage(currentEst.image || HOTEL_IMAGES.YACHT);
-
-        const { data: res } = await supabase
-          .from('reservations')
-          .select('*')
-          .eq('business_id', currentEst.id)
-          .order('created_at', { ascending: false });
-        
-        if (res) setReservas(res);
-      }
-      setLoading(false);
-    };
-
-    initDashboard();
-  }, [navigate]);
+  const handleUpdateReservaStatus = (id: string, status: string) => {
+    setReservas(prev => prev.map(r => r.id === id ? { ...r, status } : r));
+  };
 
   const handleSaveChanges = async () => {
-    if (!negocioId) return;
+    if (!selectedBusiness) return;
     setSaving(true);
-    try {
-      const { error } = await supabase
-        .from('establishments')
-        .update({
-          nombre: businessName,
-          giro: category,
-          direccion: address,
-          promocion: offerText,
-          afluencia: afluencia,
-          abierto: isOpen,
-          image: coverImage
-        })
-        .eq('id', negocioId);
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    updateEntity(selectedBusiness.id, selectedBusiness);
+    setSaving(false);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+  };
 
-      if (error) throw error;
-      setShowToast(true);
-      setTimeout(() => setShowToast(false), 3000);
-    } catch (error) {
-      console.error("Error saving business changes:", error);
-    } finally {
-      setSaving(false);
+  const handleDeleteBusiness = () => {
+    if (!selectedBusiness) return;
+    if (window.confirm('¿Estás seguro de que deseas dar de baja este negocio?')) {
+      deleteEntity(selectedBusiness.id);
+      setSelectedBusiness(null);
     }
   };
 
-  const handleUpdateReservaStatus = async (resId: string, newStatus: string) => {
-    try {
-      const { error } = await supabase
-        .from('reservations')
-        .update({ status: newStatus })
-        .eq('id', resId);
-      
-      if (error) throw error;
-      setReservas(prev => prev.map(r => r.id === resId ? { ...r, status: newStatus } : r));
-    } catch (error) {
-      console.error("Error updating reservation status:", error);
-    }
+  const handleToggleOpen = () => {
+    if (!selectedBusiness) return;
+    const newStatus = selectedBusiness.status === 'activo' ? 'inactivo' : 'activo';
+    setSelectedBusiness({...selectedBusiness, status: newStatus as EntityStatus});
+    updateEntity(selectedBusiness.id, { status: newStatus as EntityStatus });
   };
 
-  if (loading) {
+  if (loading || !selectedBusiness) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-[#F2E1C1]">
         <Loader2 className="w-12 h-12 text-[#142850] animate-spin" />
@@ -179,9 +108,9 @@ export default function NegocioDashboard() {
             <Ship className="w-7 h-7 text-white" />
           </div>
           <div>
-            <h1 className="text-2xl font-black text-dark tracking-tighter uppercase leading-none">{businessName}</h1>
+            <h1 className="text-2xl font-black text-dark tracking-tighter uppercase leading-none">{selectedBusiness.nombre}</h1>
             <p className="text-[10px] font-bold text-muted uppercase tracking-[0.3em] mt-1 flex items-center gap-2">
-              <Store className="w-3 h-3 text-primary" /> {category}
+              <Store className="w-3 h-3 text-primary" /> {selectedBusiness.zona}
             </p>
           </div>
         </div>
@@ -203,33 +132,33 @@ export default function NegocioDashboard() {
             >
               <div className={cn(
                 "p-8 rounded-none shadow-xl border transition-all duration-500",
-                isOpen ? "bg-emerald-50 border-emerald-100" : "bg-gray-50 border-gray-200"
+                selectedBusiness.status === 'activo' ? "bg-emerald-50 border-emerald-100" : "bg-gray-50 border-gray-200"
               )}>
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-5">
                     <div className={cn(
                       "w-14 h-14 rounded-none flex items-center justify-center shadow-lg",
-                      isOpen ? "bg-emerald-500 text-white" : "bg-gray-400 text-white"
+                      selectedBusiness.status === 'activo' ? "bg-emerald-500 text-white" : "bg-gray-400 text-white"
                     )}>
                       <Store className="w-7 h-7" />
                     </div>
                     <div>
                       <p className="text-[10px] font-black uppercase tracking-widest text-muted">Estado Actual</p>
-                      <p className={cn("text-xl font-black uppercase tracking-tight mt-1", isOpen ? "text-emerald-700" : "text-gray-600")}>
-                        {isOpen ? "Abierto / Disponible" : "Cerrado / No Disponible"}
+                      <p className={cn("text-xl font-black uppercase tracking-tight mt-1", selectedBusiness.status === 'activo' ? "text-emerald-700" : "text-gray-600")}>
+                        {selectedBusiness.status === 'activo' ? "Abierto / Disponible" : "Cerrado / No Disponible"}
                       </p>
                     </div>
                   </div>
                   <button 
-                    onClick={() => setIsOpen(!isOpen)}
+                    onClick={handleToggleOpen}
                     className={cn(
                       "w-16 h-8 rounded-none transition-all relative p-1.5",
-                      isOpen ? "bg-emerald-500" : "bg-gray-300"
+                      selectedBusiness.status === 'activo' ? "bg-emerald-500" : "bg-gray-300"
                     )}
                   >
                     <div className={cn(
                       "w-5 h-5 rounded-none bg-white shadow-md transition-all",
-                      isOpen ? "translate-x-8" : "translate-x-0"
+                      selectedBusiness.status === 'activo' ? "translate-x-8" : "translate-x-0"
                     )} />
                   </button>
                 </div>
@@ -248,10 +177,10 @@ export default function NegocioDashboard() {
                   ].map((level) => (
                     <button
                       key={level.id}
-                      onClick={() => setAfluencia(level.id as any)}
+                      onClick={() => setSelectedBusiness({...selectedBusiness, afluencia: level.id as any})}
                       className={cn(
                         "flex flex-col items-center gap-4 p-6 rounded-none border-2 transition-all active:scale-95",
-                        afluencia === level.id 
+                        selectedBusiness.afluencia === level.id 
                           ? `bg-${level.color}-50 border-${level.color}-500 text-${level.color}-700 shadow-lg shadow-${level.color}-500/10` 
                           : "bg-gray-50 border-transparent text-muted"
                       )}
@@ -278,33 +207,51 @@ export default function NegocioDashboard() {
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted ml-2">Nombre Comercial</label>
                   <input 
                     type="text" 
-                    value={businessName}
-                    onChange={(e) => setBusinessName(e.target.value)}
+                    value={selectedBusiness.nombre}
+                    onChange={(e) => setSelectedBusiness({...selectedBusiness, nombre: e.target.value})}
                     className="w-full bg-gray-50 border-2 border-gray-100 rounded-none p-5 text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all uppercase tracking-tight"
                   />
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted ml-2">Giro / Categoría</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted ml-2">Zona / Ubicación</label>
                   <input 
                     type="text" 
-                    value={category}
-                    onChange={(e) => setCategory(e.target.value)}
+                    value={selectedBusiness.zona}
+                    onChange={(e) => setSelectedBusiness({...selectedBusiness, zona: e.target.value})}
                     className="w-full bg-gray-50 border-2 border-gray-100 rounded-none p-5 text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all uppercase tracking-tight"
                   />
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted ml-2">Dirección Corta</label>
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted ml-2">WhatsApp de Contacto</label>
                   <div className="relative">
-                    <MapPin className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
+                    <MessageCircle className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted" />
                     <input 
-                      type="text" 
-                      value={address}
-                      onChange={(e) => setAddress(e.target.value)}
+                      type="tel" 
+                      value={selectedBusiness.whatsapp}
+                      onChange={(e) => setSelectedBusiness({...selectedBusiness, whatsapp: e.target.value})}
                       className="w-full bg-gray-50 border-2 border-gray-100 rounded-none p-5 pl-14 text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all uppercase tracking-tight"
                     />
                   </div>
+                </div>
+
+                <div className="space-y-3">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted ml-2">Estado del Negocio</label>
+                  <select 
+                    value={selectedBusiness.status}
+                    onChange={(e) => setSelectedBusiness({...selectedBusiness, status: e.target.value as EntityStatus})}
+                    className={cn(
+                      "w-full p-5 font-black text-[10px] uppercase tracking-widest border-2 transition-all appearance-none",
+                      selectedBusiness.status === 'activo' ? "bg-emerald-50 border-emerald-100 text-emerald-600" : 
+                      selectedBusiness.status === 'pendiente' ? "bg-amber-50 border-amber-100 text-amber-600" :
+                      "bg-rose-50 border-rose-100 text-rose-600"
+                    )}
+                  >
+                    <option value="activo">Activo</option>
+                    <option value="inactivo">Inactivo</option>
+                    <option value="pendiente">Pendiente</option>
+                  </select>
                 </div>
               </div>
             </motion.div>
@@ -322,8 +269,8 @@ export default function NegocioDashboard() {
                 <div className="space-y-3">
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted ml-2">Oferta del Día ⚡</label>
                   <textarea 
-                    value={offerText}
-                    onChange={(e) => setOfferText(e.target.value)}
+                    value={selectedBusiness.descripcion}
+                    onChange={(e) => setSelectedBusiness({...selectedBusiness, descripcion: e.target.value})}
                     placeholder="Ej: Cubetazo 5x4..."
                     className="w-full bg-gray-50 border-2 border-gray-100 rounded-none p-5 text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all h-32 resize-none"
                   />
@@ -344,7 +291,7 @@ export default function NegocioDashboard() {
                 <div className="space-y-5">
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted ml-2">Foto de Portada</label>
                   <div className="relative aspect-video rounded-none overflow-hidden bg-gray-100 group shadow-sm">
-                    <img src={coverImage} alt="Cover" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+                    <img src={selectedBusiness.imagen} alt="Cover" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                     <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                       <button 
                         onClick={() => { setCameraTarget('cover'); setShowCamera(true); }}
@@ -433,11 +380,17 @@ export default function NegocioDashboard() {
         </AnimatePresence>
       </div>
 
-      <div className="fixed bottom-24 lg:bottom-10 left-1/2 -translate-x-1/2 w-full max-w-md px-6 z-40">
+      <div className="fixed bottom-24 lg:bottom-10 left-1/2 -translate-x-1/2 w-full max-w-md px-6 z-40 flex gap-4">
+        <button
+          onClick={handleDeleteBusiness}
+          className="w-20 h-20 bg-rose-500 text-white flex items-center justify-center shadow-2xl active:scale-95 transition-all"
+        >
+          <Trash2 className="w-8 h-8" />
+        </button>
         <button
           onClick={handleSaveChanges}
           disabled={saving}
-          className="w-full py-6 bg-primary text-white rounded-none font-black text-xs uppercase tracking-[0.3em] shadow-2xl shadow-primary/40 flex items-center justify-center gap-3 active:scale-95 transition-all hover:bg-primary/90"
+          className="flex-1 py-6 bg-primary text-white rounded-none font-black text-xs uppercase tracking-[0.3em] shadow-2xl shadow-primary/40 flex items-center justify-center gap-3 active:scale-95 transition-all hover:bg-primary/90"
         >
           {saving ? (
             <Loader2 className="w-6 h-6 animate-spin" />
@@ -471,8 +424,11 @@ export default function NegocioDashboard() {
         isOpen={showCamera}
         onClose={() => { setShowCamera(false); setCameraTarget(null); }}
         onCapture={(img) => {
-          if (cameraTarget === 'cover') setCoverImage(img);
-          else if (cameraTarget === 'menu') setMenuImage(img);
+          if (selectedBusiness) {
+            updateEntity(selectedBusiness.id, { imagen: img });
+          }
+          setShowCamera(false);
+          setCameraTarget(null);
         }}
       />
     </div>

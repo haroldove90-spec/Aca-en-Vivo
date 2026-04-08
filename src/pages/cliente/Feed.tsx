@@ -174,12 +174,13 @@ function PopularCard({ business }: { business: any, key?: string }) {
   );
 }
 
+import { useAcaData } from '../../hooks/useAcaData';
+
 export default function ClienteFeed() {
   const navigate = useNavigate();
   const location = useLocation();
   const { searchQuery, setSearchQuery, dates, setDates, guests, setGuests } = useSearch();
-  const [establecimientos, setEstablecimientos] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const { data: establecimientos, loading } = useAcaData();
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showGuestPicker, setShowGuestPicker] = useState(false);
   
@@ -211,54 +212,11 @@ export default function ClienteFeed() {
     { id: 'clasificados', label: 'Rentas', path: '/clasificados', color: 'bg-orange-400' },
   ];
 
-  useEffect(() => {
-    const fetchEstablecimientos = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('establishments')
-          .select('*')
-          .order('nombre');
-
-        if (error) throw error;
-        
-        if (!data || data.length === 0) {
-          const mockData = [
-            { nombre: 'Hotel Emporio Acapulco', tipo: 'hotel', zona: 'Zona Dorada', estrellas: 4.8, descripcion: 'Lujo frente al mar.', image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=800' },
-            { nombre: 'Princess Mundo Imperial', tipo: 'hotel', zona: 'Diamante', estrellas: 4.9, descripcion: 'Arquitectura icónica.', image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&q=80&w=800' },
-            { nombre: 'Yates Bonanza', tipo: 'yates', zona: 'Zona Tradicional', estrellas: 4.9, descripcion: 'Paseos por la bahía.', image: 'https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&q=80&w=800' },
-            { nombre: 'La Cabaña de Caleta', tipo: 'negocio', zona: 'Caleta', estrellas: 4.5, descripcion: 'Mariscos frescos.', image: 'https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&q=80&w=800' },
-            { nombre: 'Dr. García - Médico 24/7', tipo: 'medicos', zona: 'Zona Dorada', estrellas: 4.9, descripcion: 'Atención médica inmediata.', image: 'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&q=80&w=800' },
-            { nombre: 'Condo Diamante Lakes', tipo: 'clasificados', zona: 'Zona Diamante', estrellas: 4.9, descripcion: 'Renta vacacional de lujo.', image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=800' },
-          ];
-          await supabase.from('establishments').insert(mockData);
-          fetchEstablecimientos();
-          return;
-        }
-
-        setEstablecimientos(data);
-      } catch (err) {
-        console.error("Error fetching establishments:", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchEstablecimientos();
-
-    const subscription = supabase
-      .channel('establishments_changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'establishments' }, () => {
-        fetchEstablecimientos();
-      })
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
   const filteredBusinesses = useMemo(() => {
     return establecimientos.filter(e => {
+      // Only show active establishments to clients
+      if (e.status !== 'activo') return false;
+
       const matchesCategory = e.tipo === selectedCategory || selectedCategory === 'all';
       const matchesSearch = e.nombre.toLowerCase().includes(searchQuery.toLowerCase()) || 
                            (e.zona && e.zona.toLowerCase().includes(searchQuery.toLowerCase()));
