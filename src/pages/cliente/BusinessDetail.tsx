@@ -20,13 +20,15 @@ import {
   Calendar,
   Users,
   Hotel,
-  Palmtree
+  Palmtree,
+  X
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { useFavorites } from '../../contexts/FavoritesContext';
 import { useCart } from '../../contexts/CartContext';
 import { HOTEL_IMAGES } from '../../constants/images';
+import { query, orderBy, onSnapshot, where } from 'firebase/firestore';
 
 export default function BusinessDetail() {
   const { id } = useParams();
@@ -42,6 +44,10 @@ export default function BusinessDetail() {
   const [guests, setGuests] = useState(2);
   const [totalPrice, setTotalPrice] = useState(0);
   const [nights, setNights] = useState(0);
+  const [showMap, setShowMap] = useState(false);
+  const [reviews, setReviews] = useState<any[]>([]);
+  const [newReview, setNewReview] = useState({ rating: 5, comment: '' });
+  const [submittingReview, setSubmittingReview] = useState(false);
 
   const basePrice = 2500;
 
@@ -99,6 +105,20 @@ export default function BusinessDetail() {
     fetchBusiness();
   }, [id]);
 
+  useEffect(() => {
+    if (!id) return;
+    const q = query(
+      collection(db, 'reviews'),
+      where('businessId', '==', id),
+      orderBy('createdAt', 'desc')
+    );
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const reviewsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setReviews(reviewsData);
+    });
+    return () => unsubscribe();
+  }, [id]);
+
   const handleReserve = async () => {
     if (!checkIn || !checkOut) {
       alert('Por favor selecciona las fechas de tu estancia');
@@ -128,6 +148,28 @@ export default function BusinessDetail() {
       console.error("Error reserving:", err);
     } finally {
       setReserving(false);
+    }
+  };
+
+  const handleAddReview = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newReview.comment.trim()) return;
+    setSubmittingReview(true);
+    try {
+      await addDoc(collection(db, 'reviews'), {
+        businessId: id,
+        userId: auth.currentUser?.uid || 'demo-user',
+        userName: auth.currentUser?.displayName || 'Usuario Demo',
+        userPhoto: auth.currentUser?.photoURL || '',
+        rating: newReview.rating,
+        comment: newReview.comment,
+        createdAt: Timestamp.now()
+      });
+      setNewReview({ rating: 5, comment: '' });
+    } catch (err) {
+      console.error("Error adding review:", err);
+    } finally {
+      setSubmittingReview(false);
     }
   };
 
@@ -227,7 +269,81 @@ export default function BusinessDetail() {
                 <MapPin className="w-4 h-4" />
                 <span>{business.zona || 'Acapulco, Guerrero'}</span>
                 <span className="text-muted mx-1">·</span>
-                <button className="hover:underline">Excelente ubicación — ver mapa</button>
+                <button 
+                  onClick={() => setShowMap(true)}
+                  className="hover:underline"
+                >
+                  Excelente ubicación — ver mapa
+                </button>
+              </div>
+            </div>
+
+            <div className="border-t border-gray-100 pt-8">
+              <h2 className="text-xl font-black text-dark mb-6">Reseñas de huéspedes</h2>
+              
+              <div className="space-y-8">
+                {/* Review Form */}
+                <form onSubmit={handleAddReview} className="bg-gray-50 p-6 rounded-none space-y-4">
+                  <p className="text-xs font-black uppercase tracking-widest text-dark">Escribe tu opinión</p>
+                  <div className="flex gap-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        key={star}
+                        type="button"
+                        onClick={() => setNewReview({ ...newReview, rating: star })}
+                        className="focus:outline-none"
+                      >
+                        <Star className={cn("w-6 h-6", star <= newReview.rating ? "fill-accent text-accent" : "text-gray-300")} />
+                      </button>
+                    ))}
+                  </div>
+                  <textarea
+                    value={newReview.comment}
+                    onChange={(e) => setNewReview({ ...newReview, comment: e.target.value })}
+                    placeholder="Cuéntanos tu experiencia..."
+                    className="w-full bg-white border border-gray-200 rounded-none p-4 text-sm font-medium focus:ring-2 focus:ring-primary/20 outline-none min-h-[100px]"
+                  />
+                  <button
+                    type="submit"
+                    disabled={submittingReview || !newReview.comment.trim()}
+                    className="px-8 py-3 bg-dark text-white font-black text-[10px] uppercase tracking-widest hover:bg-primary transition-all disabled:opacity-50"
+                  >
+                    {submittingReview ? 'Enviando...' : 'Publicar reseña'}
+                  </button>
+                </form>
+
+                {/* Reviews List */}
+                <div className="space-y-8">
+                  {reviews.length === 0 ? (
+                    <p className="text-sm text-muted font-medium italic">Aún no hay reseñas. ¡Sé el primero en opinar!</p>
+                  ) : (
+                    reviews.map((review) => (
+                      <div key={review.id} className="space-y-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-gray-100 rounded-none flex items-center justify-center overflow-hidden">
+                            {review.userPhoto ? (
+                              <img src={review.userPhoto} alt="" className="w-full h-full object-cover" />
+                            ) : (
+                              <Users className="w-5 h-5 text-gray-400" />
+                            )}
+                          </div>
+                          <div>
+                            <p className="text-sm font-black text-dark uppercase tracking-tight">{review.userName}</p>
+                            <p className="text-[10px] text-muted font-bold uppercase">{review.createdAt?.toDate().toLocaleDateString()}</p>
+                          </div>
+                          <div className="ml-auto flex gap-0.5">
+                            {[...Array(5)].map((_, i) => (
+                              <Star key={i} className={cn("w-3 h-3", i < review.rating ? "fill-accent text-accent" : "text-gray-200")} />
+                            ))}
+                          </div>
+                        </div>
+                        <p className="text-sm text-muted leading-relaxed font-medium">
+                          {review.comment}
+                        </p>
+                      </div>
+                    ))
+                  )}
+                </div>
               </div>
             </div>
 
@@ -406,6 +522,52 @@ export default function BusinessDetail() {
               </p>
             </motion.div>
           </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Map Modal */}
+      <AnimatePresence>
+        {showMap && (
+          <div className="fixed inset-0 z-[300] flex items-center justify-center p-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowMap(false)}
+              className="absolute inset-0 bg-dark/95 backdrop-blur-xl"
+            />
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              className="bg-white w-full max-w-4xl h-[80vh] rounded-none overflow-hidden relative shadow-2xl flex flex-col"
+            >
+              <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+                <div>
+                  <h3 className="text-xl font-black text-dark uppercase tracking-tight">{business.nombre}</h3>
+                  <p className="text-[10px] font-bold text-muted uppercase tracking-widest">{business.zona}, Acapulco</p>
+                </div>
+                <button 
+                  onClick={() => setShowMap(false)}
+                  className="w-10 h-10 bg-gray-50 rounded-none flex items-center justify-center hover:bg-gray-100 transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+              <div className="flex-1 bg-gray-100">
+                <iframe 
+                  width="100%" 
+                  height="100%" 
+                  frameBorder="0" 
+                  scrolling="no" 
+                  marginHeight={0} 
+                  marginWidth={0} 
+                  src={`https://maps.google.com/maps?q=${encodeURIComponent(business.nombre + ' ' + (business.zona || 'Acapulco'))}&t=&z=15&ie=UTF8&iwloc=&output=embed`}
+                  className="grayscale contrast-125"
+                />
+              </div>
+            </motion.div>
+          </div>
         )}
       </AnimatePresence>
     </div>

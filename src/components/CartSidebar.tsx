@@ -1,8 +1,11 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, ShoppingBag, Trash2, Plus, Minus, CreditCard, Palmtree } from 'lucide-react';
+import { X, ShoppingBag, Trash2, Plus, Minus, CreditCard, Palmtree, Loader2, CheckCircle2 } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import { cn } from '../lib/utils';
+import { db, auth } from '../lib/firebase';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
 
 interface CartSidebarProps {
   isOpen: boolean;
@@ -11,6 +14,54 @@ interface CartSidebarProps {
 
 export function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
   const { items, removeItem, updateQuantity, totalPrice, totalItems, clearCart } = useCart();
+  const [isProcessing, setIsProcessing] = React.useState(false);
+  const [showSuccess, setShowSuccess] = React.useState(false);
+  const navigate = useNavigate();
+
+  const handleCheckout = async () => {
+    if (items.length === 0) return;
+    
+    setIsProcessing(true);
+    try {
+      // Simulate payment delay
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      const userId = auth.currentUser?.uid || 'demo-user';
+      
+      // Create reservations for each item
+      const promises = items.map(item => 
+        addDoc(collection(db, 'reservas'), {
+          userId,
+          businessId: item.id,
+          businessName: item.name,
+          businessImage: item.image,
+          status: 'confirmada',
+          price: item.price,
+          quantity: item.quantity,
+          date: new Date().toISOString(),
+          createdAt: serverTimestamp(),
+          paymentStatus: 'paid',
+          totalPaid: (parseInt(item.price.replace(/[^0-9]/g, '')) || 0) * item.quantity
+        })
+      );
+
+      await Promise.all(promises);
+      
+      setShowSuccess(true);
+      clearCart();
+      
+      setTimeout(() => {
+        setShowSuccess(false);
+        onClose();
+        navigate('/reservas');
+      }, 3000);
+    } catch (error) {
+      console.error("Error during checkout:", error);
+      alert("Hubo un error al procesar tu pago. Por favor intenta de nuevo.");
+    } finally {
+      setIsProcessing(false);
+    }
+  };
 
   return (
     <AnimatePresence>
@@ -135,19 +186,54 @@ export function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
                 </div>
 
                 <div className="grid grid-cols-1 gap-3">
-                  <button className="w-full py-5 bg-primary text-white rounded-none font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-primary/30 flex items-center justify-center gap-3 hover:bg-primary/90 transition-all active:scale-95">
-                    <CreditCard className="w-5 h-5" />
-                    Proceder al Pago
+                  <button 
+                    onClick={handleCheckout}
+                    disabled={isProcessing}
+                    className="w-full py-5 bg-primary text-white rounded-none font-black text-xs uppercase tracking-[0.2em] shadow-2xl shadow-primary/30 flex items-center justify-center gap-3 hover:bg-primary/90 transition-all active:scale-95 disabled:opacity-50"
+                  >
+                    {isProcessing ? (
+                      <Loader2 className="w-5 h-5 animate-spin" />
+                    ) : (
+                      <>
+                        <CreditCard className="w-5 h-5" />
+                        Proceder al Pago
+                      </>
+                    )}
                   </button>
                   <button 
                     onClick={clearCart}
-                    className="w-full py-4 text-rose-500 font-black text-[10px] uppercase tracking-widest hover:bg-rose-50 transition-all"
+                    disabled={isProcessing}
+                    className="w-full py-4 text-rose-500 font-black text-[10px] uppercase tracking-widest hover:bg-rose-50 transition-all disabled:opacity-30"
                   >
                     Vaciar Carrito
                   </button>
                 </div>
               </div>
             )}
+
+            {/* Success Overlay */}
+            <AnimatePresence>
+              {showSuccess && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="absolute inset-0 bg-primary z-[220] flex flex-col items-center justify-center text-white p-8 text-center"
+                >
+                  <motion.div
+                    initial={{ scale: 0.5, rotate: -20 }}
+                    animate={{ scale: 1, rotate: 0 }}
+                    className="w-24 h-24 bg-white/20 rounded-none flex items-center justify-center mb-8 backdrop-blur-xl"
+                  >
+                    <CheckCircle2 className="w-12 h-12" />
+                  </motion.div>
+                  <h3 className="text-3xl font-black uppercase tracking-tighter mb-4">¡Pago Exitoso!</h3>
+                  <p className="text-white/80 font-bold uppercase tracking-widest text-xs leading-relaxed">
+                    Tus reservas han sido confirmadas.<br />Redirigiendo a tus tickets...
+                  </p>
+                </motion.div>
+              )}
+            </AnimatePresence>
           </motion.div>
         </>
       )}

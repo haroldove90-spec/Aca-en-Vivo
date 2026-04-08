@@ -30,7 +30,8 @@ import {
   FileText,
   CheckCircle2,
   X,
-  Star
+  Star,
+  User
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
@@ -38,8 +39,9 @@ import { CameraModal } from '../../components/CameraModal';
 import { HOTEL_IMAGES } from '../../constants/images';
 
 import { useNavigate, useLocation } from 'react-router-dom';
+import { collection, query, where, orderBy } from 'firebase/firestore';
 
-type Tab = 'inventario' | 'perfil' | 'galeria' | 'promociones';
+type Tab = 'inventario' | 'perfil' | 'galeria' | 'promociones' | 'reservas';
 
 export default function HotelDashboard() {
   const navigate = useNavigate();
@@ -59,6 +61,7 @@ export default function HotelDashboard() {
   const [showToast, setShowToast] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
+  const [reservas, setReservas] = useState<any[]>([]);
 
   // Form states
   const [hotelName, setHotelName] = useState("Hotel Emporio Acapulco");
@@ -99,6 +102,19 @@ export default function HotelDashboard() {
       unsubInv();
       unsubEst();
     };
+  }, [hotelId]);
+
+  useEffect(() => {
+    const q = query(
+      collection(db, 'reservas'),
+      where('businessId', '==', hotelId),
+      orderBy('createdAt', 'desc')
+    );
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const resData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setReservas(resData);
+    });
+    return () => unsubscribe();
   }, [hotelId]);
 
   const handleUpdateInventory = async (delta: number) => {
@@ -204,6 +220,17 @@ export default function HotelDashboard() {
     setAmenities(prev => 
       prev.includes(id) ? prev.filter(a => a !== id) : [...prev, id]
     );
+  };
+
+  const handleUpdateReservaStatus = async (resId: string, newStatus: string) => {
+    try {
+      await updateDoc(doc(db, 'reservas', resId), {
+        status: newStatus,
+        updatedAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error("Error updating reservation status:", error);
+    }
   };
 
   if (loading) {
@@ -494,6 +521,78 @@ export default function HotelDashboard() {
                   </button>
                 </div>
               </div>
+            </motion.div>
+          )}
+
+          {activeTab === 'reservas' && (
+            <motion.div
+              key="reservas"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-6"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-black text-dark uppercase tracking-tight">Reservas Entrantes</h2>
+                <span className="bg-primary/10 text-primary px-3 py-1 text-[10px] font-black uppercase tracking-widest">
+                  {reservas.length} Total
+                </span>
+              </div>
+
+              {reservas.length === 0 ? (
+                <div className="bg-white p-12 text-center border border-gray-100 space-y-4">
+                  <div className="w-16 h-16 bg-gray-50 rounded-none flex items-center justify-center mx-auto">
+                    <Clock className="w-8 h-8 text-gray-200" />
+                  </div>
+                  <p className="text-[10px] font-black text-muted uppercase tracking-widest">No hay reservas pendientes</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {reservas.map((res) => (
+                    <div key={res.id} className="bg-white p-6 border border-gray-100 shadow-sm space-y-4">
+                      <div className="flex justify-between items-start">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 bg-gray-100 rounded-none flex items-center justify-center">
+                            <User className="w-6 h-6 text-gray-400" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-black text-dark uppercase tracking-tight">Cliente #{res.userId.slice(0, 5)}</p>
+                            <p className="text-[10px] text-muted font-bold uppercase tracking-widest">
+                              {new Date(res.date).toLocaleDateString()} • {res.guests || 2} Personas
+                            </p>
+                          </div>
+                        </div>
+                        <span className={cn(
+                          "px-3 py-1 text-[9px] font-black uppercase tracking-widest",
+                          res.status === 'confirmada' ? "bg-emerald-100 text-emerald-600" : 
+                          res.status === 'cancelada' ? "bg-rose-100 text-rose-600" : "bg-amber-100 text-amber-600"
+                        )}>
+                          {res.status}
+                        </span>
+                      </div>
+
+                      <div className="flex gap-3 pt-4 border-t border-gray-50">
+                        {res.status !== 'confirmada' && (
+                          <button 
+                            onClick={() => handleUpdateReservaStatus(res.id, 'confirmada')}
+                            className="flex-1 py-3 bg-emerald-500 text-white font-black text-[10px] uppercase tracking-widest hover:bg-emerald-600 transition-all"
+                          >
+                            Aceptar
+                          </button>
+                        )}
+                        {res.status !== 'cancelada' && (
+                          <button 
+                            onClick={() => handleUpdateReservaStatus(res.id, 'cancelada')}
+                            className="flex-1 py-3 bg-rose-50 text-white font-black text-[10px] uppercase tracking-widest hover:bg-rose-600 transition-all"
+                          >
+                            Rechazar
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

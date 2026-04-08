@@ -26,14 +26,14 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
-import { doc, onSnapshot, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, onSnapshot, updateDoc, serverTimestamp, collection, query, where, orderBy } from 'firebase/firestore';
 import { db } from '../../lib/firebase';
 import { CameraModal } from '../../components/CameraModal';
 import { HOTEL_IMAGES } from '../../constants/images';
 
 import { useNavigate, useLocation } from 'react-router-dom';
 
-type Tab = 'estado' | 'perfil' | 'ofertas' | 'multimedia' | 'impacto';
+type Tab = 'estado' | 'perfil' | 'ofertas' | 'multimedia' | 'impacto' | 'reservas';
 
 export default function NegocioDashboard() {
   const navigate = useNavigate();
@@ -50,6 +50,7 @@ export default function NegocioDashboard() {
   const [showToast, setShowToast] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
   const [cameraTarget, setCameraTarget] = useState<'cover' | 'menu' | null>(null);
+  const [reservas, setReservas] = useState<any[]>([]);
 
   // Business State
   const [isOpen, setIsOpen] = useState(true);
@@ -96,6 +97,19 @@ export default function NegocioDashboard() {
     return () => unsubscribe();
   }, [negocioId]);
 
+  useEffect(() => {
+    const q = query(
+      collection(db, 'reservas'),
+      where('businessId', '==', negocioId),
+      orderBy('createdAt', 'desc')
+    );
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const resData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setReservas(resData);
+    });
+    return () => unsubscribe();
+  }, [negocioId]);
+
   const handleSaveChanges = async () => {
     setSaving(true);
     try {
@@ -126,6 +140,17 @@ export default function NegocioDashboard() {
         else setMenuImage(reader.result as string);
       };
       reader.readAsDataURL(file);
+    }
+  };
+
+  const handleUpdateReservaStatus = async (resId: string, newStatus: string) => {
+    try {
+      await updateDoc(doc(db, 'reservas', resId), {
+        status: newStatus,
+        updatedAt: serverTimestamp()
+      });
+    } catch (error) {
+      console.error("Error updating reservation status:", error);
     }
   };
 
@@ -432,6 +457,78 @@ export default function NegocioDashboard() {
                   </div>
                 </div>
               </div>
+            </motion.div>
+          )}
+
+          {activeTab === 'reservas' && (
+            <motion.div
+              key="reservas"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="space-y-6"
+            >
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-black text-dark uppercase tracking-tight">Reservas / Pedidos</h2>
+                <span className="bg-primary/10 text-primary px-3 py-1 text-[10px] font-black uppercase tracking-widest">
+                  {reservas.length} Total
+                </span>
+              </div>
+
+              {reservas.length === 0 ? (
+                <div className="bg-white p-12 text-center border border-gray-100 space-y-4">
+                  <div className="w-16 h-16 bg-gray-50 rounded-none flex items-center justify-center mx-auto">
+                    <Clock className="w-8 h-8 text-gray-200" />
+                  </div>
+                  <p className="text-[10px] font-black text-muted uppercase tracking-widest">No hay pedidos pendientes</p>
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {reservas.map((res) => (
+                    <div key={res.id} className="bg-white p-6 border border-gray-100 shadow-sm space-y-4">
+                      <div className="flex justify-between items-start">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 bg-gray-100 rounded-none flex items-center justify-center">
+                            <Users className="w-6 h-6 text-gray-400" />
+                          </div>
+                          <div>
+                            <p className="text-sm font-black text-dark uppercase tracking-tight">Cliente #{res.userId.slice(0, 5)}</p>
+                            <p className="text-[10px] text-muted font-bold uppercase tracking-widest">
+                              {new Date(res.date).toLocaleDateString()} • {res.quantity || 1} Unidades
+                            </p>
+                          </div>
+                        </div>
+                        <span className={cn(
+                          "px-3 py-1 text-[9px] font-black uppercase tracking-widest",
+                          res.status === 'confirmada' ? "bg-emerald-100 text-emerald-600" : 
+                          res.status === 'cancelada' ? "bg-rose-100 text-rose-600" : "bg-amber-100 text-amber-600"
+                        )}>
+                          {res.status}
+                        </span>
+                      </div>
+
+                      <div className="flex gap-3 pt-4 border-t border-gray-50">
+                        {res.status !== 'confirmada' && (
+                          <button 
+                            onClick={() => handleUpdateReservaStatus(res.id, 'confirmada')}
+                            className="flex-1 py-3 bg-emerald-500 text-white font-black text-[10px] uppercase tracking-widest hover:bg-emerald-600 transition-all"
+                          >
+                            Confirmar
+                          </button>
+                        )}
+                        {res.status !== 'cancelada' && (
+                          <button 
+                            onClick={() => handleUpdateReservaStatus(res.id, 'cancelada')}
+                            className="flex-1 py-3 bg-rose-50 text-white font-black text-[10px] uppercase tracking-widest hover:bg-rose-600 transition-all"
+                          >
+                            Cancelar
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>

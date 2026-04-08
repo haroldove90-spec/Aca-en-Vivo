@@ -170,9 +170,11 @@ function PopularCard({ business }: { business: any, key?: string }) {
 export default function ClienteFeed() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { searchQuery, setSearchQuery } = useSearch();
+  const { searchQuery, setSearchQuery, dates, setDates, guests, setGuests } = useSearch();
   const [establecimientos, setEstablecimientos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [showGuestPicker, setShowGuestPicker] = useState(false);
   
   const queryParams = new URLSearchParams(location.search);
   const selectedCategory = queryParams.get('cat') || 'all';
@@ -249,9 +251,21 @@ export default function ClienteFeed() {
       const matchesCategory = e.tipo === selectedCategory || selectedCategory === 'all';
       const matchesSearch = e.nombre.toLowerCase().includes(searchQuery.toLowerCase()) || 
                            (e.zona && e.zona.toLowerCase().includes(searchQuery.toLowerCase()));
-      return matchesCategory && matchesSearch;
+      
+      // Smart Date Filtering (Simulated)
+      // If dates are selected, we simulate availability
+      let matchesDates = true;
+      if (dates.checkIn && dates.checkOut && e.tipo === 'hotel') {
+        // For demo: hotels with "Princess" in name are "unavailable" on weekends
+        const isWeekend = new Date(dates.checkIn).getDay() === 0 || new Date(dates.checkIn).getDay() === 6;
+        if (isWeekend && e.nombre.includes('Princess')) {
+          matchesDates = false;
+        }
+      }
+
+      return matchesCategory && matchesSearch && matchesDates;
     });
-  }, [establecimientos, selectedCategory, searchQuery]);
+  }, [establecimientos, selectedCategory, searchQuery, dates]);
 
   if (loading) {
     return (
@@ -344,7 +358,7 @@ export default function ClienteFeed() {
 
           {/* Booking-style Search Bar */}
           <div className="bg-accent p-1 rounded-sm shadow-2xl flex flex-col lg:flex-row items-stretch gap-1">
-            <div className="flex-1 bg-white flex items-center gap-3 px-4 py-4 border-r border-accent/20">
+            <div className="flex-[1.5] bg-white flex items-center gap-3 px-4 py-4 border-r border-accent/20">
               <Search className="w-5 h-5 text-muted" />
               <input 
                 type="text"
@@ -354,15 +368,104 @@ export default function ClienteFeed() {
                 className="w-full bg-transparent focus:outline-none text-dark font-bold placeholder:text-muted/60"
               />
             </div>
-            <div className="flex-1 bg-white flex items-center gap-3 px-4 py-4 border-r border-accent/20">
-              <Calendar className="w-5 h-5 text-muted" />
-              <span className="text-dark font-bold whitespace-nowrap">Entrada — Salida</span>
+            
+            <div className="flex-1 bg-white relative">
+              <button 
+                onClick={() => setShowDatePicker(!showDatePicker)}
+                className="w-full h-full flex items-center gap-3 px-4 py-4 border-r border-accent/20 hover:bg-gray-50 transition-colors"
+              >
+                <Calendar className="w-5 h-5 text-muted" />
+                <span className="text-dark font-bold whitespace-nowrap text-sm">
+                  {dates.checkIn ? `${dates.checkIn} — ${dates.checkOut}` : 'Entrada — Salida'}
+                </span>
+              </button>
+              
+              <AnimatePresence>
+                {showDatePicker && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="absolute top-full left-0 mt-2 bg-white p-6 shadow-2xl border border-gray-100 z-[100] w-[320px] space-y-4"
+                  >
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-muted">Check-in</label>
+                      <input 
+                        type="date" 
+                        value={dates.checkIn}
+                        onChange={(e) => setDates({ ...dates, checkIn: e.target.value })}
+                        className="w-full p-3 bg-gray-50 border border-gray-100 rounded-none text-sm font-bold"
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-[10px] font-black uppercase tracking-widest text-muted">Check-out</label>
+                      <input 
+                        type="date" 
+                        value={dates.checkOut}
+                        onChange={(e) => setDates({ ...dates, checkOut: e.target.value })}
+                        className="w-full p-3 bg-gray-50 border border-gray-100 rounded-none text-sm font-bold"
+                      />
+                    </div>
+                    <button 
+                      onClick={() => setShowDatePicker(false)}
+                      className="w-full py-3 bg-dark text-white font-black text-[10px] uppercase tracking-widest"
+                    >
+                      Aplicar
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-            <div className="flex-1 bg-white flex items-center gap-3 px-4 py-4">
-              <Users className="w-5 h-5 text-muted" />
-              <span className="text-dark font-bold whitespace-nowrap">2 adultos · 0 niños · 1 habitación</span>
+
+            <div className="flex-1 bg-white relative">
+              <button 
+                onClick={() => setShowGuestPicker(!showGuestPicker)}
+                className="w-full h-full flex items-center gap-3 px-4 py-4 hover:bg-gray-50 transition-colors"
+              >
+                <Users className="w-5 h-5 text-muted" />
+                <span className="text-dark font-bold whitespace-nowrap text-sm">
+                  {guests} adultos · 1 habitación
+                </span>
+              </button>
+
+              <AnimatePresence>
+                {showGuestPicker && (
+                  <motion.div 
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0, y: 10 }}
+                    className="absolute top-full right-0 mt-2 bg-white p-6 shadow-2xl border border-gray-100 z-[100] w-[280px]"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-black text-dark uppercase tracking-tight">Adultos</span>
+                      <div className="flex items-center gap-4">
+                        <button 
+                          onClick={() => setGuests(Math.max(1, guests - 1))}
+                          className="w-8 h-8 border border-gray-200 flex items-center justify-center hover:bg-gray-50"
+                        >
+                          -
+                        </button>
+                        <span className="font-bold text-sm w-4 text-center">{guests}</span>
+                        <button 
+                          onClick={() => setGuests(guests + 1)}
+                          className="w-8 h-8 border border-gray-200 flex items-center justify-center hover:bg-gray-50"
+                        >
+                          +
+                        </button>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={() => setShowGuestPicker(false)}
+                      className="w-full py-3 bg-dark text-white font-black text-[10px] uppercase tracking-widest mt-6"
+                    >
+                      Listo
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
             </div>
-            <button className="bg-primary text-white px-12 py-4 font-black text-lg uppercase tracking-widest hover:bg-primary/90 transition-all">
+
+            <button className="bg-primary text-white px-12 py-4 font-black text-lg uppercase tracking-widest hover:bg-primary/90 transition-all active:scale-95">
               Buscar
             </button>
           </div>
