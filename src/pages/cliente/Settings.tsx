@@ -13,8 +13,7 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { useNotifications } from '../../contexts/NotificationContext';
-import { doc, getDoc, updateDoc, setDoc } from 'firebase/firestore';
-import { db, auth } from '../../lib/firebase';
+import { supabase } from '../../lib/supabase';
 import { CameraModal } from '../../components/CameraModal';
 
 export default function ClienteSettings() {
@@ -39,23 +38,30 @@ export default function ClienteSettings() {
 
   useEffect(() => {
     const fetchProfile = async () => {
-      const user = auth.currentUser || { uid: 'demo-user', email: 'haroldove90@gmail.com' };
-      try {
-        const docRef = doc(db, 'profiles', user.uid);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          const data = docSnap.data();
-          setProfileData({
-            name: data.name || 'Harold Dev',
-            username: data.username || 'harold_aca',
-            email: user.email || 'haroldove90@gmail.com',
-            notifications: data.notifications || { push: true, email: true, sms: false }
-          });
-          setCapturedImage(data.photoURL || null);
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        try {
+          const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+
+          if (profile) {
+            setProfileData({
+              name: profile.full_name || session.user.user_metadata?.full_name || 'Harold Dev',
+              username: profile.username || 'harold_aca',
+              email: session.user.email || 'haroldove90@gmail.com',
+              notifications: profile.notifications || { push: true, email: true, sms: false }
+            });
+            setCapturedImage(profile.avatar_url || null);
+          }
+        } catch (err) {
+          console.error("Error fetching profile:", err);
+        } finally {
+          setLoading(false);
         }
-      } catch (err) {
-        console.error("Error fetching profile:", err);
-      } finally {
+      } else {
         setLoading(false);
       }
     };
@@ -75,14 +81,22 @@ export default function ClienteSettings() {
 
   const handleSave = async () => {
     setIsSaving(true);
-    const user = auth.currentUser || { uid: 'demo-user' };
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) return;
+
     try {
-      const docRef = doc(db, 'profiles', user.uid);
-      await setDoc(docRef, {
-        ...profileData,
-        photoURL: capturedImage,
-        updatedAt: new Date().toISOString()
-      }, { merge: true });
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          full_name: profileData.name,
+          username: profileData.username,
+          avatar_url: capturedImage,
+          notifications: profileData.notifications,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', session.user.id);
+
+      if (error) throw error;
       
       sendLocalNotification('Perfil Actualizado', 'Tus cambios se han guardado correctamente.');
     } catch (err) {

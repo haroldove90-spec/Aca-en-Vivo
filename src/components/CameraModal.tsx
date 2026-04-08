@@ -70,9 +70,13 @@ export function CameraModal({ isOpen, onClose, onCapture }: CameraModalProps) {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
+          onClick={() => { stopCamera(); onClose(); }}
           className="fixed inset-0 z-[300] bg-dark/90 backdrop-blur-xl flex items-center justify-center p-6"
         >
-          <div className="bg-white rounded-none overflow-hidden max-w-2xl w-full shadow-[0_30px_100px_rgba(0,0,0,0.5)] relative">
+          <div 
+            onClick={(e) => e.stopPropagation()}
+            className="bg-white rounded-none overflow-hidden max-w-2xl w-full shadow-[0_30px_100px_rgba(0,0,0,0.5)] relative"
+          >
             {!showCamera ? (
               <div className="p-12 text-center space-y-8">
                 <div className="w-24 h-24 bg-primary/10 rounded-none flex items-center justify-center mx-auto">

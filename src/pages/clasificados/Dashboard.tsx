@@ -27,8 +27,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
-import { doc, onSnapshot, updateDoc, serverTimestamp } from 'firebase/firestore';
-import { db } from '../../lib/firebase';
+import { supabase } from '../../lib/supabase';
 import { CameraModal } from '../../components/CameraModal';
 import { HOTEL_IMAGES } from '../../constants/images';
 
@@ -46,10 +45,11 @@ export default function ClasificadosDashboard() {
   const setActiveTab = (tab: Tab) => {
     navigate(`/clasificados?tab=${tab}`);
   };
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
+  const [establishmentId, setEstablishmentId] = useState<string | null>(null);
 
   // Property State
   const [title, setTitle] = useState("Depa con vista al mar en Condesa");
@@ -80,14 +80,82 @@ export default function ClasificadosDashboard() {
     interestedToday: 12
   };
 
+  useEffect(() => {
+    const fetchEstablishment = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.user) {
+        setLoading(false);
+        return;
+      }
+
+      const { data, error } = await supabase
+        .from('establishments')
+        .select('*')
+        .eq('owner_id', session.user.id)
+        .eq('tipo', 'clasificados')
+        .single();
+
+      if (data) {
+        setEstablishmentId(data.id);
+        setTitle(data.nombre);
+        setDescription(data.descripcion || "");
+        setPrice(data.promocion ? parseInt(data.promocion.replace(/[^0-9]/g, '')) : 2500);
+        setIsAvailable(data.abierto);
+        setWhatsapp(data.whatsapp || "");
+        setPhotos(data.galeria || [HOTEL_IMAGES.EXTERIOR]);
+        setAmenities(data.amenidades || []);
+      }
+      setLoading(false);
+    };
+
+    fetchEstablishment();
+  }, []);
+
   const handleSaveChanges = async () => {
     setSaving(true);
-    // Simulate API call
-    setTimeout(() => {
-      setSaving(false);
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) return;
+
+    try {
+      const updateData = {
+        nombre: title,
+        descripcion: description,
+        promocion: `$${price} MXN`,
+        abierto: isAvailable,
+        whatsapp: whatsapp,
+        galeria: photos,
+        amenidades: amenities,
+        owner_id: session.user.id,
+        tipo: 'clasificados'
+      };
+
+      let error;
+      if (establishmentId) {
+        const { error: err } = await supabase
+          .from('establishments')
+          .update(updateData)
+          .eq('id', establishmentId);
+        error = err;
+      } else {
+        const { data, error: err } = await supabase
+          .from('establishments')
+          .insert(updateData)
+          .select()
+          .single();
+        error = err;
+        if (data) setEstablishmentId(data.id);
+      }
+
+      if (error) throw error;
+
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
-    }, 1000);
+    } catch (err) {
+      console.error("Error saving establishment:", err);
+      alert("Error al guardar los cambios");
+    } finally {
+      setSaving(false);
+    }
   };
 
   const toggleAmenity = (amenity: string) => {

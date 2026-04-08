@@ -3,9 +3,7 @@ import { User, MapPin, Mail, Phone, Calendar, Edit3, Settings, LogOut, Shield, L
 import { motion } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { useNavigate } from 'react-router-dom';
-import { auth, db } from '../../lib/firebase';
-import { signOut } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
+import { supabase } from '../../lib/supabase';
 
 export default function ClienteProfile() {
   const navigate = useNavigate();
@@ -27,20 +25,24 @@ export default function ClienteProfile() {
 
   useEffect(() => {
     const fetchProfile = async () => {
-      const user = auth.currentUser;
-      if (user) {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
         try {
-          const docRef = doc(db, 'profiles', user.uid);
-          const docSnap = await getDoc(docRef);
-          if (docSnap.exists()) {
-            const data = docSnap.data();
+          const { data: profile, error } = await supabase
+            .from('profiles')
+            .select('*')
+            .eq('id', session.user.id)
+            .single();
+
+          if (profile) {
             setUserData(prev => ({
               ...prev,
-              name: data.name || user.displayName || prev.name,
-              username: data.username ? `@${data.username}` : prev.username,
-              email: user.email || prev.email,
-              avatar: data.photoURL || user.photoURL || prev.avatar,
-              location: data.location || prev.location
+              name: profile.full_name || session.user.user_metadata?.full_name || prev.name,
+              username: profile.username ? `@${profile.username}` : prev.username,
+              email: session.user.email || prev.email,
+              avatar: profile.avatar_url || session.user.user_metadata?.avatar_url || prev.avatar,
+              location: profile.address || prev.location,
+              phone: profile.phone || prev.phone
             }));
           }
         } catch (err) {
@@ -54,7 +56,7 @@ export default function ClienteProfile() {
 
   const handleLogout = async () => {
     try {
-      await signOut(auth);
+      await supabase.auth.signOut();
       window.location.href = '/';
     } catch (error) {
       console.error("Error signing out:", error);

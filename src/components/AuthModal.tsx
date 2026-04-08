@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Mail, Lock, User, Loader2, CheckCircle2, Palmtree } from 'lucide-react';
+import { X, Mail, Lock, User, Loader2, CheckCircle2, Palmtree, Building2 } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 interface AuthModalProps {

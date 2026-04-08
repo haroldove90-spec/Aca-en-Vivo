@@ -1,13 +1,13 @@
-import { collection, doc, setDoc, serverTimestamp, getDocs, query, limit } from 'firebase/firestore';
-import { db } from './firebase';
+import { supabase } from './supabase';
 
 export async function seedDatabase() {
   try {
     // Check if we already have data to avoid redundant seeding
-    const q = query(collection(db, 'establecimientos'), limit(1));
-    const snapshot = await getDocs(q);
+    const { count, error: countError } = await supabase
+      .from('establishments')
+      .select('*', { count: 'exact', head: true });
     
-    if (!snapshot.empty) {
+    if (count && count > 0) {
       console.log("Database already has data, skipping seed.");
       return;
     }
@@ -26,21 +26,22 @@ export async function seedDatabase() {
     ];
 
     const inventories = [
-      { id_establecimiento: "hotel-1", habitaciones_totales: 20, disponibles_ahora: 12 },
-      { id_establecimiento: "hotel-2", habitaciones_totales: 15, disponibles_ahora: 3 },
-      { id_establecimiento: "hotel-3", habitaciones_totales: 10, disponibles_ahora: 0 },
+      { establishment_id: "hotel-1", habitaciones_totales: 20, disponibles_ahora: 12 },
+      { establishment_id: "hotel-2", habitaciones_totales: 15, disponibles_ahora: 3 },
+      { establishment_id: "hotel-3", habitaciones_totales: 10, disponibles_ahora: 0 },
     ];
 
-    for (const biz of businesses) {
-      await setDoc(doc(db, 'establecimientos', biz.id), biz);
-    }
+    const { error: bizError } = await supabase
+      .from('establishments')
+      .insert(businesses);
 
-    for (const inv of inventories) {
-      await setDoc(doc(db, 'inventario_hotel', inv.id_establecimiento), {
-        ...inv,
-        ultima_actualizacion: serverTimestamp(),
-      });
-    }
+    if (bizError) throw bizError;
+
+    const { error: invError } = await supabase
+      .from('inventario_hotel')
+      .insert(inventories);
+
+    if (invError) throw invError;
 
     console.log("Database seeded successfully!");
   } catch (error) {

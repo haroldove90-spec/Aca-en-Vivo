@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { collection, query, orderBy, onSnapshot, addDoc, serverTimestamp, where, limit } from 'firebase/firestore';
-import { db, auth } from '../lib/firebase';
+import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Send, 
@@ -20,10 +19,11 @@ import { useNavigate, useLocation } from 'react-router-dom';
 
 interface Message {
   id: string;
+  session_id: string;
   sender_id: string;
   receiver_id: string;
   text: string;
-  created_at: any;
+  created_at: string;
   sender_name?: string;
   sender_role?: string;
 }
@@ -33,7 +33,7 @@ interface ChatSession {
   userName: string;
   userRole: string;
   lastMessage: string;
-  timestamp: any;
+  timestamp: string;
   unread: boolean;
 }
 
@@ -45,9 +45,9 @@ export function SupportChat({ isAdmin = false }: { isAdmin?: boolean }) {
   const [newMessage, setNewMessage] = useState('');
   const [activeChat, setActiveChat] = useState<string | null>(null);
   const [sessions, setSessions] = useState<ChatSession[]>([]);
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  const currentUser = auth.currentUser;
   const adminId = 'admin-agencia-1'; // Fixed admin ID for support
 
   // Get or create guest ID
@@ -59,6 +59,18 @@ export function SupportChat({ isAdmin = false }: { isAdmin?: boolean }) {
     return newId;
   });
 
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setCurrentUser(session?.user ?? null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setCurrentUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
   // Scroll to bottom
   useEffect(() => {
     if (scrollRef.current) {
@@ -66,73 +78,82 @@ export function SupportChat({ isAdmin = false }: { isAdmin?: boolean }) {
     }
   }, [messages]);
 
-  // Listen for messages and sessions
-  useEffect(() => {
+  const fetchMessages = async () => {
     if (!isOpen) return;
 
-    let q;
+    let query = supabase
+      .from('messages')
+      .select('*')
+      .order('created_at', { ascending: true });
+
     if (isAdmin) {
       if (activeChat) {
-        // Messages for a specific chat session
-        q = query(
-          collection(db, 'messages'),
-          where('session_id', '==', activeChat),
-          orderBy('created_at', 'asc'),
-          limit(50)
-        );
+        query = query.eq('session_id', activeChat);
       } else {
-        // Listen for all messages to build session list (simplified for demo)
-        const qSessions = query(
-          collection(db, 'messages'),
-          orderBy('created_at', 'desc'),
-          limit(100)
-        );
-        
-        const unsubSessions = onSnapshot(qSessions, (snapshot) => {
+        // Fetch all messages to build session list
+        const { data: allMessages } = await supabase
+          .from('messages')
+          .select('*')
+          .order('created_at', { ascending: false });
+
+        if (allMessages) {
           const sessionMap: Record<string, ChatSession> = {};
-          snapshot.docs.forEach(doc => {
-            const data = doc.data();
-            if (!sessionMap[data.session_id]) {
-              sessionMap[data.session_id] = {
-                userId: data.session_id,
-                userName: data.sender_role === 'admin' ? 'Socio' : data.sender_name,
-                userRole: data.sender_role === 'admin' ? 'socio' : data.sender_role,
-                lastMessage: data.text,
-                timestamp: data.created_at?.toDate() || new Date(),
-                unread: false // Simplified
+          allMessages.forEach(msg => {
+            if (!sessionMap[msg.session_id]) {
+              sessionMap[msg.session_id] = {
+                userId: msg.session_id,
+                userName: msg.sender_role === 'admin' ? 'Socio' : msg.sender_name,
+                userRole: msg.sender_role === 'admin' ? 'socio' : msg.sender_role,
+                lastMessage: msg.text,
+                timestamp: msg.created_at,
+                unread: false
               };
             }
           });
           setSessions(Object.values(sessionMap));
-        });
-        return () => unsubSessions();
+        }
+        return;
       }
     } else {
-      // For business owner, listen to their chat with admin
-      const sessionId = currentUser?.uid || guestId;
-      q = query(
-        collection(db, 'messages'),
-        where('session_id', '==', sessionId),
-        orderBy('created_at', 'asc'),
-        limit(50)
-      );
+      const sessionId = currentUser?.id || guestId;
+      query = query.eq('session_id', sessionId);
     }
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const msgs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Message));
-      setMessages(msgs);
-    }, (error) => {
-      console.error("Chat error:", error);
-    });
+    const { data } = await query.limit(50);
+    if (data) setMessages(data as Message[]);
+  };
 
-    return () => unsubscribe();
+  // Listen for messages and sessions
+  useEffect(() => {
+    if (!isOpen) return;
+
+    fetchMessages();
+
+    const channel = supabase.channel('chat_messages')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
+        const newMsg = payload.new as Message;
+        const sessionId = isAdmin ? activeChat : (currentUser?.id || guestId);
+        
+        if (newMsg.session_id === sessionId) {
+          setMessages(prev => [...prev, newMsg]);
+        }
+        
+        if (isAdmin && !activeChat) {
+          fetchMessages(); // Refresh session list
+        }
+      })
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
   }, [isOpen, isAdmin, activeChat, currentUser, guestId]);
 
   const handleSendMessage = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newMessage.trim()) return;
 
-    const sessionId = isAdmin ? activeChat : (currentUser?.uid || guestId);
+    const sessionId = isAdmin ? activeChat : (currentUser?.id || guestId);
     if (!sessionId) return;
 
     try {
@@ -140,15 +161,18 @@ export function SupportChat({ isAdmin = false }: { isAdmin?: boolean }) {
                        location.pathname.includes('negocio') ? 'negocio' : 
                        location.pathname.includes('clasificados') ? 'clasificados' : 'cliente';
 
-      await addDoc(collection(db, 'messages'), {
-        session_id: sessionId,
-        sender_id: currentUser?.uid || guestId,
-        receiver_id: isAdmin ? sessionId : adminId,
-        text: newMessage,
-        created_at: serverTimestamp(),
-        sender_name: isAdmin ? 'Admin Agencia' : (currentUser?.displayName || 'Usuario'),
-        sender_role: isAdmin ? 'admin' : userRole
-      });
+      const { error } = await supabase
+        .from('messages')
+        .insert({
+          session_id: sessionId,
+          sender_id: currentUser?.id || null,
+          receiver_id: isAdmin ? sessionId : adminId,
+          text: newMessage,
+          sender_name: isAdmin ? 'Admin Agencia' : (currentUser?.user_metadata?.full_name || 'Usuario'),
+          sender_role: isAdmin ? 'admin' : userRole
+        });
+
+      if (error) throw error;
       setNewMessage('');
     } catch (error) {
       console.error('Error sending message:', error);

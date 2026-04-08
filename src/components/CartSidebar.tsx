@@ -3,8 +3,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X, ShoppingBag, Trash2, Plus, Minus, CreditCard, Palmtree, Loader2, CheckCircle2 } from 'lucide-react';
 import { useCart } from '../contexts/CartContext';
 import { cn } from '../lib/utils';
-import { db, auth } from '../lib/firebase';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 
 interface CartSidebarProps {
@@ -23,29 +22,33 @@ export function CartSidebar({ isOpen, onClose }: CartSidebarProps) {
     
     setIsProcessing(true);
     try {
+      const { data: { session } } = await supabase.auth.getSession();
+      const userId = session?.user?.id;
+      
+      if (!userId) {
+        alert("Debes iniciar sesión para realizar una reserva.");
+        setIsProcessing(false);
+        return;
+      }
+
       // Simulate payment delay
       await new Promise(resolve => setTimeout(resolve, 2000));
 
-      const userId = auth.currentUser?.uid || 'demo-user';
-      
       // Create reservations for each item
-      const promises = items.map(item => 
-        addDoc(collection(db, 'reservas'), {
-          userId,
-          businessId: item.id,
-          businessName: item.name,
-          businessImage: item.image,
+      const { error } = await supabase
+        .from('reservations')
+        .insert(items.map(item => ({
+          user_id: userId,
+          business_id: item.id,
+          business_name: item.name,
+          business_image: item.image,
           status: 'confirmada',
-          price: item.price,
-          quantity: item.quantity,
-          date: new Date().toISOString(),
-          createdAt: serverTimestamp(),
-          paymentStatus: 'paid',
-          totalPaid: (parseInt(item.price.replace(/[^0-9]/g, '')) || 0) * item.quantity
-        })
-      );
+          total_price: (parseInt(item.price.replace(/[^0-9]/g, '')) || 0) * item.quantity,
+          guests: item.quantity, // Assuming quantity as guests for now
+          payment_status: 'pagado'
+        })));
 
-      await Promise.all(promises);
+      if (error) throw error;
       
       setShowSuccess(true);
       clearCart();

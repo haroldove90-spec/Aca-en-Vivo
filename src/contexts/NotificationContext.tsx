@@ -1,6 +1,5 @@
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
-import { collection, query, orderBy, limit, onSnapshot, where, Timestamp } from 'firebase/firestore';
-import { db, auth } from '../lib/firebase';
+import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'motion/react';
 import { Bell, X, CheckCircle2, Building2, UserCheck, Zap, DollarSign } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -51,38 +50,29 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       Notification.requestPermission();
     }
 
-    // Listen for new establishments (Simulating Supabase Realtime with Firestore)
-    const qEst = query(
-      collection(db, 'establecimientos'), 
-      where('createdAt', '>', Timestamp.now()), // Only new ones from now
-      orderBy('createdAt', 'desc'),
-      limit(1)
-    );
+    // Listen for new establishments with Supabase Realtime
+    const channel = supabase.channel('public:establishments')
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'establishments' }, (payload) => {
+        const data = payload.new;
+        const newEvent: NotificationEvent = {
+          id: data.id,
+          title: '¡NUEVO ALIADO REGISTRADO!',
+          body: `${data.nombre} se ha unido a la plataforma.`,
+          type: 'registration',
+          timestamp: new Date(),
+          read: false,
+          data: data
+        };
 
-    const unsubscribeEst = onSnapshot(qEst, (snapshot) => {
-      snapshot.docChanges().forEach((change) => {
-        if (change.type === 'added') {
-          const data = change.doc.data();
-          const newEvent: NotificationEvent = {
-            id: change.doc.id,
-            title: '¡NUEVO ALIADO REGISTRADO!',
-            body: `${data.nombre} se ha unido a la plataforma.`,
-            type: 'registration',
-            timestamp: new Date(),
-            read: false,
-            data: { id: change.doc.id, ...data }
-          };
+        setNotifications(prev => [newEvent, ...prev].slice(0, 10));
+        setNewRegPopup(newEvent);
+        sendLocalNotification(newEvent.title, newEvent.body);
+        playNotificationSound();
 
-          setNotifications(prev => [newEvent, ...prev].slice(0, 10));
-          setNewRegPopup(newEvent);
-          sendLocalNotification(newEvent.title, newEvent.body);
-          playNotificationSound();
-
-          // Auto-hide popup after 8 seconds
-          setTimeout(() => setNewRegPopup(null), 8000);
-        }
-      });
-    });
+        // Auto-hide popup after 8 seconds
+        setTimeout(() => setNewRegPopup(null), 8000);
+      })
+      .subscribe();
 
     // Mock initial notifications for demo
     const mockNotifications: NotificationEvent[] = [
@@ -121,7 +111,9 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     ];
     setNotifications(mockNotifications);
 
-    return () => unsubscribeEst();
+    return () => {
+      channel.unsubscribe();
+    };
   }, [sendLocalNotification, playNotificationSound]);
 
   return (

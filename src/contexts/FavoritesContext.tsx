@@ -1,14 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { collection, query, where, onSnapshot, addDoc, deleteDoc, doc, getDocs } from 'firebase/firestore';
-import { onAuthStateChanged } from 'firebase/auth';
-import { db, auth } from '../lib/firebase';
+import { supabase } from '../lib/supabase';
 import { useNotifications } from './NotificationContext';
 import { HOTEL_IMAGES } from '../constants/images';
 
 interface Favorite {
   id: string;
-  itemId: string;
-  userId: string;
+  item_id: string;
+  user_id: string;
   name: string;
   category: string;
   image: string;
@@ -28,50 +26,84 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
   const [favorites, setFavorites] = useState<Favorite[]>([]);
   const { sendLocalNotification } = useNotifications();
 
+  const fetchFavorites = async () => {
+    const { data: { session } } = await supabase.auth.getSession();
+    if (session?.user) {
+      const { data, error } = await supabase
+        .from('favorites')
+        .select('*')
+        .eq('user_id', session.user.id);
+      
+      if (data) setFavorites(data as Favorite[]);
+    } else {
+      setFavorites([]);
+    }
+  };
+
   useEffect(() => {
-    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-      const userId = user?.uid || 'demo-user';
+    fetchFavorites();
 
-      const q = query(collection(db, 'favorites'), where('userId', '==', userId));
-      const unsubscribeSnapshot = onSnapshot(q, (snapshot) => {
-        const favs = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Favorite));
-        setFavorites(favs);
-      });
-
-      return () => unsubscribeSnapshot();
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session) {
+        fetchFavorites();
+      } else {
+        setFavorites([]);
+      }
     });
 
-    return () => unsubscribeAuth();
+    // Realtime subscription
+    const channel = supabase.channel('favorites_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'favorites' }, () => {
+        fetchFavorites();
+      })
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+      channel.unsubscribe();
+    };
   }, []);
 
   const isFavorite = (itemId: string) => {
-    return favorites.some(f => f.itemId === itemId);
+    return favorites.some(f => f.item_id === itemId);
   };
 
   const toggleFavorite = async (item: any) => {
-    const userId = auth.currentUser?.uid || 'demo-user';
+    const { data: { session } } = await supabase.auth.getSession();
+    if (!session?.user) {
+      sendLocalNotification('Error', 'Debes iniciar sesión para guardar favoritos.');
+      return;
+    }
     
-    const existing = favorites.find(f => f.itemId === item.id);
+    const existing = favorites.find(f => f.item_id === item.id);
 
     if (existing) {
       try {
-        await deleteDoc(doc(db, 'favorites', existing.id));
+        const { error } = await supabase
+          .from('favorites')
+          .delete()
+          .eq('id', existing.id);
+
+        if (error) throw error;
         sendLocalNotification('Eliminado', `${item.name} eliminado de favoritos.`);
       } catch (error) {
         console.error('Error removing favorite:', error);
       }
     } else {
       try {
-        await addDoc(collection(db, 'favorites'), {
-          itemId: item.id,
-          userId: userId,
-          name: item.name,
-          category: item.category || 'General',
-          image: item.image || HOTEL_IMAGES.EXTERIOR,
-          price: item.price || '$0',
-          rating: item.rating || 5.0,
-          createdAt: new Date()
-        });
+        const { error } = await supabase
+          .from('favorites')
+          .insert({
+            item_id: item.id,
+            user_id: session.user.id,
+            name: item.name,
+            category: item.category || 'General',
+            image: item.image || HOTEL_IMAGES.EXTERIOR,
+            price: item.price || '$0',
+            rating: item.rating || 5.0
+          });
+
+        if (error) throw error;
         sendLocalNotification('Guardado', `${item.name} guardado en favoritos.`);
       } catch (error) {
         console.error('Error adding favorite:', error);

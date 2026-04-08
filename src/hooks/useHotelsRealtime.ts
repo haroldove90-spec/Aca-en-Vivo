@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { collection, onSnapshot, query, orderBy } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { supabase } from '../lib/supabase';
 
 export interface HotelWithInventory {
   id: string;
@@ -12,48 +11,56 @@ export interface HotelWithInventory {
 }
 
 /**
- * Hook que sincroniza la lista completa de hoteles con su inventario en tiempo real.
+ * Hook que sincroniza la lista completa de hoteles con su inventario en tiempo real usando Supabase.
  */
 export function useHotelsRealtime() {
   const [hoteles, setHoteles] = useState<HotelWithInventory[]>([]);
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    // 1. Escuchar establecimientos
-    const qEst = query(collection(db, 'establecimientos'), orderBy('nombre'));
-    
-    // 2. Escuchar inventario
-    const qInv = collection(db, 'inventario_hotel');
+  const fetchData = async () => {
+    const { data: establishments } = await supabase
+      .from('establishments')
+      .select('*')
+      .eq('tipo', 'hotel')
+      .order('nombre');
 
-    let estData: any[] = [];
-    let invData: Record<string, any> = {};
+    const { data: inventory } = await supabase
+      .from('inventario_hotel')
+      .select('*');
 
-    const syncData = () => {
-      const combined = estData.map(est => ({
-        ...est,
-        disponibles: invData[est.id]?.disponibles_ahora ?? 0,
-        habitaciones_totales: invData[est.id]?.habitaciones_totales ?? 0,
+    if (establishments) {
+      const invMap: Record<string, any> = {};
+      inventory?.forEach(inv => {
+        invMap[inv.establishment_id] = inv;
+      });
+
+      const combined = establishments.map(est => ({
+        id: est.id,
+        nombre: est.nombre,
+        zona: est.zona as any,
+        estrellas: est.estrellas,
+        disponibles: invMap[est.id]?.disponibles_ahora ?? 0,
+        habitaciones_totales: invMap[est.id]?.habitaciones_totales ?? 0,
       }));
       setHoteles(combined);
-      setLoading(false);
-    };
+    }
+    setLoading(false);
+  };
 
-    const unsubEst = onSnapshot(qEst, (snapshot) => {
-      estData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      syncData();
-    });
+  useEffect(() => {
+    fetchData();
 
-    const unsubInv = onSnapshot(qInv, (snapshot) => {
-      invData = {};
-      snapshot.docs.forEach(doc => {
-        invData[doc.id] = doc.data();
-      });
-      syncData();
-    });
+    const estChannel = supabase.channel('hotels_realtime')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'establishments' }, () => {
+        fetchData();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'inventario_hotel' }, () => {
+        fetchData();
+      })
+      .subscribe();
 
     return () => {
-      unsubEst();
-      unsubInv();
+      estChannel.unsubscribe();
     };
   }, []);
 

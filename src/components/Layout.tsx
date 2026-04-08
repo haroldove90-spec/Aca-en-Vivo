@@ -208,16 +208,26 @@ export function Layout({ children, onAuthClick }: LayoutProps) {
 
                   <AnimatePresence>
                     {isNotifOpen && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10, scale: 0.95 }}
-                        animate={{ opacity: 1, y: 0, scale: 1 }}
-                        exit={{ opacity: 0, y: 10, scale: 0.95 }}
-                        className="absolute right-0 top-full mt-4 w-[calc(100vw-2rem)] lg:w-96 bg-white rounded-none shadow-[0_30px_100px_rgba(0,0,0,0.15)] border border-gray-100 overflow-hidden z-[100]"
-                      >
-                        <div className="p-8 border-b border-gray-100 flex items-center justify-between">
-                          <h3 className="text-sm font-black text-dark uppercase tracking-[0.2em]">Notificaciones</h3>
-                          <span className="text-[10px] font-black text-primary uppercase tracking-widest">{unreadCount} Nuevas</span>
-                        </div>
+                      <>
+                        <div 
+                          className="fixed inset-0 z-[90]" 
+                          onClick={() => setIsNotifOpen(false)} 
+                        />
+                        <motion.div
+                          initial={{ opacity: 0, y: 10, scale: 0.95 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 10, scale: 0.95 }}
+                          className="absolute right-0 top-full mt-4 w-[calc(100vw-2rem)] lg:w-96 bg-white rounded-none shadow-[0_30px_100px_rgba(0,0,0,0.15)] border border-gray-100 overflow-hidden z-[100]"
+                        >
+                          <div className="p-8 border-b border-gray-100 flex items-center justify-between">
+                            <h3 className="text-sm font-black text-dark uppercase tracking-[0.2em]">Notificaciones</h3>
+                            <div className="flex items-center gap-4">
+                              <span className="text-[10px] font-black text-primary uppercase tracking-widest">{unreadCount} Nuevas</span>
+                              <button onClick={() => setIsNotifOpen(false)} className="text-muted hover:text-dark">
+                                <X className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </div>
                         <div className="max-h-[400px] overflow-y-auto no-scrollbar">
                           {notifications.length === 0 ? (
                             <div className="p-12 text-center space-y-4">
@@ -266,8 +276,9 @@ export function Layout({ children, onAuthClick }: LayoutProps) {
                           Ver Todo el Historial
                         </button>
                       </motion.div>
-                    )}
-                  </AnimatePresence>
+                    </>
+                  )}
+                </AnimatePresence>
                 </div>
 
                 {user ? (

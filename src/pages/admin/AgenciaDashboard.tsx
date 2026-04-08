@@ -426,12 +426,14 @@ export default function AgenciaDashboard() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            onClick={() => setSelectedHotel(null)}
             className="fixed inset-0 z-[200] bg-dark/60 backdrop-blur-sm flex items-center justify-center p-6"
           >
             <motion.div
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
               className="bg-white rounded-none shadow-2xl max-w-2xl w-full overflow-hidden"
             >
               <div className="bg-primary p-8 text-white flex justify-between items-center">

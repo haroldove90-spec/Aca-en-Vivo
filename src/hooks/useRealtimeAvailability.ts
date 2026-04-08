@@ -1,11 +1,8 @@
 import { useState, useEffect } from 'react';
-import { doc, onSnapshot } from 'firebase/firestore';
-import { db } from '../lib/firebase';
+import { supabase } from '../lib/supabase';
 
 /**
- * Hook para escuchar la disponibilidad de un hotel en tiempo real.
- * Reemplaza la lógica de Supabase Realtime solicitada usando el motor de Firestore
- * ya configurado en el proyecto para garantizar actualizaciones de < 1s.
+ * Hook para escuchar la disponibilidad de un hotel en tiempo real usando Supabase.
  */
 export function useRealtimeAvailability(hotelId: string) {
   const [disponibles, setDisponibles] = useState<number | null>(null);
@@ -15,26 +12,40 @@ export function useRealtimeAvailability(hotelId: string) {
   useEffect(() => {
     if (!hotelId) return;
 
-    const docRef = doc(db, 'inventario_hotel', hotelId);
-    
-    const unsubscribe = onSnapshot(
-      docRef,
-      (snapshot) => {
-        if (snapshot.exists()) {
-          setDisponibles(snapshot.data().disponibles_ahora);
-        } else {
-          setDisponibles(0);
-        }
-        setLoading(false);
-      },
-      (err) => {
-        console.error("Error en suscripción real-time:", err);
-        setError(err);
-        setLoading(false);
-      }
-    );
+    const fetchAvailability = async () => {
+      const { data, error: err } = await supabase
+        .from('inventario_hotel')
+        .select('disponibles_ahora')
+        .eq('establishment_id', hotelId)
+        .single();
 
-    return () => unsubscribe();
+      if (err) {
+        console.error("Error fetching initial availability:", err);
+        setError(err as any);
+      } else if (data) {
+        setDisponibles(data.disponibles_ahora);
+      }
+      setLoading(false);
+    };
+
+    fetchAvailability();
+
+    const channel = supabase.channel(`availability_${hotelId}`)
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'inventario_hotel',
+        filter: `establishment_id=eq.${hotelId}`
+      }, (payload) => {
+        if (payload.new) {
+          setDisponibles((payload.new as any).disponibles_ahora);
+        }
+      })
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
   }, [hotelId]);
 
   return { disponibles, loading, error };

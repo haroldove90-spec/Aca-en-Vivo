@@ -459,14 +459,22 @@ export default function BusinessDetail() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            onClick={() => setShowSuccess(false)}
             className="fixed inset-0 z-[300] bg-dark/90 backdrop-blur-xl flex items-center justify-center p-6"
           >
             <motion.div 
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
-              className="bg-white p-12 rounded-none text-center max-w-md w-full shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white p-12 rounded-none text-center max-w-md w-full shadow-2xl relative"
             >
+              <button 
+                onClick={() => setShowSuccess(false)}
+                className="absolute top-4 right-4 text-muted hover:text-dark transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
               <div className="w-24 h-24 bg-emerald-100 text-emerald-600 rounded-none flex items-center justify-center mx-auto mb-8">
                 <CheckCircle2 className="w-12 h-12" />
               </div>

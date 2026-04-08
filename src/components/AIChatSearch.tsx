@@ -77,12 +77,23 @@ export function AIChatSearch({ onFilter, onClear }: AIChatSearchProps) {
       {/* Chat Window */}
       <AnimatePresence>
         {isOpen && (
-          <motion.div 
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 20, scale: 0.95 }}
-            className="absolute top-0 left-4 right-4 bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden flex flex-col h-[450px]"
-          >
+          <>
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={() => {
+                setIsOpen(false);
+                onClear();
+              }}
+              className="fixed inset-0 z-[200] bg-black/20 backdrop-blur-sm"
+            />
+            <motion.div 
+              initial={{ opacity: 0, y: 20, scale: 0.95 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 20, scale: 0.95 }}
+              className="absolute top-0 left-4 right-4 bg-white rounded-3xl shadow-2xl border border-gray-100 overflow-hidden flex flex-col h-[450px] z-[210]"
+            >
             {/* Header */}
             <div className="bg-[#142850] p-4 flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -164,8 +175,9 @@ export function AIChatSearch({ onFilter, onClear }: AIChatSearchProps) {
               </button>
             </form>
           </motion.div>
-        )}
-      </AnimatePresence>
+        </>
+      )}
+    </AnimatePresence>
     </div>
   );
 }
