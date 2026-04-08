@@ -171,7 +171,7 @@ function App() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </div>
-          <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(true)} />
+          <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(false)} />
         </Router>
           </CartProvider>
         </SearchProvider>

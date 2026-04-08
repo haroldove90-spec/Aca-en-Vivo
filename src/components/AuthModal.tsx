@@ -18,6 +18,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [role, setRole] = useState('cliente');
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,6 +32,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
           password,
         });
         if (error) throw error;
+        onClose();
       } else {
         const { error } = await supabase.auth.signUp({
           email,
@@ -38,6 +40,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
           options: {
             data: {
               full_name: fullName,
+              role: role,
               avatar_url: `https://api.dicebear.com/7.x/avataaars/svg?seed=${fullName}`,
             },
           },
@@ -47,9 +50,9 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
         setTimeout(() => {
           setSuccess(false);
           setIsLogin(true);
+          onClose();
         }, 3000);
       }
-      if (isLogin) onClose();
     } catch (err: any) {
       setError(err.message);
     } finally {
@@ -98,20 +101,47 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
               ) : (
                 <form onSubmit={handleAuth} className="space-y-4">
                   {!isLogin && (
-                    <div className="space-y-1">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted">Nombre Completo</label>
-                      <div className="relative">
-                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
-                        <input
-                          type="text"
-                          required
-                          value={fullName}
-                          onChange={(e) => setFullName(e.target.value)}
-                          className="w-full bg-gray-50 border-none rounded-none py-3 pl-12 pr-4 text-xs font-bold focus:ring-2 focus:ring-primary/20"
-                          placeholder="Juan Pérez"
-                        />
+                    <>
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-muted">Nombre Completo</label>
+                        <div className="relative">
+                          <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+                          <input
+                            type="text"
+                            required
+                            value={fullName}
+                            onChange={(e) => setFullName(e.target.value)}
+                            className="w-full bg-gray-50 border-none rounded-none py-3 pl-12 pr-4 text-xs font-bold focus:ring-2 focus:ring-primary/20"
+                            placeholder="Juan Pérez"
+                          />
+                        </div>
                       </div>
-                    </div>
+
+                      <div className="space-y-1">
+                        <label className="text-[10px] font-black uppercase tracking-widest text-muted">Tipo de Cuenta</label>
+                        <div className="grid grid-cols-3 gap-2">
+                          {[
+                            { id: 'cliente', label: 'Cliente' },
+                            { id: 'hotel', label: 'Hotel' },
+                            { id: 'negocio', label: 'Negocio' }
+                          ].map((option) => (
+                            <button
+                              key={option.id}
+                              type="button"
+                              onClick={() => setRole(option.id)}
+                              className={cn(
+                                "py-2 text-[10px] font-black uppercase tracking-tighter border-2 transition-all",
+                                role === option.id 
+                                  ? "border-primary bg-primary text-white" 
+                                  : "border-gray-100 bg-gray-50 text-muted hover:border-gray-200"
+                              )}
+                            >
+                              {option.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    </>
                   )}
 
                   <div className="space-y-1">
