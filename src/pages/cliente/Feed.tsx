@@ -44,7 +44,6 @@ const CATEGORIES = [
   { id: 'negocio', label: 'Negocios', icon: Store, color: 'bg-amber-500' },
   { id: 'clasificados', label: 'Rentas', icon: Home, color: 'bg-purple-600' },
   { id: 'yates', label: 'Yates', icon: Ship, color: 'bg-cyan-500' },
-  { id: 'medicos', label: 'Médicos', icon: Stethoscope, color: 'bg-rose-500' },
 ];
 
 // --- Popular Card ---

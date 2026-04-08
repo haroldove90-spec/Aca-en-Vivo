@@ -1,5 +1,5 @@
 export type EntityStatus = 'activo' | 'inactivo' | 'pendiente';
-export type EntityType = 'hotel' | 'negocio' | 'clasificado';
+export type EntityType = 'hotel' | 'negocio' | 'clasificados' | 'yates';
 
 export interface BaseEntity {
   id: string;
@@ -13,6 +13,7 @@ export interface BaseEntity {
   whatsapp: string;
   categoria?: string; // Para negocios
   capacidad?: number; // Para clasificados/hoteles
+  estrellas?: number;
 }
 
 export const MOCK_DATA: BaseEntity[] = [
@@ -27,7 +28,8 @@ export const MOCK_DATA: BaseEntity[] = [
     status: 'activo',
     tipo: 'hotel',
     whatsapp: '7441234567',
-    capacidad: 400
+    capacidad: 400,
+    estrellas: 4.8
   },
   {
     id: 'h2',
@@ -39,21 +41,10 @@ export const MOCK_DATA: BaseEntity[] = [
     status: 'activo',
     tipo: 'hotel',
     whatsapp: '7449876543',
-    capacidad: 1000
+    capacidad: 1000,
+    estrellas: 4.9
   },
-  // Negocios
-  {
-    id: 'n1',
-    nombre: 'Yates Bonanza',
-    descripcion: 'El recorrido más tradicional por la bahía de Acapulco con música en vivo y barra libre.',
-    precio: 450,
-    zona: 'Muelle',
-    imagen: 'https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&q=80&w=800',
-    status: 'activo',
-    tipo: 'negocio',
-    categoria: 'Yate',
-    whatsapp: '7441112233'
-  },
+  // Negocios (Restaurantes)
   {
     id: 'n2',
     nombre: 'La Cabaña de Caleta',
@@ -64,9 +55,48 @@ export const MOCK_DATA: BaseEntity[] = [
     status: 'activo',
     tipo: 'negocio',
     categoria: 'Restaurante',
-    whatsapp: '7444445566'
+    whatsapp: '7444445566',
+    estrellas: 4.5
   },
-  // Clasificados (Propietarios)
+  {
+    id: 'n3',
+    nombre: 'Zibu Acapulco',
+    descripcion: 'Fusión Mex-Tai con la mejor vista de Puerto Marqués. Una experiencia gastronómica de altura.',
+    precio: 1200,
+    zona: 'Diamante',
+    imagen: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=800',
+    status: 'activo',
+    tipo: 'negocio',
+    categoria: 'Restaurante',
+    whatsapp: '7442223344',
+    estrellas: 4.9
+  },
+  // Yates
+  {
+    id: 'y1',
+    nombre: 'Yates Bonanza',
+    descripcion: 'El recorrido más tradicional por la bahía de Acapulco con música en vivo y barra libre.',
+    precio: 450,
+    zona: 'Muelle',
+    imagen: 'https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&q=80&w=800',
+    status: 'activo',
+    tipo: 'yates',
+    whatsapp: '7441112233',
+    estrellas: 4.4
+  },
+  {
+    id: 'y2',
+    nombre: 'Catamarán Acarey',
+    descripcion: 'Disfruta del atardecer en la bahía con show en vivo y el mejor ambiente del puerto.',
+    precio: 550,
+    zona: 'Muelle',
+    imagen: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&q=80&w=800',
+    status: 'activo',
+    tipo: 'yates',
+    whatsapp: '7445556677',
+    estrellas: 4.6
+  },
+  // Rentas (Clasificados)
   {
     id: 'c1',
     nombre: 'Depa en Torre Velera',
@@ -75,9 +105,10 @@ export const MOCK_DATA: BaseEntity[] = [
     zona: 'Diamante',
     imagen: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&q=80&w=800',
     status: 'activo',
-    tipo: 'clasificado',
+    tipo: 'clasificados',
     whatsapp: '7447778899',
-    capacidad: 6
+    capacidad: 6,
+    estrellas: 4.7
   },
   {
     id: 'c2',
@@ -86,9 +117,23 @@ export const MOCK_DATA: BaseEntity[] = [
     precio: 12000,
     zona: 'Las Brisas',
     imagen: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&q=80&w=800',
-    status: 'pendiente',
-    tipo: 'clasificado',
+    status: 'activo',
+    tipo: 'clasificados',
     whatsapp: '7440001122',
-    capacidad: 12
+    capacidad: 12,
+    estrellas: 4.9
+  },
+  {
+    id: 'c3',
+    nombre: 'Villa Mar y Sol',
+    descripcion: 'Hermosa casa vacacional en Acapulco Tradicional. Ideal para familias grandes.',
+    precio: 5000,
+    zona: 'Tradicional',
+    imagen: 'https://images.unsplash.com/photo-1580587771525-78b9dba3b914?auto=format&fit=crop&q=80&w=800',
+    status: 'activo',
+    tipo: 'clasificados',
+    whatsapp: '7448889900',
+    capacidad: 10,
+    estrellas: 4.6
   }
 ];
