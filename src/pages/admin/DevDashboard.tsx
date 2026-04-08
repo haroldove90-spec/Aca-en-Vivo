@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../../lib/supabase';
 import { 
   TrendingUp, 
   Hotel, 
@@ -11,7 +12,8 @@ import {
   Download,
   ArrowUpRight,
   Clock,
-  Settings as SettingsIcon
+  Settings as SettingsIcon,
+  Loader2
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useNavigate, useLocation } from 'react-router-dom';
@@ -59,18 +61,62 @@ export default function DevDashboard() {
   const queryParams = new URLSearchParams(location.search);
   const activeTab = (queryParams.get('tab') as Tab) || 'master';
 
-  const recentMovements = [
-    { id: 1, hotel: "Hotel El Cano", action: "Actualizó a 0 habitaciones (Lleno)", time: "Hace 2 min", type: "alert" },
-    { id: 2, hotel: "Restaurante La Cabaña", action: "Pago de suscripción exitoso", time: "Hace 15 min", type: "payment" },
-    { id: 3, hotel: "Hotel Emporio", action: "Actualizó a 12 habitaciones", time: "Hace 45 min", type: "update" },
-    { id: 4, hotel: "Hotel Calinda", action: "Nuevo registro de establecimiento", time: "Hace 2 horas", type: "new" },
-    { id: 5, hotel: "Turista (CDMX)", action: "Nuevo usuario registrado", time: "Hace 3 horas", type: "user" },
-    { id: 6, hotel: "Hotel Princess", action: "Actualizó a 5 habitaciones (Últimas)", time: "Hace 4 horas", type: "alert" },
-  ];
+  const [loading, setLoading] = useState(true);
+  const [stats, setStats] = useState({
+    users: 0,
+    hotels: 0,
+    businesses: 0,
+    reservations: 0
+  });
+  const [logs, setLogs] = useState<any[]>([]);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        navigate('/');
+        return;
+      }
+
+      // Fetch counts
+      const [users, hotels, businesses, reservations] = await Promise.all([
+        supabase.from('profiles').select('*', { count: 'exact', head: true }),
+        supabase.from('establishments').select('*', { count: 'exact', head: true }).eq('tipo', 'hotel'),
+        supabase.from('establishments').select('*', { count: 'exact', head: true }).eq('tipo', 'negocio'),
+        supabase.from('reservations').select('*', { count: 'exact', head: true })
+      ]);
+
+      setStats({
+        users: users.count || 0,
+        hotels: hotels.count || 0,
+        businesses: businesses.count || 0,
+        reservations: reservations.count || 0
+      });
+
+      // Fetch recent reservations as logs
+      const { data: recentRes } = await supabase
+        .from('reservations')
+        .select('*, establishments(nombre)')
+        .order('created_at', { ascending: false })
+        .limit(10);
+      
+      setLogs(recentRes || []);
+      setLoading(false);
+    };
+
+    fetchData();
+  }, [navigate]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-[#F8FAFC]">
+        <Loader2 className="w-12 h-12 text-[#00A8CC] animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-10">
-      {/* Header */}
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
@@ -95,55 +141,43 @@ export default function DevDashboard() {
             exit={{ opacity: 0, y: -20 }}
             className="space-y-10"
           >
-            {/* KPI Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               <KPICard 
-                title="Ingresos Totales Mes" 
-                value="$57,250 MXN" 
+                title="Reservas Totales" 
+                value={stats.reservations} 
                 trend="+12%" 
                 icon={TrendingUp} 
-                subValue="Meta: $60k (95%)"
+                subValue="Histórico acumulado"
               />
               <KPICard 
                 title="Hoteles Activos" 
-                value="115" 
+                value={stats.hotels} 
                 icon={Hotel} 
-                subValue="85% con inventario hoy"
+                subValue="En el directorio"
               />
               <KPICard 
                 title="Negocios Patrocinadores" 
-                value="350" 
+                value={stats.businesses} 
                 trend="+5" 
                 icon={Briefcase} 
                 subValue="Suscripciones Premium"
               />
               <KPICard 
                 title="Usuarios Registrados" 
-                value="1,240" 
+                value={stats.users} 
                 trend="+150" 
                 icon={Users} 
-                subValue="Activos esta semana"
+                subValue="Cuentas activas"
               />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-              {/* Revenue Chart Simulation */}
               <div className="lg:col-span-2 bg-white border border-gray-100 rounded-none p-8 shadow-xl">
                 <div className="flex justify-between items-center mb-10">
                   <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-2 text-dark">
                     <ActivityIcon className="w-5 h-5 text-primary" />
                     Comparativa de Temporada
                   </h3>
-                  <div className="flex gap-4 text-[10px] font-bold uppercase tracking-widest">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-gray-200 rounded-none" />
-                      <span className="text-muted">Base</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 bg-primary rounded-none" />
-                      <span className="text-primary">Pico</span>
-                    </div>
-                  </div>
                 </div>
 
                 <div className="flex items-end justify-around h-64 gap-4">
@@ -172,7 +206,6 @@ export default function DevDashboard() {
                 </div>
               </div>
 
-              {/* Technical Monitor */}
               <div className="bg-white border border-gray-100 rounded-none p-8 shadow-xl space-y-8">
                 <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-2 text-dark">
                   <Cpu className="w-5 h-5 text-primary" />
@@ -184,16 +217,6 @@ export default function DevDashboard() {
                   <StatusIndicator label="AI Studio API" status="online" detail="Gemini 3 / Operativa" />
                   <StatusIndicator label="Vercel Edge" status="online" detail="Latencia 20ms" />
                   <StatusIndicator label="Storage" status="online" detail="92% Disponible" />
-                </div>
-
-                <div className="pt-6 border-t border-gray-100 space-y-4">
-                  <div className="flex justify-between items-center">
-                    <span className="text-[10px] font-black text-muted uppercase tracking-widest">Uptime Global</span>
-                    <span className="text-xs font-black text-emerald-600">99.98%</span>
-                  </div>
-                  <div className="w-full h-1.5 bg-gray-100 rounded-none overflow-hidden">
-                    <div className="w-[99.98%] h-full bg-emerald-500" />
-                  </div>
                 </div>
               </div>
             </div>
@@ -207,48 +230,45 @@ export default function DevDashboard() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
           >
-            {/* Recent Movements Table */}
             <div className="bg-white border border-gray-100 rounded-none overflow-hidden shadow-xl">
               <div className="p-8 border-b border-gray-100 flex justify-between items-center">
                 <h3 className="text-sm font-black uppercase tracking-widest flex items-center gap-2 text-dark">
                   <Clock className="w-5 h-5 text-primary" />
                   Últimos Movimientos
                 </h3>
-                <button className="text-[10px] font-black text-primary uppercase tracking-widest hover:underline">Ver todo el log</button>
               </div>
               
               <div className="overflow-x-auto">
                 <table className="w-full text-left">
                   <thead>
                     <tr className="bg-gray-50">
-                      <th className="px-8 py-5 text-[10px] font-black text-muted uppercase tracking-widest">Establecimiento / Usuario</th>
+                      <th className="px-8 py-5 text-[10px] font-black text-muted uppercase tracking-widest">Establecimiento</th>
                       <th className="px-8 py-5 text-[10px] font-black text-muted uppercase tracking-widest">Acción</th>
                       <th className="px-8 py-5 text-[10px] font-black text-muted uppercase tracking-widest">Estado</th>
                       <th className="px-8 py-5 text-[10px] font-black text-muted uppercase tracking-widest text-right">Tiempo</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    {recentMovements.map((m) => (
+                    {logs.map((m) => (
                       <tr key={m.id} className="hover:bg-gray-50 transition-colors">
                         <td className="px-8 py-5">
-                          <span className="text-sm font-black text-dark uppercase tracking-tight">{m.hotel}</span>
+                          <span className="text-sm font-black text-dark uppercase tracking-tight">{(m as any).establishments?.nombre || 'Desconocido'}</span>
                         </td>
                         <td className="px-8 py-5">
-                          <span className="text-xs text-muted font-bold uppercase">{m.action}</span>
+                          <span className="text-xs text-muted font-bold uppercase">Nueva Reserva</span>
                         </td>
                         <td className="px-8 py-5">
                           <span className={cn(
                             "text-[9px] font-black px-3 py-1 rounded-none uppercase tracking-widest",
-                            m.type === 'alert' ? "bg-rose-100 text-rose-600" :
-                            m.type === 'payment' ? "bg-emerald-100 text-emerald-600" :
-                            m.type === 'new' ? "bg-primary/10 text-primary" :
-                            "bg-gray-100 text-muted"
+                            m.status === 'confirmada' ? "bg-emerald-100 text-emerald-600" :
+                            m.status === 'cancelada' ? "bg-rose-100 text-rose-600" :
+                            "bg-amber-100 text-amber-600"
                           )}>
-                            {m.type}
+                            {m.status}
                           </span>
                         </td>
                         <td className="px-8 py-5 text-right">
-                          <span className="text-[10px] font-black text-muted uppercase">{m.time}</span>
+                          <span className="text-[10px] font-black text-muted uppercase">{new Date(m.created_at).toLocaleTimeString()}</span>
                         </td>
                       </tr>
                     ))}
@@ -258,27 +278,8 @@ export default function DevDashboard() {
             </div>
           </motion.div>
         )}
-
-        {activeTab === 'config' && (
-          <motion.div
-            key="config"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="bg-white p-10 rounded-none shadow-xl border border-gray-100 text-center space-y-6"
-          >
-            <div className="w-20 h-20 bg-primary/5 text-primary rounded-none flex items-center justify-center mx-auto">
-              <SettingsIcon className="w-10 h-10" />
-            </div>
-            <div>
-              <h3 className="text-xl font-black text-dark uppercase tracking-tight">Configuración Maestra</h3>
-              <p className="text-xs text-muted font-bold uppercase tracking-widest mt-2">Ajustes globales del motor de Acapulco</p>
-            </div>
-          </motion.div>
-        )}
       </AnimatePresence>
 
-      {/* Footer */}
       <footer className="mt-12 pt-8 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4 text-muted">
         <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">

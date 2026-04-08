@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { collection, onSnapshot, query, orderBy, addDoc, getDocs, Timestamp } from 'firebase/firestore';
-import { db, auth } from '../../lib/firebase';
+import { supabase } from '../../lib/supabase';
 import { 
   Loader2, 
   Search, 
@@ -59,15 +58,23 @@ function PopularCard({ business }: { business: any, key?: string }) {
   const handleReserve = async (e: React.MouseEvent) => {
     e.stopPropagation();
     try {
-      await addDoc(collection(db, 'reservas'), {
-        userId: auth.currentUser?.uid || 'demo-user',
-        businessId: business.id,
-        businessName: business.nombre,
-        businessImage: business.image || HOTEL_IMAGES.EXTERIOR,
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        alert('Por favor inicia sesión para reservar');
+        return;
+      }
+
+      const { error } = await supabase.from('reservations').insert({
+        user_id: session.user.id,
+        business_id: business.id,
+        business_name: business.nombre,
+        business_image: business.image || HOTEL_IMAGES.EXTERIOR,
         status: 'confirmada',
-        date: new Date().toISOString(),
-        createdAt: Timestamp.now()
+        total_price: business.tipo === 'hotel' ? 2500 : 1200,
+        guests: 2
       });
+
+      if (error) throw error;
       navigate('/reservas');
     } catch (err) {
       console.error("Error reserving:", err);
@@ -205,45 +212,49 @@ export default function ClienteFeed() {
   ];
 
   useEffect(() => {
-    const seedData = async () => {
+    const fetchEstablecimientos = async () => {
       try {
-        const snapshot = await getDocs(collection(db, 'establecimientos'));
-        const existingNames = snapshot.docs.map(doc => doc.data().nombre);
-        
-        const mockData = [
-          { nombre: 'Hotel Emporio Acapulco', tipo: 'hotel', zona: 'Zona Dorada', estrellas: 4.8, createdAt: Timestamp.now(), descripcion: 'Lujo frente al mar.', image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=800' },
-          { nombre: 'Princess Mundo Imperial', tipo: 'hotel', zona: 'Diamante', estrellas: 4.9, createdAt: Timestamp.now(), descripcion: 'Arquitectura icónica.', image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&q=80&w=800' },
-          { nombre: 'Yates Bonanza', tipo: 'yates', zona: 'Zona Tradicional', estrellas: 4.9, createdAt: Timestamp.now(), descripcion: 'Paseos por la bahía.', image: 'https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&q=80&w=800' },
-          { nombre: 'La Cabaña de Caleta', tipo: 'negocio', zona: 'Caleta', estrellas: 4.5, createdAt: Timestamp.now(), descripcion: 'Mariscos frescos.', image: 'https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&q=80&w=800' },
-          { nombre: 'Dr. García - Médico 24/7', tipo: 'medicos', zona: 'Zona Dorada', estrellas: 4.9, createdAt: Timestamp.now(), descripcion: 'Atención médica inmediata.', image: 'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&q=80&w=800' },
-          { nombre: 'Condo Diamante Lakes', tipo: 'clasificados', zona: 'Zona Diamante', estrellas: 4.9, createdAt: Timestamp.now(), descripcion: 'Renta vacacional de lujo.', image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=800' },
-          { nombre: 'Villa Vista Mar', tipo: 'clasificados', zona: 'Las Brisas', estrellas: 4.8, createdAt: Timestamp.now(), descripcion: 'Privacidad y vista.', image: 'https://images.unsplash.com/photo-1613490493576-7fde63acd811?auto=format&fit=crop&q=80&w=800' },
-          { nombre: 'Motos Express', tipo: 'negocio', zona: 'Costera', estrellas: 4.6, createdAt: Timestamp.now(), descripcion: 'Renta de motonetas.', image: 'https://images.unsplash.com/photo-1558981403-c5f9899a28bc?auto=format&fit=crop&q=80&w=800' },
-          { nombre: 'Yate Sea Ray 45', tipo: 'yates', zona: 'Marina', estrellas: 4.8, createdAt: Timestamp.now(), descripcion: 'Lujo en el mar.', image: 'https://images.unsplash.com/photo-1544413647-ad6717a26f98?auto=format&fit=crop&q=80&w=800' },
-          { nombre: 'Clínica del Mar', tipo: 'medicos', zona: 'Costera', estrellas: 4.7, createdAt: Timestamp.now(), descripcion: 'Urgencias y consultas.', image: 'https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&q=80&w=800' },
-          { nombre: 'Penthouse Bay View', tipo: 'clasificados', zona: 'Zona Dorada', estrellas: 5.0, createdAt: Timestamp.now(), descripcion: 'Vista panorámica increíble.', image: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?auto=format&fit=crop&q=80&w=800' },
-          { nombre: 'Estudio Moderno Costera', tipo: 'clasificados', zona: 'Costera', estrellas: 4.7, createdAt: Timestamp.now(), descripcion: 'Ideal para parejas.', image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&q=80&w=800' },
-        ];
+        const { data, error } = await supabase
+          .from('establishments')
+          .select('*')
+          .order('nombre');
 
-        for (const item of mockData) {
-          if (!existingNames.includes(item.nombre)) {
-            await addDoc(collection(db, 'establecimientos'), item);
-          }
+        if (error) throw error;
+        
+        if (!data || data.length === 0) {
+          const mockData = [
+            { nombre: 'Hotel Emporio Acapulco', tipo: 'hotel', zona: 'Zona Dorada', estrellas: 4.8, descripcion: 'Lujo frente al mar.', image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=800' },
+            { nombre: 'Princess Mundo Imperial', tipo: 'hotel', zona: 'Diamante', estrellas: 4.9, descripcion: 'Arquitectura icónica.', image: 'https://images.unsplash.com/photo-1582719478250-c89cae4dc85b?auto=format&fit=crop&q=80&w=800' },
+            { nombre: 'Yates Bonanza', tipo: 'yates', zona: 'Zona Tradicional', estrellas: 4.9, descripcion: 'Paseos por la bahía.', image: 'https://images.unsplash.com/photo-1567899378494-47b22a2ae96a?auto=format&fit=crop&q=80&w=800' },
+            { nombre: 'La Cabaña de Caleta', tipo: 'negocio', zona: 'Caleta', estrellas: 4.5, descripcion: 'Mariscos frescos.', image: 'https://images.unsplash.com/photo-1552566626-52f8b828add9?auto=format&fit=crop&q=80&w=800' },
+            { nombre: 'Dr. García - Médico 24/7', tipo: 'medicos', zona: 'Zona Dorada', estrellas: 4.9, descripcion: 'Atención médica inmediata.', image: 'https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&q=80&w=800' },
+            { nombre: 'Condo Diamante Lakes', tipo: 'clasificados', zona: 'Zona Diamante', estrellas: 4.9, descripcion: 'Renta vacacional de lujo.', image: 'https://images.unsplash.com/photo-1512917774080-9991f1c4c750?auto=format&fit=crop&q=80&w=800' },
+          ];
+          await supabase.from('establishments').insert(mockData);
+          fetchEstablecimientos();
+          return;
         }
+
+        setEstablecimientos(data);
       } catch (err) {
-        console.error("Error seeding data:", err);
+        console.error("Error fetching establishments:", err);
+      } finally {
+        setLoading(false);
       }
     };
-    seedData();
 
-    const q = query(collection(db, 'establecimientos'), orderBy('nombre'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const ests = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setEstablecimientos(ests);
-      setLoading(false);
-    });
+    fetchEstablecimientos();
 
-    return () => unsubscribe();
+    const subscription = supabase
+      .channel('establishments_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'establishments' }, () => {
+        fetchEstablecimientos();
+      })
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   const filteredBusinesses = useMemo(() => {
@@ -253,10 +264,8 @@ export default function ClienteFeed() {
                            (e.zona && e.zona.toLowerCase().includes(searchQuery.toLowerCase()));
       
       // Smart Date Filtering (Simulated)
-      // If dates are selected, we simulate availability
       let matchesDates = true;
       if (dates.checkIn && dates.checkOut && e.tipo === 'hotel') {
-        // For demo: hotels with "Princess" in name are "unavailable" on weekends
         const isWeekend = new Date(dates.checkIn).getDay() === 0 || new Date(dates.checkIn).getDay() === 6;
         if (isWeekend && e.nombre.includes('Princess')) {
           matchesDates = false;
@@ -291,27 +300,29 @@ export default function ClienteFeed() {
             animate={{ opacity: 1, y: 0 }}
             className="space-y-4"
           >
-            <h1 className="text-5xl lg:text-7xl font-black text-white tracking-tighter leading-none">
-              ¡Disfruta de este<br />
-              <span className="text-primary">Mundo Hermoso!</span>
+            <Palmtree className="w-16 h-16 text-primary" />
+            <h1 className="text-6xl lg:text-8xl font-black text-white tracking-tighter leading-none">
+              BIENVENIDO A <br />
+              <span className="text-primary">ACAPULCO</span>
             </h1>
-            <p className="text-white/60 text-lg lg:text-xl font-medium max-w-md">
-              Explora nuevos lugares en el mundo y obtén nuevas experiencias
+            <p className="text-white/60 text-xl font-medium max-w-2xl">
+              La guía definitiva para vivir el puerto como un local. Hoteles, negocios, rentas y experiencias únicas.
             </p>
           </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9 }}
-            animate={{ opacity: 1, scale: 1 }}
-            className="flex flex-wrap gap-3"
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.5 }}
+            className="flex flex-wrap gap-4"
           >
             {DEMO_ROLES.map((role) => (
               <button
                 key={role.id}
                 onClick={() => navigate(role.path)}
                 className={cn(
-                  "px-6 py-3 rounded-none text-[10px] font-black uppercase tracking-widest text-white shadow-xl transition-all active:scale-95",
-                  role.color
+                  "px-6 py-3 rounded-none text-[10px] font-black uppercase tracking-widest transition-all border border-white/20 hover:bg-white hover:text-dark",
+                  role.color.replace('bg-', 'text-')
                 )}
               >
                 {role.label}
@@ -341,7 +352,6 @@ export default function ClienteFeed() {
     <div className="space-y-12">
       {/* Hero Section with Search */}
       <section className="relative bg-navy pt-12 pb-24 lg:pt-20 lg:pb-32 overflow-hidden">
-        {/* Abstract Background Shapes */}
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/20 rounded-full -mr-64 -mt-64 blur-[120px]" />
         <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-accent/10 rounded-full -ml-32 -mb-32 blur-[80px]" />
 
@@ -531,5 +541,3 @@ export default function ClienteFeed() {
     </div>
   );
 }
-
-

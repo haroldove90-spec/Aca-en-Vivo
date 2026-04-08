@@ -1,11 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { supabase } from '../../lib/supabase';
 import { 
   Zap, 
   Users, 
   MapPin, 
   Eye, 
-  MousePointer2, 
-  ExternalLink, 
   Save,
   Loader2,
   CheckCircle2,
@@ -15,22 +14,16 @@ import {
   MessageCircle,
   Camera,
   Trash2,
-  Image as ImageIcon,
   TrendingUp,
   Navigation,
   X,
   Calendar,
-  Utensils,
-  Smartphone,
   AlertCircle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
-import { doc, onSnapshot, updateDoc, serverTimestamp, collection, query, where, orderBy } from 'firebase/firestore';
-import { db } from '../../lib/firebase';
 import { CameraModal } from '../../components/CameraModal';
 import { HOTEL_IMAGES } from '../../constants/images';
-
 import { useNavigate, useLocation } from 'react-router-dom';
 
 type Tab = 'estado' | 'perfil' | 'ofertas' | 'multimedia' | 'impacto' | 'reservas';
@@ -45,83 +38,108 @@ export default function NegocioDashboard() {
   const setActiveTab = (tab: Tab) => {
     navigate(`/negocio?tab=${tab}`);
   };
+
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
   const [cameraTarget, setCameraTarget] = useState<'cover' | 'menu' | null>(null);
   const [reservas, setReservas] = useState<any[]>([]);
+  const [negocioId, setNegocioId] = useState<string | null>(null);
 
   // Business State
   const [isOpen, setIsOpen] = useState(true);
   const [afluencia, setAfluencia] = useState<'baja' | 'media' | 'alta'>('baja');
   
   // Profile State
-  const [businessName, setBusinessName] = useState("Yates Bonanza Acapulco");
-  const [category, setCategory] = useState("Renta de Yates / Tours");
-  const [address, setAddress] = useState("Muelle de la Marina, Acapulco");
-  const [whatsapp, setWhatsapp] = useState("+52 744 123 4567");
+  const [businessName, setBusinessName] = useState("");
+  const [category, setCategory] = useState("");
+  const [address, setAddress] = useState("");
+  const [whatsapp, setWhatsapp] = useState("");
 
   // Offers State
-  const [offerText, setOfferText] = useState("Cubetazo 5x4 antes de las 6pm");
+  const [offerText, setOfferText] = useState("");
   const [offerValidity, setOfferValidity] = useState<'today' | 'permanent'>('today');
 
   // Media State
   const [coverImage, setCoverImage] = useState<string>(HOTEL_IMAGES.YACHT);
   const [menuImage, setMenuImage] = useState<string>(HOTEL_IMAGES.RESTAURANT);
 
-  // Mock Stats
-  const stats = {
-    vistas: 215,
-    clicsOferta: 45,
-    clicsMaps: 12
-  };
-
-  const negocioId = "negocio-1";
-
   useEffect(() => {
-    const docRef = doc(db, 'establecimientos', negocioId);
-    const unsubscribe = onSnapshot(docRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const data = snapshot.data();
-        setBusinessName(data.nombre || "");
-        setCategory(data.giro || "");
-        setAddress(data.direccion || "");
-        setOfferText(data.promocion || "");
-        setAfluencia(data.afluencia || 'baja');
-        setIsOpen(data.abierto !== false);
+    const initDashboard = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        navigate('/');
+        return;
+      }
+
+      let { data: ests } = await supabase
+        .from('establishments')
+        .select('*')
+        .eq('owner_id', session.user.id)
+        .limit(1);
+
+      let currentEst = ests?.[0];
+
+      if (!currentEst) {
+        const { data: newEst } = await supabase
+          .from('establishments')
+          .insert({
+            owner_id: session.user.id,
+            nombre: 'Mi Negocio Acapulco',
+            tipo: 'negocio',
+            zona: 'Costera',
+            descripcion: 'Bienvenido a mi nuevo negocio.',
+            estrellas: 4.5,
+            image: HOTEL_IMAGES.YACHT
+          })
+          .select()
+          .single();
+        currentEst = newEst;
+      }
+
+      if (currentEst) {
+        setNegocioId(currentEst.id);
+        setBusinessName(currentEst.nombre);
+        setCategory(currentEst.giro || 'Negocio');
+        setAddress(currentEst.direccion || '');
+        setOfferText(currentEst.promocion || '');
+        setAfluencia(currentEst.afluencia || 'baja');
+        setIsOpen(currentEst.abierto !== false);
+        setCoverImage(currentEst.image || HOTEL_IMAGES.YACHT);
+
+        const { data: res } = await supabase
+          .from('reservations')
+          .select('*')
+          .eq('business_id', currentEst.id)
+          .order('created_at', { ascending: false });
+        
+        if (res) setReservas(res);
       }
       setLoading(false);
-    });
+    };
 
-    return () => unsubscribe();
-  }, [negocioId]);
-
-  useEffect(() => {
-    const q = query(
-      collection(db, 'reservas'),
-      where('businessId', '==', negocioId),
-      orderBy('createdAt', 'desc')
-    );
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const resData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setReservas(resData);
-    });
-    return () => unsubscribe();
-  }, [negocioId]);
+    initDashboard();
+  }, [navigate]);
 
   const handleSaveChanges = async () => {
+    if (!negocioId) return;
     setSaving(true);
     try {
-      await updateDoc(doc(db, 'establecimientos', negocioId), {
-        nombre: businessName,
-        giro: category,
-        direccion: address,
-        promocion: offerText,
-        afluencia: afluencia,
-        abierto: isOpen,
-        ultima_edicion: serverTimestamp()
-      });
+      const { error } = await supabase
+        .from('establishments')
+        .update({
+          nombre: businessName,
+          giro: category,
+          direccion: address,
+          promocion: offerText,
+          afluencia: afluencia,
+          abierto: isOpen,
+          image: coverImage
+        })
+        .eq('id', negocioId);
+
+      if (error) throw error;
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
     } catch (error) {
@@ -131,24 +149,15 @@ export default function NegocioDashboard() {
     }
   };
 
-  const handleImageUpload = (type: 'cover' | 'menu') => (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        if (type === 'cover') setCoverImage(reader.result as string);
-        else setMenuImage(reader.result as string);
-      };
-      reader.readAsDataURL(file);
-    }
-  };
-
   const handleUpdateReservaStatus = async (resId: string, newStatus: string) => {
     try {
-      await updateDoc(doc(db, 'reservas', resId), {
-        status: newStatus,
-        updatedAt: serverTimestamp()
-      });
+      const { error } = await supabase
+        .from('reservations')
+        .update({ status: newStatus })
+        .eq('id', resId);
+      
+      if (error) throw error;
+      setReservas(prev => prev.map(r => r.id === resId ? { ...r, status: newStatus } : r));
     } catch (error) {
       console.error("Error updating reservation status:", error);
     }
@@ -164,7 +173,6 @@ export default function NegocioDashboard() {
 
   return (
     <div className="space-y-10">
-      {/* Header Section */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-primary rounded-none flex items-center justify-center shadow-lg shadow-primary/20">
@@ -183,9 +191,6 @@ export default function NegocioDashboard() {
         </div>
       </div>
 
-      {/* Main Content */}
-
-      {/* Main Content */}
       <div className="max-w-2xl mx-auto w-full">
         <AnimatePresence mode="wait">
           {activeTab === 'estado' && (
@@ -196,7 +201,6 @@ export default function NegocioDashboard() {
               exit={{ opacity: 0, y: -20 }}
               className="space-y-8"
             >
-              {/* Open/Closed Toggle */}
               <div className={cn(
                 "p-8 rounded-none shadow-xl border transition-all duration-500",
                 isOpen ? "bg-emerald-50 border-emerald-100" : "bg-gray-50 border-gray-200"
@@ -231,7 +235,6 @@ export default function NegocioDashboard() {
                 </div>
               </div>
 
-              {/* Afluencia Selector */}
               <div className="bg-white rounded-none p-10 shadow-xl shadow-black/5 border border-gray-100 space-y-8">
                 <h2 className="text-sm font-black uppercase tracking-[0.2em] text-dark flex items-center gap-3">
                   <Users className="w-6 h-6 text-primary" />
@@ -303,19 +306,6 @@ export default function NegocioDashboard() {
                     />
                   </div>
                 </div>
-
-                <div className="space-y-3">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted ml-2">WhatsApp de Reservas</label>
-                  <div className="relative">
-                    <MessageCircle className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-emerald-500" />
-                    <input 
-                      type="tel" 
-                      value={whatsapp}
-                      onChange={(e) => setWhatsapp(e.target.value)}
-                      className="w-full bg-gray-50 border-2 border-gray-100 rounded-none p-5 pl-14 text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all tracking-widest"
-                    />
-                  </div>
-                </div>
               </div>
             </motion.div>
           )}
@@ -338,30 +328,6 @@ export default function NegocioDashboard() {
                     className="w-full bg-gray-50 border-2 border-gray-100 rounded-none p-5 text-sm font-black text-dark focus:outline-none focus:border-primary/30 transition-all h-32 resize-none"
                   />
                 </div>
-
-                <div className="space-y-5">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted ml-2">Vigencia</label>
-                  <div className="flex gap-4">
-                    {[
-                      { id: 'today', label: 'Solo Hoy', icon: Calendar },
-                      { id: 'permanent', label: 'Permanente', icon: CheckCircle2 },
-                    ].map((v) => (
-                      <button
-                        key={v.id}
-                        onClick={() => setOfferValidity(v.id as any)}
-                        className={cn(
-                          "flex-1 flex items-center justify-center gap-3 p-5 rounded-none border-2 transition-all",
-                          offerValidity === v.id 
-                            ? "bg-primary/5 border-primary/20 text-primary" 
-                            : "bg-gray-50 border-transparent text-muted"
-                        )}
-                      >
-                        <v.icon className="w-5 h-5" />
-                        <span className="text-[10px] font-black uppercase tracking-widest">{v.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
               </div>
             </motion.div>
           )}
@@ -375,7 +341,6 @@ export default function NegocioDashboard() {
               className="space-y-8"
             >
               <div className="bg-white rounded-none p-10 shadow-xl shadow-black/5 border border-gray-100 space-y-10">
-                {/* Cover Image */}
                 <div className="space-y-5">
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted ml-2">Foto de Portada</label>
                   <div className="relative aspect-video rounded-none overflow-hidden bg-gray-100 group shadow-sm">
@@ -388,72 +353,6 @@ export default function NegocioDashboard() {
                         <Camera className="w-8 h-8" />
                       </button>
                     </div>
-                  </div>
-                </div>
-
-                {/* Menu Image */}
-                <div className="space-y-5">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted ml-2">Foto de Menú / Precios</label>
-                  <div className="relative aspect-[3/4] rounded-none overflow-hidden bg-gray-100 group max-w-[240px] mx-auto shadow-sm">
-                    <img src={menuImage} alt="Menu" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                      <button 
-                        onClick={() => { setCameraTarget('menu'); setShowCamera(true); }}
-                        className="w-16 h-16 bg-white/20 backdrop-blur-md rounded-none flex items-center justify-center border border-white/30 text-white"
-                      >
-                        <Camera className="w-8 h-8" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {activeTab === 'impacto' && (
-            <motion.div
-              key="impacto"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              className="space-y-8"
-            >
-              <div className="bg-dark rounded-none p-10 text-white shadow-2xl space-y-10 relative overflow-hidden">
-                <div className="absolute -top-10 -right-10 w-40 h-40 bg-primary/10 rounded-none blur-3xl" />
-                <div className="flex items-center justify-between relative z-10">
-                  <h2 className="text-sm font-black uppercase tracking-[0.2em] text-primary">Impacto Hoy</h2>
-                  <TrendingUp className="w-6 h-6 text-emerald-400" />
-                </div>
-
-                <div className="grid grid-cols-1 gap-6 relative z-10">
-                  <div className="flex items-center justify-between p-6 bg-white/5 rounded-none border border-white/10">
-                    <div className="flex items-center gap-5">
-                      <div className="w-12 h-12 bg-primary/20 rounded-none flex items-center justify-center">
-                        <Eye className="w-6 h-6 text-primary" />
-                      </div>
-                      <span className="text-[10px] font-black uppercase tracking-widest opacity-50">Vistas Hoy</span>
-                    </div>
-                    <span className="text-3xl font-black tracking-tighter">{stats.vistas}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between p-6 bg-white/5 rounded-none border border-white/10">
-                    <div className="flex items-center gap-5">
-                      <div className="w-12 h-12 bg-amber-400/20 rounded-none flex items-center justify-center">
-                        <Zap className="w-6 h-6 text-amber-400" />
-                      </div>
-                      <span className="text-[10px] font-black uppercase tracking-widest opacity-50">Clics Oferta</span>
-                    </div>
-                    <span className="text-3xl font-black tracking-tighter">{stats.clicsOferta}</span>
-                  </div>
-
-                  <div className="flex items-center justify-between p-6 bg-white/5 rounded-none border border-white/10">
-                    <div className="flex items-center gap-5">
-                      <div className="w-12 h-12 bg-emerald-400/20 rounded-none flex items-center justify-center">
-                        <Navigation className="w-6 h-6 text-emerald-400" />
-                      </div>
-                      <span className="text-[10px] font-black uppercase tracking-widest opacity-50">Cómo Llegar</span>
-                    </div>
-                    <span className="text-3xl font-black tracking-tighter">{stats.clicsMaps}</span>
                   </div>
                 </div>
               </div>
@@ -492,9 +391,9 @@ export default function NegocioDashboard() {
                             <Users className="w-6 h-6 text-gray-400" />
                           </div>
                           <div>
-                            <p className="text-sm font-black text-dark uppercase tracking-tight">Cliente #{res.userId.slice(0, 5)}</p>
+                            <p className="text-sm font-black text-dark uppercase tracking-tight">Cliente #{res.user_id.slice(0, 5)}</p>
                             <p className="text-[10px] text-muted font-bold uppercase tracking-widest">
-                              {new Date(res.date).toLocaleDateString()} • {res.quantity || 1} Unidades
+                              {new Date(res.created_at).toLocaleDateString()}
                             </p>
                           </div>
                         </div>
@@ -534,7 +433,6 @@ export default function NegocioDashboard() {
         </AnimatePresence>
       </div>
 
-      {/* Floating Action Button (FAB) */}
       <div className="fixed bottom-24 lg:bottom-10 left-1/2 -translate-x-1/2 w-full max-w-md px-6 z-40">
         <button
           onClick={handleSaveChanges}
@@ -552,7 +450,6 @@ export default function NegocioDashboard() {
         </button>
       </div>
 
-      {/* Toast Notification */}
       <AnimatePresence>
         {showToast && (
           <motion.div

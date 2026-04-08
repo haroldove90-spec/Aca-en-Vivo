@@ -1,9 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Calendar, MapPin, Clock, CheckCircle2, Loader2, X, Download, Share2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
-import { collection, query, where, onSnapshot, orderBy } from 'firebase/firestore';
-import { onAuthStateChanged } from 'firebase/auth';
-import { db, auth } from '../../lib/firebase';
+import { supabase } from '../../lib/supabase';
 import { HOTEL_IMAGES } from '../../constants/images';
 
 export default function ClienteReservations() {
@@ -12,30 +10,41 @@ export default function ClienteReservations() {
   const [selectedVoucher, setSelectedVoucher] = useState<any | null>(null);
 
   useEffect(() => {
-    const unsubscribeAuth = onAuthStateChanged(auth, (user) => {
-      const userId = user?.uid || 'demo-user';
-      const q = query(
-        collection(db, 'reservas'),
-        where('userId', '==', userId),
-        orderBy('createdAt', 'desc')
-      );
+    const fetchReservations = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session) {
+          setLoading(false);
+          return;
+        }
 
-      const unsubscribeSnapshot = onSnapshot(q, (snapshot) => {
-        const resData = snapshot.docs.map(doc => ({
-          id: doc.id,
-          ...doc.data()
-        }));
-        setReservations(resData);
-        setLoading(false);
-      }, (err) => {
+        const { data, error } = await supabase
+          .from('reservations')
+          .select('*')
+          .eq('user_id', session.user.id)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        setReservations(data || []);
+      } catch (err) {
         console.error("Error fetching reservations:", err);
+      } finally {
         setLoading(false);
-      });
+      }
+    };
 
-      return () => unsubscribeSnapshot();
-    });
+    fetchReservations();
 
-    return () => unsubscribeAuth();
+    const subscription = supabase
+      .channel('reservations_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'reservations' }, () => {
+        fetchReservations();
+      })
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, []);
 
   if (loading) {
@@ -63,8 +72,8 @@ export default function ClienteReservations() {
           >
             <div className="w-full md:w-48 aspect-square rounded-none overflow-hidden shrink-0">
               <img 
-                src={res.businessImage || HOTEL_IMAGES.EXTERIOR} 
-                alt={res.businessName} 
+                src={res.business_image || HOTEL_IMAGES.EXTERIOR} 
+                alt={res.business_name} 
                 className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
                 referrerPolicy="no-referrer"
               />
@@ -74,7 +83,7 @@ export default function ClienteReservations() {
               <div className="space-y-4">
                 <div className="flex justify-between items-start">
                   <div>
-                    <h3 className="text-xl font-black text-dark uppercase tracking-tight">{res.businessName}</h3>
+                    <h3 className="text-xl font-black text-dark uppercase tracking-tight">{res.business_name}</h3>
                     <div className="flex items-center gap-1 text-muted mt-1">
                       <MapPin className="w-3 h-3 text-primary" />
                       <span className="text-[10px] font-bold uppercase tracking-tight">Zona Dorada, Acapulco</span>
@@ -93,14 +102,16 @@ export default function ClienteReservations() {
                       <Calendar className="w-3 h-3" />
                       <span className="text-[9px] font-black uppercase tracking-widest">Fecha</span>
                     </div>
-                    <p className="text-xs font-bold text-dark">{new Date(res.date).toLocaleDateString()}</p>
+                    <p className="text-xs font-bold text-dark">
+                      {res.check_in ? new Date(res.check_in).toLocaleDateString() : new Date(res.created_at).toLocaleDateString()}
+                    </p>
                   </div>
                   <div className="space-y-1">
                     <div className="flex items-center gap-2 text-muted">
                       <Clock className="w-3 h-3" />
                       <span className="text-[9px] font-black uppercase tracking-widest">Personas</span>
                     </div>
-                    <p className="text-xs font-bold text-dark">2 Adultos</p>
+                    <p className="text-xs font-bold text-dark">{res.guests} Adultos</p>
                   </div>
                   <div className="space-y-1">
                     <div className="flex items-center gap-2 text-muted">
@@ -113,7 +124,7 @@ export default function ClienteReservations() {
                     <div className="flex items-center gap-2 text-muted">
                       <span className="text-[9px] font-black uppercase tracking-widest">Total</span>
                     </div>
-                    <p className="text-xs font-black text-primary">$2,500 MXN</p>
+                    <p className="text-xs font-black text-primary">${res.total_price?.toLocaleString()} MXN</p>
                   </div>
                 </div>
               </div>
@@ -159,10 +170,10 @@ export default function ClienteReservations() {
               <div className="p-8 space-y-8">
                 <div className="flex items-center gap-6">
                   <div className="w-20 h-20 bg-gray-100 rounded-none overflow-hidden shrink-0">
-                    <img src={selectedVoucher.businessImage} alt="" className="w-full h-full object-cover" />
+                    <img src={selectedVoucher.business_image} alt="" className="w-full h-full object-cover" />
                   </div>
                   <div>
-                    <h3 className="text-lg font-black text-dark uppercase tracking-tight">{selectedVoucher.businessName}</h3>
+                    <h3 className="text-lg font-black text-dark uppercase tracking-tight">{selectedVoucher.business_name}</h3>
                     <p className="text-[10px] font-bold text-muted uppercase tracking-widest">Acapulco, México</p>
                   </div>
                 </div>
@@ -170,7 +181,9 @@ export default function ClienteReservations() {
                 <div className="grid grid-cols-2 gap-8 py-8 border-y border-dashed border-gray-200">
                   <div className="space-y-1">
                     <p className="text-[9px] font-black text-muted uppercase tracking-widest">Fecha</p>
-                    <p className="text-sm font-bold text-dark">{new Date(selectedVoucher.date).toLocaleDateString()}</p>
+                    <p className="text-sm font-bold text-dark">
+                      {selectedVoucher.check_in ? new Date(selectedVoucher.check_in).toLocaleDateString() : new Date(selectedVoucher.created_at).toLocaleDateString()}
+                    </p>
                   </div>
                   <div className="space-y-1">
                     <p className="text-[9px] font-black text-muted uppercase tracking-widest">Estado</p>
@@ -182,7 +195,7 @@ export default function ClienteReservations() {
                   </div>
                   <div className="space-y-1">
                     <p className="text-[9px] font-black text-muted uppercase tracking-widest">Total</p>
-                    <p className="text-sm font-black text-primary">$2,500 MXN</p>
+                    <p className="text-sm font-black text-primary">${selectedVoucher.total_price?.toLocaleString()} MXN</p>
                   </div>
                 </div>
 

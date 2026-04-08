@@ -1,8 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, useLocation, useNavigate } from 'react-router-dom';
-import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
-import { auth, db } from './lib/firebase';
+import { supabase } from './lib/supabase';
+import { AuthModal } from './components/AuthModal';
 import ClienteFeed from './pages/cliente/Feed';
 import ClienteFavorites from './pages/cliente/Favorites';
 import ClienteReservations from './pages/cliente/Reservations';
@@ -30,23 +29,42 @@ function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode,
   const location = useLocation();
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
-      if (currentUser) {
-        setUser(currentUser);
-        // Fetch role from Firestore
-        const userDoc = await getDoc(doc(db, 'profiles', currentUser.uid));
-        if (userDoc.exists()) {
-          setRole(userDoc.data().role);
-        } else {
-          setRole('cliente'); // Default
-        }
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setUser(session.user);
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single();
+        setRole(profile?.role || 'cliente');
+      } else {
+        setUser(null);
+        setRole(null);
+      }
+      setLoading(false);
+    };
+
+    checkUser();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (session) {
+        setUser(session.user);
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', session.user.id)
+          .single();
+        setRole(profile?.role || 'cliente');
       } else {
         setUser(null);
         setRole(null);
       }
       setLoading(false);
     });
-    return () => unsubscribe();
+
+    return () => subscription.unsubscribe();
   }, []);
 
   if (loading) {
@@ -70,6 +88,8 @@ function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode,
 }
 
 function App() {
+  const [isAuthOpen, setIsAuthOpen] = useState(false);
+
   return (
     <NotificationProvider>
       <FavoritesProvider>
@@ -79,20 +99,20 @@ function App() {
               <div className="min-h-screen bg-bg font-sans">
                 <Routes>
               {/* Public Feed */}
-              <Route path="/" element={<Layout><ClienteFeed /></Layout>} />
-              <Route path="/favoritos" element={<Layout><ClienteFavorites /></Layout>} />
-              <Route path="/reservas" element={<Layout><ClienteReservations /></Layout>} />
-              <Route path="/perfil" element={<Layout><ClienteProfile /></Layout>} />
-              <Route path="/settings" element={<Layout><ClienteSettings /></Layout>} />
-              <Route path="/notificaciones" element={<Layout><NotificationHistory /></Layout>} />
-              <Route path="/business/:id" element={<Layout><BusinessDetail /></Layout>} />
+              <Route path="/" element={<Layout onAuthClick={() => setIsAuthOpen(true)}><ClienteFeed /></Layout>} />
+              <Route path="/favoritos" element={<Layout onAuthClick={() => setIsAuthOpen(true)}><ClienteFavorites /></Layout>} />
+              <Route path="/reservas" element={<Layout onAuthClick={() => setIsAuthOpen(true)}><ClienteReservations /></Layout>} />
+              <Route path="/perfil" element={<Layout onAuthClick={() => setIsAuthOpen(true)}><ClienteProfile /></Layout>} />
+              <Route path="/settings" element={<Layout onAuthClick={() => setIsAuthOpen(true)}><ClienteSettings /></Layout>} />
+              <Route path="/notificaciones" element={<Layout onAuthClick={() => setIsAuthOpen(true)}><NotificationHistory /></Layout>} />
+              <Route path="/business/:id" element={<Layout onAuthClick={() => setIsAuthOpen(true)}><BusinessDetail /></Layout>} />
               
               {/* Hotel Dashboard (Protected) */}
               <Route 
                 path="/hotel" 
                 element={
-                  <ProtectedRoute allowedRoles={['hotel', 'admin']}>
-                    <Layout>
+                  <ProtectedRoute allowedRoles={['hotel', 'admin', 'agencia']}>
+                    <Layout onAuthClick={() => setIsAuthOpen(true)}>
                       <HotelDashboard />
                     </Layout>
                   </ProtectedRoute>
@@ -103,8 +123,8 @@ function App() {
               <Route 
                 path="/admin-agencia" 
                 element={
-                  <ProtectedRoute allowedRoles={['admin']}>
-                    <Layout>
+                  <ProtectedRoute allowedRoles={['admin', 'agencia']}>
+                    <Layout onAuthClick={() => setIsAuthOpen(true)}>
                       <AgenciaDashboard />
                     </Layout>
                   </ProtectedRoute>
@@ -115,8 +135,8 @@ function App() {
               <Route 
                 path="/negocio" 
                 element={
-                  <ProtectedRoute allowedRoles={['negocio', 'admin']}>
-                    <Layout>
+                  <ProtectedRoute allowedRoles={['negocio', 'admin', 'agencia']}>
+                    <Layout onAuthClick={() => setIsAuthOpen(true)}>
                       <NegocioDashboard />
                     </Layout>
                   </ProtectedRoute>
@@ -128,7 +148,7 @@ function App() {
                 path="/admin-dev" 
                 element={
                   <ProtectedRoute allowedRoles={['admin']}>
-                    <Layout>
+                    <Layout onAuthClick={() => setIsAuthOpen(true)}>
                       <DevDashboard />
                     </Layout>
                   </ProtectedRoute>
@@ -139,8 +159,8 @@ function App() {
               <Route 
                 path="/clasificados" 
                 element={
-                  <ProtectedRoute allowedRoles={['clasificados', 'admin']}>
-                    <Layout>
+                  <ProtectedRoute allowedRoles={['clasificados', 'admin', 'agencia']}>
+                    <Layout onAuthClick={() => setIsAuthOpen(true)}>
                       <ClasificadosDashboard />
                     </Layout>
                   </ProtectedRoute>
@@ -151,6 +171,7 @@ function App() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </div>
+          <AuthModal isOpen={isAuthOpen} onClose={() => setIsAuthOpen(true)} />
         </Router>
           </CartProvider>
         </SearchProvider>

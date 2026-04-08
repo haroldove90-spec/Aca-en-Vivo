@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { doc, getDoc, collection, addDoc, Timestamp } from 'firebase/firestore';
-import { db, auth } from '../../lib/firebase';
+import { supabase } from '../../lib/supabase';
 import { 
   MapPin, 
   Star, 
@@ -28,7 +27,6 @@ import { cn } from '../../lib/utils';
 import { useFavorites } from '../../contexts/FavoritesContext';
 import { useCart } from '../../contexts/CartContext';
 import { HOTEL_IMAGES } from '../../constants/images';
-import { query, orderBy, onSnapshot, where } from 'firebase/firestore';
 
 export default function BusinessDetail() {
   const { id } = useParams();
@@ -74,30 +72,28 @@ export default function BusinessDetail() {
     const fetchBusiness = async () => {
       if (!id) return;
       try {
-        const docRef = doc(db, 'establecimientos', id);
-        const docSnap = await getDoc(docRef);
-        if (docSnap.exists()) {
-          setBusiness({ id: docSnap.id, ...docSnap.data() });
-        } else {
-          // Fallback mock data if not found in DB
-          setBusiness({
-            id,
-            nombre: 'Establecimiento Demo',
-            tipo: 'hotel',
-            zona: 'Zona Dorada',
-            descripcion: 'Una experiencia única frente al mar con los mejores servicios y atención personalizada.',
-            estrellas: 4.8,
-            telefono: '+52 744 123 4567',
-            amenidades: ['wifi', 'pool', 'parking', 'pet'],
-            galeria: [
-              HOTEL_IMAGES.EXTERIOR,
-              HOTEL_IMAGES.ROOM,
-              HOTEL_IMAGES.POOL
-            ]
-          });
-        }
+        const { data, error } = await supabase
+          .from('establishments')
+          .select('*')
+          .eq('id', id)
+          .single();
+
+        if (error) throw error;
+        setBusiness(data);
       } catch (err) {
         console.error("Error fetching business:", err);
+        // Fallback mock data
+        setBusiness({
+          id,
+          nombre: 'Establecimiento Demo',
+          tipo: 'hotel',
+          zona: 'Zona Dorada',
+          descripcion: 'Una experiencia única frente al mar con los mejores servicios y atención personalizada.',
+          estrellas: 4.8,
+          telefono: '+52 744 123 4567',
+          amenidades: ['wifi', 'pool', 'parking', 'pet'],
+          galeria: [HOTEL_IMAGES.EXTERIOR, HOTEL_IMAGES.ROOM, HOTEL_IMAGES.POOL]
+        });
       } finally {
         setLoading(false);
       }
@@ -107,16 +103,28 @@ export default function BusinessDetail() {
 
   useEffect(() => {
     if (!id) return;
-    const q = query(
-      collection(db, 'reviews'),
-      where('businessId', '==', id),
-      orderBy('createdAt', 'desc')
-    );
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const reviewsData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setReviews(reviewsData);
-    });
-    return () => unsubscribe();
+    const fetchReviews = async () => {
+      const { data, error } = await supabase
+        .from('reviews')
+        .select('*')
+        .eq('business_id', id)
+        .order('created_at', { ascending: false });
+      
+      if (!error) setReviews(data || []);
+    };
+
+    fetchReviews();
+
+    const subscription = supabase
+      .channel('reviews_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'reviews', filter: `business_id=eq.${id}` }, () => {
+        fetchReviews();
+      })
+      .subscribe();
+
+    return () => {
+      subscription.unsubscribe();
+    };
   }, [id]);
 
   const handleReserve = async () => {
@@ -126,19 +134,26 @@ export default function BusinessDetail() {
     }
     setReserving(true);
     try {
-      await addDoc(collection(db, 'reservas'), {
-        userId: auth.currentUser?.uid || 'demo-user',
-        businessId: id,
-        businessName: business.nombre,
-        businessImage: business.image || business.galeria?.[0] || HOTEL_IMAGES.EXTERIOR,
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        alert('Por favor inicia sesión para reservar');
+        return;
+      }
+
+      const { error } = await supabase.from('reservations').insert({
+        user_id: session.user.id,
+        business_id: id,
+        business_name: business.nombre,
+        business_image: business.image || business.galeria?.[0] || HOTEL_IMAGES.EXTERIOR,
         status: 'confirmada',
-        checkIn,
-        checkOut,
+        check_in: checkIn,
+        check_out: checkOut,
         nights,
-        totalPrice: totalPrice || basePrice,
-        guests,
-        createdAt: Timestamp.now()
+        total_price: totalPrice || basePrice,
+        guests
       });
+
+      if (error) throw error;
       setShowSuccess(true);
       setTimeout(() => {
         setShowSuccess(false);
@@ -156,15 +171,22 @@ export default function BusinessDetail() {
     if (!newReview.comment.trim()) return;
     setSubmittingReview(true);
     try {
-      await addDoc(collection(db, 'reviews'), {
-        businessId: id,
-        userId: auth.currentUser?.uid || 'demo-user',
-        userName: auth.currentUser?.displayName || 'Usuario Demo',
-        userPhoto: auth.currentUser?.photoURL || '',
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        alert('Por favor inicia sesión para dejar una reseña');
+        return;
+      }
+
+      const { error } = await supabase.from('reviews').insert({
+        business_id: id,
+        user_id: session.user.id,
+        user_name: session.user.user_metadata?.full_name || 'Usuario',
+        user_photo: session.user.user_metadata?.avatar_url || '',
         rating: newReview.rating,
-        comment: newReview.comment,
-        createdAt: Timestamp.now()
+        comment: newReview.comment
       });
+
+      if (error) throw error;
       setNewReview({ rating: 5, comment: '' });
     } catch (err) {
       console.error("Error adding review:", err);
@@ -185,7 +207,6 @@ export default function BusinessDetail() {
 
   return (
     <div className="pb-24 bg-white lg:bg-bg">
-      {/* Top Navigation Bar (Mobile only, desktop has global header) */}
       <div className="lg:hidden sticky top-0 z-50 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between">
         <button onClick={() => navigate(-1)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
           <ChevronLeft className="w-6 h-6 text-dark" />
@@ -211,7 +232,6 @@ export default function BusinessDetail() {
       </div>
 
       <div className="max-w-7xl mx-auto lg:px-12 lg:py-8">
-        {/* Gallery Grid */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-2 h-[400px] lg:h-[500px] overflow-hidden lg:rounded-lg">
           <div className="lg:col-span-2 h-full relative group cursor-pointer">
             <img 
@@ -240,9 +260,7 @@ export default function BusinessDetail() {
           </div>
         </div>
 
-        {/* Content Section */}
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8 px-6 lg:px-0">
-          {/* Left Column: Info */}
           <div className="lg:col-span-2 space-y-8">
             <div className="flex flex-col gap-4">
               <div className="flex items-center gap-2">
@@ -280,9 +298,7 @@ export default function BusinessDetail() {
 
             <div className="border-t border-gray-100 pt-8">
               <h2 className="text-xl font-black text-dark mb-6">Reseñas de huéspedes</h2>
-              
               <div className="space-y-8">
-                {/* Review Form */}
                 <form onSubmit={handleAddReview} className="bg-gray-50 p-6 rounded-none space-y-4">
                   <p className="text-xs font-black uppercase tracking-widest text-dark">Escribe tu opinión</p>
                   <div className="flex gap-2">
@@ -312,7 +328,6 @@ export default function BusinessDetail() {
                   </button>
                 </form>
 
-                {/* Reviews List */}
                 <div className="space-y-8">
                   {reviews.length === 0 ? (
                     <p className="text-sm text-muted font-medium italic">Aún no hay reseñas. ¡Sé el primero en opinar!</p>
@@ -321,15 +336,15 @@ export default function BusinessDetail() {
                       <div key={review.id} className="space-y-3">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 bg-gray-100 rounded-none flex items-center justify-center overflow-hidden">
-                            {review.userPhoto ? (
-                              <img src={review.userPhoto} alt="" className="w-full h-full object-cover" />
+                            {review.user_photo ? (
+                              <img src={review.user_photo} alt="" className="w-full h-full object-cover" />
                             ) : (
                               <Users className="w-5 h-5 text-gray-400" />
                             )}
                           </div>
                           <div>
-                            <p className="text-sm font-black text-dark uppercase tracking-tight">{review.userName}</p>
-                            <p className="text-[10px] text-muted font-bold uppercase">{review.createdAt?.toDate().toLocaleDateString()}</p>
+                            <p className="text-sm font-black text-dark uppercase tracking-tight">{review.user_name}</p>
+                            <p className="text-[10px] text-muted font-bold uppercase">{new Date(review.created_at).toLocaleDateString()}</p>
                           </div>
                           <div className="ml-auto flex gap-0.5">
                             {[...Array(5)].map((_, i) => (
@@ -365,7 +380,6 @@ export default function BusinessDetail() {
                   </div>
                 ))}
               </div>
-              <button className="mt-6 text-primary font-bold text-sm hover:underline">Mostrar las 24 amenidades</button>
             </div>
 
             <div className="border-t border-gray-100 pt-8">
@@ -376,14 +390,8 @@ export default function BusinessDetail() {
             </div>
           </div>
 
-          {/* Right Column: Booking Card */}
           <div className="relative">
             <div className="bg-white p-6 rounded-sm shadow-xl border border-gray-200 sticky top-24 space-y-6">
-              <div className="bg-primary/5 p-4 rounded-sm border border-primary/10">
-                <p className="text-xs font-bold text-primary mb-1">Oferta por tiempo limitado</p>
-                <p className="text-[10px] text-muted">Ahorra un 15% si reservas hoy mismo</p>
-              </div>
-
               <div>
                 <div className="flex items-baseline gap-2">
                   <span className="text-muted line-through text-sm">$2,950</span>
@@ -417,19 +425,6 @@ export default function BusinessDetail() {
                     />
                   </div>
                 </div>
-                <div className="p-3 border border-gray-200 rounded-sm flex items-center justify-between cursor-pointer hover:border-primary transition-colors">
-                  <div className="flex items-center gap-3">
-                    <Users className="w-5 h-5 text-muted" />
-                    <div>
-                      <p className="text-[10px] font-bold text-muted uppercase">Huéspedes</p>
-                      <p className="text-xs font-bold text-dark">{guests} adultos · 1 habitación</p>
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <button onClick={() => setGuests(Math.max(1, guests - 1))} className="w-6 h-6 border border-gray-200 flex items-center justify-center text-dark hover:bg-gray-50">-</button>
-                    <button onClick={() => setGuests(guests + 1)} className="w-6 h-6 border border-gray-200 flex items-center justify-center text-dark hover:bg-gray-50">+</button>
-                  </div>
-                </div>
               </div>
 
               <div className="space-y-3">
@@ -453,52 +448,11 @@ export default function BusinessDetail() {
                   Añadir al carrito
                 </button>
               </div>
-
-              <div className="flex items-center gap-2 text-[10px] text-muted font-medium">
-                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
-                <span>Reserva ahora y paga después</span>
-              </div>
             </div>
-          </div>
-        </div>
-
-        {/* Recommended Sponsors Section */}
-        <div className="mt-20 border-t border-gray-100 pt-12">
-          <div className="flex items-center justify-between mb-8">
-            <div>
-              <h2 className="text-2xl font-black text-dark tracking-tight">Patrocinadores Recomendados</h2>
-              <p className="text-muted text-sm font-medium">Otros lugares que podrían interesarte en Acapulco</p>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[
-              { id: '1', name: 'Hotel Emporio', price: '$2,800', rating: 4.8, img: HOTEL_IMAGES.EXTERIOR },
-              { id: '2', name: 'Princess Mundo Imperial', price: '$3,500', rating: 4.9, img: HOTEL_IMAGES.ROOM },
-              { id: '3', name: 'Las Brisas Acapulco', price: '$4,200', rating: 4.7, img: HOTEL_IMAGES.POOL },
-            ].map((sponsor) => (
-              <div key={sponsor.id} className="bg-white rounded-sm border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-shadow group cursor-pointer">
-                <div className="aspect-video relative overflow-hidden">
-                  <img src={sponsor.img} alt={sponsor.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" referrerPolicy="no-referrer" />
-                  <div className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm px-2 py-1 rounded-sm flex items-center gap-1">
-                    <Star className="w-3 h-3 fill-accent text-accent" />
-                    <span className="text-[10px] font-bold text-dark">{sponsor.rating}</span>
-                  </div>
-                </div>
-                <div className="p-4 space-y-2">
-                  <h3 className="font-bold text-dark group-hover:text-primary transition-colors">{sponsor.name}</h3>
-                  <div className="flex items-center justify-between">
-                    <span className="text-primary font-black text-sm">{sponsor.price} <span className="text-[10px] text-muted font-bold">/ noche</span></span>
-                    <button className="text-[10px] font-black uppercase tracking-widest text-dark hover:text-primary">Ver más</button>
-                  </div>
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       </div>
 
-      {/* Success Modal */}
       <AnimatePresence>
         {showSuccess && (
           <motion.div 
@@ -525,7 +479,6 @@ export default function BusinessDetail() {
         )}
       </AnimatePresence>
 
-      {/* Map Modal */}
       <AnimatePresence>
         {showMap && (
           <div className="fixed inset-0 z-[300] flex items-center justify-center p-6">

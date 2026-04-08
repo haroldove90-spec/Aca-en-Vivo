@@ -1,38 +1,29 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import { 
-  collection,
-  onSnapshot,
-  query
-} from 'firebase/firestore';
-import { db } from '../../lib/firebase';
+import { supabase } from '../../lib/supabase';
 import { 
   DollarSign, 
   Clock, 
   Users, 
-  AlertTriangle, 
   CheckCircle2, 
   MessageSquare, 
   UserCheck,
   Building2,
   Ship,
   Utensils,
-  Search,
-  Filter,
   TrendingUp,
   Map as MapIcon,
   Zap,
-  Activity,
   MoreVertical,
   XCircle,
-  Smartphone,
   Calendar,
   ArrowUpRight,
-  ArrowDownRight
+  ArrowDownRight,
+  Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
+import { useNavigate, useLocation } from 'react-router-dom';
 
-// --- Types & Mock Data ---
 const ZONES = [
   { id: 'diamante', name: 'Zona Diamante', occupancy: 65, color: 'text-blue-500', bg: 'bg-blue-500/10' },
   { id: 'dorada', name: 'Zona Dorada', occupancy: 85, color: 'text-rose-500', bg: 'bg-rose-500/10' },
@@ -45,75 +36,6 @@ const TOP_CATEGORIES = [
   { id: 'hotels', label: 'Hoteles', clics: 210, icon: Building2, trend: '-3%', color: 'text-blue-500' },
   { id: 'motos', label: 'Motos', clics: 180, icon: Zap, trend: '+25%', color: 'text-yellow-500' },
 ];
-
-const AFFILIATES = [
-  { 
-    id: '1', 
-    name: 'Hotel Emporio', 
-    cat: 'hotel', 
-    plan: 'Premium', 
-    lastUpdate: 'Hace 5 min', 
-    status: 'Pagado', 
-    phone: '7441234567',
-    rooms: [
-      { id: 101, type: 'Estándar', status: 'Ocupada' },
-      { id: 102, type: 'Estándar', status: 'Disponible' },
-      { id: 103, type: 'Suite', status: 'Ocupada' },
-      { id: 104, type: 'Suite', status: 'Disponible' },
-      { id: 105, type: 'Penthouse', status: 'Ocupada' },
-    ]
-  },
-  { 
-    id: '2', 
-    name: 'Yates Bonanza', 
-    cat: 'yate', 
-    plan: 'Premium', 
-    lastUpdate: 'Hace 12 min', 
-    status: 'Pagado', 
-    phone: '7449876543' 
-  },
-  { 
-    id: '3', 
-    name: 'La Cabaña', 
-    cat: 'restaurante', 
-    plan: 'Básico', 
-    lastUpdate: 'Hace 1 h', 
-    status: 'Pendiente', 
-    phone: '7445556677' 
-  },
-  { 
-    id: '4', 
-    name: 'Hotel Calinda', 
-    cat: 'hotel', 
-    plan: 'Básico', 
-    lastUpdate: 'Hace 2 h', 
-    status: 'Pagado', 
-    phone: '7441112233',
-    rooms: [
-      { id: 201, type: 'Estándar', status: 'Disponible' },
-      { id: 202, type: 'Estándar', status: 'Disponible' },
-      { id: 203, type: 'Doble', status: 'Ocupada' },
-    ]
-  },
-  { 
-    id: '5', 
-    name: 'Motos Express', 
-    cat: 'renta', 
-    plan: 'Básico', 
-    lastUpdate: 'Hace 4 h', 
-    status: 'Vencido', 
-    phone: '7444445555' 
-  },
-];
-
-const ACTIVITY_LOG = [
-  { id: 1, text: "Hotel Emporio cambió a 'Lleno'", time: "14:20", type: "status" },
-  { id: 2, text: "Yates Bonanza activó Oferta Flash", time: "14:15", type: "promo" },
-  { id: 3, text: "Nuevo negocio 'Artesanías Mary' registrado", time: "13:50", type: "new" },
-  { id: 4, text: "Sr. Frogs actualizó a 'Casi Lleno'", time: "13:30", type: "status" },
-];
-
-// --- Components ---
 
 const SummaryCard = ({ title, value, trend, icon: Icon, isCurrency = false }: any) => (
   <div className="bg-white p-8 rounded-none shadow-xl shadow-black/5 border border-gray-100 space-y-6 group hover:scale-105 transition-all">
@@ -178,16 +100,11 @@ const ZoneHeatmap = () => (
               className={cn("h-full rounded-none", zone.occupancy > 80 ? "bg-rose-500" : zone.occupancy > 50 ? "bg-primary" : "bg-emerald-500")}
             />
           </div>
-          <p className="text-[10px] font-black text-muted uppercase tracking-widest">
-            {zone.occupancy > 80 ? '⚠️ Saturación' : zone.occupancy > 50 ? '⚡ Flujo Constante' : '✅ Disponible'}
-          </p>
         </div>
       ))}
     </div>
   </div>
 );
-
-import { useNavigate, useLocation } from 'react-router-dom';
 
 type Tab = 'dashboard' | 'afiliados' | 'zonas' | 'pagos';
 
@@ -198,48 +115,73 @@ export default function AgenciaDashboard() {
   const queryParams = new URLSearchParams(location.search);
   const activeTab = (queryParams.get('tab') as Tab) || 'dashboard';
 
-  const setActiveTab = (tab: Tab) => {
-    navigate(`/admin-agencia?tab=${tab}`);
-  };
-
+  const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [selectedHotel, setSelectedHotel] = useState<any>(null);
-  const [realInventory, setRealInventory] = useState<Record<string, any>>({});
+  const [establishments, setEstablishments] = useState<any[]>([]);
+  const [inventory, setInventory] = useState<any[]>([]);
 
   useEffect(() => {
-    const q = query(collection(db, 'inventario_hotel'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const inventory: Record<string, any> = {};
-      snapshot.forEach((doc) => {
-        inventory[doc.id] = doc.data();
-      });
-      setRealInventory(inventory);
-    });
-    return () => unsubscribe();
-  }, []);
-
-  const affiliatesWithInventory = useMemo(() => {
-    return AFFILIATES.map(a => {
-      if (a.cat === 'hotel' && realInventory[a.id === '1' ? 'hotel-2' : 'hotel-1']) {
-        const inv = realInventory[a.id === '1' ? 'hotel-2' : 'hotel-1'];
-        return {
-          ...a,
-          lastUpdate: inv.ultima_actualizacion?.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || a.lastUpdate,
-          inventory: inv
-        };
+    const fetchData = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        navigate('/');
+        return;
       }
-      return a;
-    });
-  }, [realInventory]);
+
+      const [ests, inv] = await Promise.all([
+        supabase.from('establishments').select('*'),
+        supabase.from('inventario_hotel').select('*')
+      ]);
+
+      setEstablishments(ests.data || []);
+      setInventory(inv.data || []);
+      setLoading(false);
+    };
+
+    fetchData();
+
+    // Subscriptions
+    const estSub = supabase.channel('est_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'establishments' }, (payload) => {
+        if (payload.eventType === 'INSERT') setEstablishments(prev => [...prev, payload.new]);
+        if (payload.eventType === 'UPDATE') setEstablishments(prev => prev.map(e => e.id === payload.new.id ? payload.new : e));
+        if (payload.eventType === 'DELETE') setEstablishments(prev => prev.filter(e => e.id === payload.old.id));
+      }).subscribe();
+
+    const invSub = supabase.channel('inv_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'inventario_hotel' }, (payload) => {
+        if (payload.eventType === 'INSERT') setInventory(prev => [...prev, payload.new]);
+        if (payload.eventType === 'UPDATE') setInventory(prev => prev.map(i => i.id === payload.new.id ? payload.new : i));
+      }).subscribe();
+
+    return () => {
+      estSub.unsubscribe();
+      invSub.unsubscribe();
+    };
+  }, [navigate]);
 
   const filteredAffiliates = useMemo(() => {
-    if (filter === 'all') return affiliatesWithInventory;
-    return affiliatesWithInventory.filter(a => a.cat === filter);
-  }, [filter, affiliatesWithInventory]);
+    let list = establishments;
+    if (filter !== 'all') {
+      list = list.filter(e => e.tipo === filter);
+    }
+    return list.map(e => {
+      const inv = inventory.find(i => i.establishment_id === e.id);
+      return { ...e, inventory: inv };
+    });
+  }, [filter, establishments, inventory]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-[#F8FAFC]">
+        <Loader2 className="w-12 h-12 text-[#00A8CC] animate-spin" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-10">
-      {/* Header Section */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div>
           <h1 className="text-3xl font-black text-dark tracking-tighter uppercase leading-none">Agencia <span className="text-primary">BI</span></h1>
@@ -251,7 +193,6 @@ export default function AgenciaDashboard() {
         </div>
       </div>
 
-      {/* Main Content Sections */}
       <AnimatePresence mode="wait">
         {activeTab === 'dashboard' && (
           <motion.div
@@ -261,11 +202,10 @@ export default function AgenciaDashboard() {
             exit={{ opacity: 0, y: -20 }}
             className="space-y-10"
           >
-            {/* Top Summary Metrics */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
               <SummaryCard title="Comisiones Mes" value={42800} isCurrency trend="+15%" icon={DollarSign} />
               <SummaryCard title="Pagos Pendientes" value={12} trend="-2" icon={Clock} />
-              <SummaryCard title="Nuevos Afiliados" value={8} trend="+4" icon={UserCheck} />
+              <SummaryCard title="Nuevos Afiliados" value={establishments.length} trend="+4" icon={UserCheck} />
               <SummaryCard title="Proyección Semana Santa" value={185000} isCurrency trend="+22%" icon={TrendingUp} />
             </div>
 
@@ -280,7 +220,6 @@ export default function AgenciaDashboard() {
                       <TrendingUp className="w-6 h-6 text-primary" />
                       Tendencias Hoy
                     </h3>
-                    <Calendar className="w-5 h-5 text-muted" />
                   </div>
                   <div className="space-y-6">
                     {TOP_CATEGORIES.map((cat, i) => (
@@ -298,14 +237,6 @@ export default function AgenciaDashboard() {
                             <p className="text-[10px] font-black text-emerald-500 uppercase">{cat.trend}</p>
                           </div>
                         </div>
-                        <div className="h-2 bg-gray-50 rounded-none overflow-hidden">
-                          <motion.div 
-                            initial={{ width: 0 }}
-                            animate={{ width: `${(cat.clics / 500) * 100}%` }}
-                            transition={{ duration: 1, delay: i * 0.1 }}
-                            className={cn("h-full rounded-none", cat.color.replace('text', 'bg'))}
-                          />
-                        </div>
                       </div>
                     ))}
                   </div>
@@ -322,7 +253,6 @@ export default function AgenciaDashboard() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
           >
-            {/* Affiliate Master Table */}
             <div className="bg-white rounded-none shadow-xl shadow-black/5 border border-gray-100 overflow-hidden">
               <div className="p-8 lg:p-10 border-b border-gray-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-6">
                 <div>
@@ -330,10 +260,9 @@ export default function AgenciaDashboard() {
                     <Users className="w-6 h-6 text-primary" />
                     Gestor de Afiliados
                   </h3>
-                  <p className="text-[10px] font-bold text-muted uppercase mt-2">Control maestro de socios comerciales</p>
                 </div>
                 <div className="flex gap-2 overflow-x-auto no-scrollbar w-full sm:w-auto">
-                  {['all', 'hotel', 'restaurante', 'yate', 'renta'].map((cat) => (
+                  {['all', 'hotel', 'negocio'].map((cat) => (
                     <button
                       key={cat}
                       onClick={() => setFilter(cat)}
@@ -354,113 +283,53 @@ export default function AgenciaDashboard() {
                   <thead>
                     <tr className="bg-gray-50/50">
                       <th className="px-10 py-6 text-[10px] font-black text-muted uppercase tracking-widest">Establecimiento</th>
-                      <th className="px-10 py-6 text-[10px] font-black text-muted uppercase tracking-widest">Plan</th>
-                      <th className="px-10 py-6 text-[10px] font-black text-muted uppercase tracking-widest">Última Act.</th>
-                      <th className="px-10 py-6 text-[10px] font-black text-muted uppercase tracking-widest">Estado Pago</th>
+                      <th className="px-10 py-6 text-[10px] font-black text-muted uppercase tracking-widest">Tipo</th>
+                      <th className="px-10 py-6 text-[10px] font-black text-muted uppercase tracking-widest">Zona</th>
                       <th className="px-10 py-6 text-[10px] font-black text-muted uppercase tracking-widest text-right">Acciones</th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-gray-100">
-                    <AnimatePresence mode="popLayout">
-                      {filteredAffiliates.map((a) => (
-                        <motion.tr 
-                          layout
-                          initial={{ opacity: 0 }}
-                          animate={{ opacity: 1 }}
-                          exit={{ opacity: 0 }}
-                          key={a.id} 
-                          className="hover:bg-gray-50/50 transition-colors group"
-                        >
-                          <td className="px-10 py-6">
-                            <div 
-                              className="flex items-center gap-4 cursor-pointer group/item"
-                              onClick={() => a.cat === 'hotel' && setSelectedHotel(a)}
-                            >
-                              <div className="w-12 h-12 rounded-none bg-gray-100 flex items-center justify-center group-hover:bg-white transition-colors shadow-sm group-hover:rotate-3">
-                                {a.cat === 'hotel' ? <Building2 className="w-6 h-6 text-blue-500" /> : 
-                                 a.cat === 'yate' ? <Ship className="w-6 h-6 text-cyan-500" /> : 
-                                 <Utensils className="w-6 h-6 text-orange-500" />}
-                              </div>
-                              <div>
-                                <p className="text-sm font-black text-dark uppercase tracking-tight group-hover/item:text-primary transition-colors">{a.name}</p>
-                                <p className="text-[10px] text-muted font-bold uppercase tracking-widest">{a.cat}</p>
-                              </div>
+                    {filteredAffiliates.map((a) => (
+                      <tr key={a.id} className="hover:bg-gray-50/50 transition-colors group">
+                        <td className="px-10 py-6">
+                          <div className="flex items-center gap-4 cursor-pointer" onClick={() => a.tipo === 'hotel' && setSelectedHotel(a)}>
+                            <div className="w-12 h-12 rounded-none bg-gray-100 flex items-center justify-center">
+                              {a.tipo === 'hotel' ? <Building2 className="w-6 h-6 text-blue-500" /> : <Ship className="w-6 h-6 text-cyan-500" />}
                             </div>
-                          </td>
-                          <td className="px-10 py-6">
-                            <span className={cn(
-                              "text-[9px] font-black px-3 py-1.5 rounded-none uppercase tracking-widest",
-                              a.plan === 'Premium' ? "bg-amber-100 text-amber-700" : "bg-slate-100 text-slate-700"
-                            )}>
-                              {a.plan}
-                            </span>
-                          </td>
-                          <td className="px-10 py-6">
-                            <span className="text-[10px] font-bold text-muted uppercase">{a.lastUpdate}</span>
-                          </td>
-                          <td className="px-10 py-6">
-                            <div className="flex items-center gap-2">
-                              <div className={cn(
-                                "w-2 h-2 rounded-none",
-                                a.status === 'Pagado' ? "bg-emerald-500" : a.status === 'Pendiente' ? "bg-amber-500" : "bg-rose-500"
-                              )} />
-                              <span className="text-[10px] font-black text-dark uppercase tracking-widest">{a.status}</span>
+                            <div>
+                              <p className="text-sm font-black text-dark uppercase tracking-tight">{a.nombre}</p>
+                              <p className="text-[10px] text-muted font-bold uppercase tracking-widest">{a.owner_id.slice(0, 8)}</p>
                             </div>
-                          </td>
-                          <td className="px-10 py-6 text-right">
-                            <div className="flex items-center justify-end gap-3">
-                              <button className="w-10 h-10 flex items-center justify-center text-emerald-600 hover:bg-emerald-50 rounded-none transition-all" title="WhatsApp">
-                                <MessageSquare className="w-5 h-5" />
-                              </button>
-                              <button className="w-10 h-10 flex items-center justify-center text-rose-600 hover:bg-rose-50 rounded-none transition-all" title="Suspender">
-                                <XCircle className="w-5 h-5" />
-                              </button>
-                              <button className="w-10 h-10 flex items-center justify-center text-muted hover:bg-gray-100 rounded-none transition-all">
-                                <MoreVertical className="w-5 h-5" />
-                              </button>
-                            </div>
-                          </td>
-                        </motion.tr>
-                      ))}
-                    </AnimatePresence>
+                          </div>
+                        </td>
+                        <td className="px-10 py-6">
+                          <span className="text-[9px] font-black px-3 py-1.5 rounded-none uppercase tracking-widest bg-slate-100 text-slate-700">
+                            {a.tipo}
+                          </span>
+                        </td>
+                        <td className="px-10 py-6">
+                          <span className="text-[10px] font-bold text-muted uppercase">{a.zona}</span>
+                        </td>
+                        <td className="px-10 py-6 text-right">
+                          <div className="flex items-center justify-end gap-3">
+                            <button className="w-10 h-10 flex items-center justify-center text-emerald-600 hover:bg-emerald-50 rounded-none transition-all">
+                              <MessageSquare className="w-5 h-5" />
+                            </button>
+                            <button className="w-10 h-10 flex items-center justify-center text-rose-600 hover:bg-rose-50 rounded-none transition-all">
+                              <XCircle className="w-5 h-5" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
             </div>
           </motion.div>
         )}
-
-        {activeTab === 'zonas' && (
-          <motion.div
-            key="zonas"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-          >
-            <ZoneHeatmap />
-          </motion.div>
-        )}
-
-        {activeTab === 'pagos' && (
-          <motion.div
-            key="pagos"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="bg-white p-10 rounded-none shadow-xl border border-gray-100 text-center space-y-6"
-          >
-            <div className="w-20 h-20 bg-emerald-50 text-emerald-500 rounded-none flex items-center justify-center mx-auto">
-              <DollarSign className="w-10 h-10" />
-            </div>
-            <div>
-              <h3 className="text-xl font-black text-dark uppercase tracking-tight">Gestión de Pagos</h3>
-              <p className="text-xs text-muted font-bold uppercase tracking-widest mt-2">Próximamente: Pasarela de cobro integrada</p>
-            </div>
-          </motion.div>
-        )}
       </AnimatePresence>
 
-      {/* Hotel Room Monitor Modal */}
       <AnimatePresence>
         {selectedHotel && (
           <motion.div
@@ -477,8 +346,8 @@ export default function AgenciaDashboard() {
             >
               <div className="bg-primary p-8 text-white flex justify-between items-center">
                 <div>
-                  <h3 className="text-2xl font-black uppercase tracking-tighter leading-none">{selectedHotel.name}</h3>
-                  <p className="text-[10px] font-bold text-white/60 uppercase tracking-widest mt-2">Monitor de Habitaciones en Tiempo Real</p>
+                  <h3 className="text-2xl font-black uppercase tracking-tighter leading-none">{selectedHotel.nombre}</h3>
+                  <p className="text-[10px] font-bold text-white/60 uppercase tracking-widest mt-2">Monitor de Inventario</p>
                 </div>
                 <button 
                   onClick={() => setSelectedHotel(null)}
@@ -489,46 +358,14 @@ export default function AgenciaDashboard() {
               </div>
               
               <div className="p-8 space-y-8">
-                  <div className="grid grid-cols-3 gap-4">
-                    <div className="p-4 bg-gray-50 border border-gray-100 rounded-none">
-                      <p className="text-[9px] font-black text-muted uppercase tracking-widest">Total</p>
-                      <p className="text-xl font-black text-dark">{selectedHotel.inventory?.habitaciones_totales || selectedHotel.rooms?.length || 0}</p>
-                    </div>
-                    <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-none">
-                      <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Disponibles</p>
-                      <p className="text-xl font-black text-emerald-600">{selectedHotel.inventory?.disponibles_ahora ?? selectedHotel.rooms?.filter((r: any) => r.status === 'Disponible').length ?? 0}</p>
-                    </div>
-                    <div className="p-4 bg-rose-50 border border-rose-100 rounded-none">
-                      <p className="text-[9px] font-black text-rose-600 uppercase tracking-widest">Ocupadas</p>
-                      <p className="text-xl font-black text-rose-600">
-                        {(selectedHotel.inventory?.habitaciones_totales ?? 0) - (selectedHotel.inventory?.disponibles_ahora ?? 0) || selectedHotel.rooms?.filter((r: any) => r.status === 'Ocupada').length || 0}
-                      </p>
-                    </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="p-4 bg-gray-50 border border-gray-100 rounded-none">
+                    <p className="text-[9px] font-black text-muted uppercase tracking-widest">Total Habitaciones</p>
+                    <p className="text-xl font-black text-dark">{selectedHotel.inventory?.habitaciones_totales || 0}</p>
                   </div>
-
-                <div className="space-y-4">
-                  <h4 className="text-[10px] font-black text-dark uppercase tracking-widest border-b border-gray-100 pb-2">Inventario Detallado</h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-60 overflow-y-auto pr-2 no-scrollbar">
-                    {selectedHotel.rooms?.map((room: any) => (
-                      <div key={room.id} className="flex items-center justify-between p-4 bg-gray-50 border border-gray-100 rounded-none">
-                        <div className="flex items-center gap-3">
-                          <div className={cn(
-                            "w-2 h-2 rounded-none",
-                            room.status === 'Disponible' ? "bg-emerald-500" : "bg-rose-500"
-                          )} />
-                          <div>
-                            <p className="text-xs font-black text-dark uppercase tracking-tight">Hab. {room.id}</p>
-                            <p className="text-[9px] font-bold text-muted uppercase">{room.type}</p>
-                          </div>
-                        </div>
-                        <span className={cn(
-                          "text-[9px] font-black uppercase tracking-widest",
-                          room.status === 'Disponible' ? "text-emerald-600" : "text-rose-600"
-                        )}>
-                          {room.status}
-                        </span>
-                      </div>
-                    ))}
+                  <div className="p-4 bg-emerald-50 border border-emerald-100 rounded-none">
+                    <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Disponibles</p>
+                    <p className="text-xl font-black text-emerald-600">{selectedHotel.inventory?.disponibles_ahora || 0}</p>
                   </div>
                 </div>
               </div>
@@ -538,7 +375,7 @@ export default function AgenciaDashboard() {
                   onClick={() => setSelectedHotel(null)}
                   className="px-8 py-3 bg-dark text-white rounded-none font-black text-[10px] uppercase tracking-widest shadow-xl"
                 >
-                  Cerrar Monitor
+                  Cerrar
                 </button>
               </div>
             </motion.div>
@@ -546,11 +383,5 @@ export default function AgenciaDashboard() {
         )}
       </AnimatePresence>
     </div>
-  );
-}
-
-function PlusIcon({ className }: { className?: string }) {
-  return (
-    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" className={className}><path d="M5 12h14"/><path d="M12 5v14"/></svg>
   );
 }

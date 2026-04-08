@@ -1,24 +1,12 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { 
-  doc, 
-  onSnapshot, 
-  updateDoc, 
-  serverTimestamp, 
-  getDoc 
-} from 'firebase/firestore';
-import { db } from '../../lib/firebase';
+import React, { useState, useEffect } from 'react';
+import { supabase } from '../../lib/supabase';
 import { 
   Plus, 
   Minus, 
   AlertCircle, 
   Loader2, 
   Clock, 
-  Bell, 
-  BellOff, 
-  RotateCcw, 
   Settings, 
-  Image as ImageIcon, 
-  Zap, 
   Save, 
   Camera, 
   Trash2, 
@@ -27,19 +15,18 @@ import {
   Dog, 
   ParkingCircle, 
   Phone, 
-  FileText,
   CheckCircle2,
   X,
   Star,
-  User
+  User,
+  RotateCcw,
+  Zap
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { CameraModal } from '../../components/CameraModal';
 import { HOTEL_IMAGES } from '../../constants/images';
-
 import { useNavigate, useLocation } from 'react-router-dom';
-import { collection, query, where, orderBy } from 'firebase/firestore';
 
 type Tab = 'inventario' | 'perfil' | 'galeria' | 'promociones' | 'reservas';
 
@@ -53,112 +40,175 @@ export default function HotelDashboard() {
   const setActiveTab = (tab: Tab) => {
     navigate(`/hotel?tab=${tab}`);
   };
+
   const [inventario, setInventario] = useState<any>(null);
   const [establecimiento, setEstablecimiento] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [optimisticCount, setOptimisticCount] = useState<number | null>(null);
-  const [alertsEnabled, setAlertsEnabled] = useState(true);
   const [showToast, setShowToast] = useState(false);
   const [saving, setSaving] = useState(false);
   const [showCamera, setShowCamera] = useState(false);
   const [reservas, setReservas] = useState<any[]>([]);
 
   // Form states
-  const [hotelName, setHotelName] = useState("Hotel Emporio Acapulco");
-  const [description, setDescription] = useState("Ubicado en el corazón de la Zona Dorada, con la mejor vista a la Bahía de Santa Lucía.");
-  const [phone, setPhone] = useState("+52 744 469 1000");
-  const [amenities, setAmenities] = useState<string[]>(['wifi', 'pool', 'parking']);
-  const [promo, setPromo] = useState("Desayuno incluido en estancias de 2 noches");
-  const [isPremium, setIsPremium] = useState(true);
-  const [images, setImages] = useState<string[]>([
-    HOTEL_IMAGES.EXTERIOR,
-    HOTEL_IMAGES.ROOM,
-    HOTEL_IMAGES.POOL
-  ]);
+  const [hotelName, setHotelName] = useState("");
+  const [description, setDescription] = useState("");
+  const [phone, setPhone] = useState("");
+  const [amenities, setAmenities] = useState<string[]>([]);
+  const [promo, setPromo] = useState("");
+  const [isPremium, setIsPremium] = useState(false);
+  const [images, setImages] = useState<string[]>([]);
 
-  const hotelId = "hotel-2"; // Hotel Emporio Acapulco
+  // For demo, we'll try to find an establishment owned by the user
+  const [hotelId, setHotelId] = useState<string | null>(null);
 
   useEffect(() => {
-    const invRef = doc(db, 'inventario_hotel', hotelId);
-    const estRef = doc(db, 'establecimientos', hotelId);
-
-    const unsubInv = onSnapshot(invRef, (snapshot) => {
-      if (snapshot.exists()) {
-        setInventario(snapshot.data());
-        setOptimisticCount(null);
+    const initDashboard = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        navigate('/');
+        return;
       }
-    });
 
-    const unsubEst = onSnapshot(estRef, (snapshot) => {
-      if (snapshot.exists()) {
-        const data = snapshot.data();
-        setEstablecimiento(data);
-        setHotelName(data.nombre || "");
+      // Find user's establishment
+      let { data: ests, error: estError } = await supabase
+        .from('establishments')
+        .select('*')
+        .eq('owner_id', session.user.id)
+        .limit(1);
+
+      if (estError) console.error(estError);
+
+      let currentEst = ests?.[0];
+
+      if (!currentEst) {
+        // Create a default one for the user if none exists
+        const { data: newEst, error: createError } = await supabase
+          .from('establishments')
+          .insert({
+            owner_id: session.user.id,
+            nombre: 'Mi Hotel Acapulco',
+            tipo: 'hotel',
+            zona: 'Zona Dorada',
+            descripcion: 'Bienvenido a mi nuevo hotel.',
+            estrellas: 5.0,
+            image: HOTEL_IMAGES.EXTERIOR
+          })
+          .select()
+          .single();
+        
+        if (createError) {
+          console.error(createError);
+        } else {
+          currentEst = newEst;
+        }
+      }
+
+      if (currentEst) {
+        setHotelId(currentEst.id);
+        setEstablecimiento(currentEst);
+        setHotelName(currentEst.nombre);
+        setDescription(currentEst.descripcion || "");
+        setPhone(currentEst.telefono || "");
+        setAmenities(currentEst.amenidades || []);
+        setPromo(currentEst.promocion || "");
+        setIsPremium(currentEst.premium || false);
+        setImages(currentEst.galeria || [HOTEL_IMAGES.EXTERIOR, HOTEL_IMAGES.ROOM, HOTEL_IMAGES.POOL]);
+
+        // Fetch inventory
+        const { data: inv, error: invError } = await supabase
+          .from('inventario_hotel')
+          .select('*')
+          .eq('establishment_id', currentEst.id)
+          .single();
+
+        if (invError && invError.code === 'PGRST116') {
+          // Create inventory if missing
+          const { data: newInv } = await supabase
+            .from('inventario_hotel')
+            .insert({ establishment_id: currentEst.id })
+            .select()
+            .single();
+          setInventario(newInv);
+        } else {
+          setInventario(inv);
+        }
+
+        // Fetch reservations
+        const { data: res, error: resError } = await supabase
+          .from('reservations')
+          .select('*')
+          .eq('business_id', currentEst.id)
+          .order('created_at', { ascending: false });
+        
+        if (!resError) setReservas(res || []);
       }
       setLoading(false);
-    });
-
-    return () => {
-      unsubInv();
-      unsubEst();
     };
-  }, [hotelId]);
 
-  useEffect(() => {
-    const q = query(
-      collection(db, 'reservas'),
-      where('businessId', '==', hotelId),
-      orderBy('createdAt', 'desc')
-    );
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const resData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setReservas(resData);
-    });
-    return () => unsubscribe();
-  }, [hotelId]);
+    initDashboard();
+  }, [navigate]);
 
   const handleUpdateInventory = async (delta: number) => {
-    if (!inventario) return;
+    if (!inventario || !hotelId) return;
     const current = optimisticCount ?? inventario.disponibles_ahora;
     const next = Math.max(0, Math.min(inventario.habitaciones_totales, current + delta));
     setOptimisticCount(next);
     try {
-      await updateDoc(doc(db, 'inventario_hotel', hotelId), {
-        disponibles_ahora: next,
-        ultima_actualizacion: serverTimestamp(),
-      });
+      const { error } = await supabase
+        .from('inventario_hotel')
+        .update({ 
+          disponibles_ahora: next,
+          ultima_actualizacion: new Date().toISOString()
+        })
+        .eq('establishment_id', hotelId);
+      
+      if (error) throw error;
+      setInventario({ ...inventario, disponibles_ahora: next, ultima_actualizacion: new Date().toISOString() });
     } catch (error) {
+      console.error(error);
       setOptimisticCount(null);
     }
   };
 
   const handleQuickAction = async (value: number) => {
-    if (!inventario) return;
+    if (!inventario || !hotelId) return;
     setOptimisticCount(value);
     try {
-      await updateDoc(doc(db, 'inventario_hotel', hotelId), {
-        disponibles_ahora: value,
-        ultima_actualizacion: serverTimestamp(),
-      });
+      const { error } = await supabase
+        .from('inventario_hotel')
+        .update({ 
+          disponibles_ahora: value,
+          ultima_actualizacion: new Date().toISOString()
+        })
+        .eq('establishment_id', hotelId);
+      
+      if (error) throw error;
+      setInventario({ ...inventario, disponibles_ahora: value, ultima_actualizacion: new Date().toISOString() });
     } catch (error) {
+      console.error(error);
       setOptimisticCount(null);
     }
   };
 
   const handleSaveChanges = async () => {
+    if (!hotelId) return;
     setSaving(true);
     try {
-      // Update establecimiento profile
-      await updateDoc(doc(db, 'establecimientos', hotelId), {
-        nombre: hotelName,
-        descripcion: description,
-        telefono: phone,
-        amenidades: amenities,
-        promocion: promo,
-        premium: isPremium,
-        ultima_edicion: serverTimestamp()
-      });
+      const { error } = await supabase
+        .from('establishments')
+        .update({
+          nombre: hotelName,
+          descripcion: description,
+          telefono: phone,
+          amenidades: amenities,
+          promocion: promo,
+          premium: isPremium,
+          galeria: images
+        })
+        .eq('id', hotelId);
 
+      if (error) throw error;
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
     } catch (error) {
@@ -172,48 +222,21 @@ export default function HotelDashboard() {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = async () => {
+      reader.onloadend = () => {
         const img = reader.result as string;
-        const newImages = [...images, img];
-        setImages(newImages);
-        try {
-          await updateDoc(doc(db, 'establecimientos', hotelId), {
-            galeria: newImages,
-            ultima_edicion: serverTimestamp()
-          });
-        } catch (err) {
-          console.error("Error updating images:", err);
-        }
+        setImages(prev => [...prev, img]);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const deleteImage = async (index: number) => {
-    const newImages = images.filter((_, i) => i !== index);
-    setImages(newImages);
-    try {
-      await updateDoc(doc(db, 'establecimientos', hotelId), {
-        galeria: newImages,
-        ultima_edicion: serverTimestamp()
-      });
-    } catch (err) {
-      console.error("Error deleting image:", err);
-    }
+  const deleteImage = (index: number) => {
+    setImages(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleAddPhoto = async (img: string) => {
-    const newImages = [...images, img];
-    setImages(newImages);
-    try {
-      await updateDoc(doc(db, 'establecimientos', hotelId), {
-        galeria: newImages,
-        ultima_edicion: serverTimestamp()
-      });
-      setShowCamera(false);
-    } catch (err) {
-      console.error("Error adding photo:", err);
-    }
+  const handleAddPhoto = (img: string) => {
+    setImages(prev => [...prev, img]);
+    setShowCamera(false);
   };
 
   const toggleAmenity = (id: string) => {
@@ -224,10 +247,13 @@ export default function HotelDashboard() {
 
   const handleUpdateReservaStatus = async (resId: string, newStatus: string) => {
     try {
-      await updateDoc(doc(db, 'reservas', resId), {
-        status: newStatus,
-        updatedAt: serverTimestamp()
-      });
+      const { error } = await supabase
+        .from('reservations')
+        .update({ status: newStatus })
+        .eq('id', resId);
+      
+      if (error) throw error;
+      setReservas(prev => prev.map(r => r.id === resId ? { ...r, status: newStatus } : r));
     } catch (error) {
       console.error("Error updating reservation status:", error);
     }
@@ -245,7 +271,6 @@ export default function HotelDashboard() {
 
   return (
     <div className="space-y-10">
-      {/* Header Section */}
       <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
           <div className="w-12 h-12 bg-primary rounded-none flex items-center justify-center shadow-lg shadow-primary/20">
@@ -261,14 +286,11 @@ export default function HotelDashboard() {
         <div className="flex items-center gap-3 bg-white px-5 py-2.5 rounded-none border border-gray-100 shadow-sm">
           <Clock className="w-4 h-4 text-primary" />
           <span className="text-[10px] font-black text-dark uppercase tracking-widest">
-            {inventario?.ultima_actualizacion?.toDate().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) || 'Sincronizando...'}
+            {inventario?.ultima_actualizacion ? new Date(inventario.ultima_actualizacion).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Sincronizando...'}
           </span>
         </div>
       </div>
 
-      {/* Main Content */}
-
-      {/* Main Content Area */}
       <div className="max-w-2xl mx-auto w-full">
         <AnimatePresence mode="wait">
           {activeTab === 'inventario' && (
@@ -279,7 +301,6 @@ export default function HotelDashboard() {
               exit={{ opacity: 0, y: -20 }}
               className="space-y-8"
             >
-              {/* Critical Inventory Card */}
               <div className="bg-white rounded-none p-10 shadow-xl shadow-black/5 border border-gray-100 text-center space-y-10">
                 <div>
                   <p className="text-[10px] font-black uppercase tracking-[0.3em] text-muted mb-4">Disponibles Ahora</p>
@@ -324,31 +345,6 @@ export default function HotelDashboard() {
                     Restablecer
                   </button>
                 </div>
-              </div>
-
-              {/* Emergency Toggle */}
-              <div className="bg-white p-8 rounded-none shadow-xl shadow-black/5 border border-gray-100 flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="w-12 h-12 bg-rose-100 rounded-none flex items-center justify-center">
-                    <AlertCircle className="w-6 h-6 text-rose-500" />
-                  </div>
-                  <div>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-muted">Estado de Emergencia</p>
-                    <p className="text-xs font-bold text-dark uppercase mt-1">Cerrar preventas al instante</p>
-                  </div>
-                </div>
-                <button 
-                  onClick={() => handleQuickAction(displayCount === 0 ? (inventario?.habitaciones_totales ?? 50) : 0)}
-                  className={cn(
-                    "w-14 h-7 rounded-none transition-all relative",
-                    displayCount === 0 ? "bg-rose-500" : "bg-gray-200"
-                  )}
-                >
-                  <div className={cn(
-                    "absolute top-1 w-5 h-5 rounded-none bg-white transition-all shadow-sm",
-                    displayCount === 0 ? "right-1" : "left-1"
-                  )} />
-                </button>
               </div>
             </motion.div>
           )}
@@ -436,8 +432,6 @@ export default function HotelDashboard() {
               <div className="bg-white rounded-none p-10 shadow-xl shadow-black/5 border border-gray-100 space-y-8">
                 <div className="space-y-6">
                   <label className="text-[10px] font-black uppercase tracking-widest text-muted ml-2">Media Center</label>
-                  
-                  {/* Dropzone Simulation */}
                   <div className="relative group">
                     <input 
                       type="file" 
@@ -455,8 +449,6 @@ export default function HotelDashboard() {
                       <p className="text-[10px] font-black uppercase tracking-widest text-muted">Tomar Foto o Subir</p>
                     </div>
                   </div>
- 
-                  {/* Image Grid */}
                   <div className="grid grid-cols-3 gap-4">
                     {images.map((img, idx) => (
                       <div key={idx} className="relative aspect-square rounded-none overflow-hidden group shadow-sm">
@@ -556,9 +548,9 @@ export default function HotelDashboard() {
                             <User className="w-6 h-6 text-gray-400" />
                           </div>
                           <div>
-                            <p className="text-sm font-black text-dark uppercase tracking-tight">Cliente #{res.userId.slice(0, 5)}</p>
+                            <p className="text-sm font-black text-dark uppercase tracking-tight">Cliente #{res.user_id.slice(0, 5)}</p>
                             <p className="text-[10px] text-muted font-bold uppercase tracking-widest">
-                              {new Date(res.date).toLocaleDateString()} • {res.guests || 2} Personas
+                              {new Date(res.created_at).toLocaleDateString()} • {res.guests || 2} Personas
                             </p>
                           </div>
                         </div>
@@ -598,7 +590,6 @@ export default function HotelDashboard() {
         </AnimatePresence>
       </div>
 
-      {/* Floating Action Button (FAB) */}
       <div className="fixed bottom-24 lg:bottom-10 left-1/2 -translate-x-1/2 w-full max-w-md px-6 z-40">
         <button
           onClick={handleSaveChanges}
@@ -616,7 +607,6 @@ export default function HotelDashboard() {
         </button>
       </div>
 
-      {/* Toast Notification */}
       <AnimatePresence>
         {showToast && (
           <motion.div
@@ -642,5 +632,3 @@ export default function HotelDashboard() {
     </div>
   );
 }
-
-

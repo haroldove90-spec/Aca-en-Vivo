@@ -43,11 +43,11 @@ import { useCart } from '../contexts/CartContext';
 import { SupportChat } from './SupportChat';
 import { CartSidebar } from './CartSidebar';
 
-import { auth } from '../lib/firebase';
-import { signOut } from 'firebase/auth';
+import { supabase } from '../lib/supabase';
 
 interface LayoutProps {
   children: React.ReactNode;
+  onAuthClick?: () => void;
 }
 
 const getNavItems = (pathname: string) => {
@@ -103,15 +103,28 @@ const getNavItems = (pathname: string) => {
   ];
 };
 
-export function Layout({ children }: LayoutProps) {
+export function Layout({ children, onAuthClick }: LayoutProps) {
   const navigate = useNavigate();
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const [isNotifOpen, setIsNotifOpen] = React.useState(false);
   const [isCartOpen, setIsCartOpen] = React.useState(false);
+  const [user, setUser] = React.useState<any>(null);
   const { notifications, unreadCount, markAsRead } = useNotifications();
   const { searchQuery, setSearchQuery } = useSearch();
   const { totalItems } = useCart();
+
+  React.useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
@@ -126,7 +139,7 @@ export function Layout({ children }: LayoutProps) {
 
   const handleLogout = async () => {
     try {
-      await signOut(auth);
+      await supabase.auth.signOut();
       window.location.href = '/';
     } catch (error) {
       console.error("Error signing out:", error);
@@ -256,22 +269,33 @@ export function Layout({ children }: LayoutProps) {
                   </AnimatePresence>
                 </div>
 
-                <div 
-                  onClick={() => navigate('/perfil')}
-                  className="flex items-center gap-3 cursor-pointer group"
-                >
-                  <div className="hidden lg:block text-right">
-                    <p className="text-xs font-black text-white tracking-tight leading-none group-hover:text-accent transition-colors">Harold Dev</p>
-                    <p className="text-[9px] font-bold text-accent uppercase tracking-[0.2em] mt-1">Premium</p>
+                {user ? (
+                  <div 
+                    onClick={() => navigate('/perfil')}
+                    className="flex items-center gap-3 cursor-pointer group"
+                  >
+                    <div className="hidden lg:block text-right">
+                      <p className="text-xs font-black text-white tracking-tight leading-none group-hover:text-accent transition-colors">
+                        {user.user_metadata?.full_name || 'Usuario'}
+                      </p>
+                      <p className="text-[9px] font-bold text-accent uppercase tracking-[0.2em] mt-1">Premium</p>
+                    </div>
+                    <div className="w-10 h-10 lg:w-11 lg:h-11 rounded-none overflow-hidden border-2 border-white/20 shadow-lg group-hover:rotate-3 transition-transform">
+                      <img 
+                        src={user.user_metadata?.avatar_url || `https://api.dicebear.com/7.x/avataaars/svg?seed=${user.id}`} 
+                        alt="Usuario" 
+                        className="w-full h-full object-cover"
+                      />
+                    </div>
                   </div>
-                  <div className="w-10 h-10 lg:w-11 lg:h-11 rounded-none overflow-hidden border-2 border-white/20 shadow-lg group-hover:rotate-3 transition-transform">
-                    <img 
-                      src="https://api.dicebear.com/7.x/avataaars/svg?seed=Harold" 
-                      alt="Usuario" 
-                      className="w-full h-full object-cover"
-                    />
-                  </div>
-                </div>
+                ) : (
+                  <button
+                    onClick={onAuthClick}
+                    className="px-6 py-2 bg-white/10 border border-white/20 text-white text-[10px] font-black uppercase tracking-widest hover:bg-white/20 transition-all"
+                  >
+                    Entrar
+                  </button>
+                )}
               </div>
             </div>
           </div>
