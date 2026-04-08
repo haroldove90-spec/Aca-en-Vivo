@@ -23,7 +23,9 @@ import {
   Sun,
   Grid,
   Home,
-  Store
+  Store,
+  Calendar,
+  Users
 } from 'lucide-react';
 import { useRealtimeAvailability } from '../../hooks/useRealtimeAvailability';
 import { useFavorites } from '../../contexts/FavoritesContext';
@@ -76,21 +78,15 @@ function PopularCard({ business }: { business: any, key?: string }) {
     <motion.div 
       whileTap={{ scale: 0.98 }}
       onClick={() => navigate(`/business/${business.id}`)}
-      className="bg-white rounded-none p-3 shadow-xl shadow-black/5 border border-gray-100 group flex flex-col gap-3 cursor-pointer relative"
+      className="bg-white rounded-none shadow-sm border border-gray-200 group flex flex-col cursor-pointer relative hover:shadow-md transition-shadow"
     >
-      <div className="aspect-[4/5] relative overflow-hidden rounded-none">
+      <div className="aspect-[4/3] relative overflow-hidden">
         <img 
           src={business.image || HOTEL_IMAGES.EXTERIOR} 
           alt={business.nombre}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 pointer-events-none"
           referrerPolicy="no-referrer"
         />
-        {business.tipo === 'hotel' && (
-          <div className="absolute top-4 left-4 bg-emerald-500 text-white px-3 py-1 rounded-none text-[8px] font-black uppercase tracking-widest flex items-center gap-2 shadow-xl z-20">
-            <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
-            {disponibles !== null ? `${disponibles} Libres` : 'Cargando...'}
-          </div>
-        )}
         <button 
           onClick={(e) => {
             e.stopPropagation();
@@ -104,33 +100,45 @@ function PopularCard({ business }: { business: any, key?: string }) {
             });
           }}
           className={cn(
-            "absolute top-4 right-4 w-12 h-12 backdrop-blur-xl rounded-none flex items-center justify-center border transition-all z-20 shadow-2xl",
+            "absolute top-3 right-3 w-10 h-10 rounded-full flex items-center justify-center transition-all z-20",
             active 
-              ? "bg-rose-500 border-rose-500 text-white" 
-              : "bg-white/40 border-white/50 text-dark hover:bg-white/60"
+              ? "bg-rose-500 text-white" 
+              : "bg-white/80 text-dark hover:bg-white"
           )}
         >
-          <Heart className={cn("w-6 h-6", active && "fill-current")} />
+          <Heart className={cn("w-5 h-5", active && "fill-current")} />
         </button>
-        <div className="absolute bottom-4 left-4 right-4 bg-white/90 backdrop-blur-md p-4 rounded-none shadow-lg z-10">
-          <h3 className="font-black text-dark text-sm leading-tight uppercase tracking-tight truncate">{business.nombre}</h3>
-          <div className="flex items-center justify-between mt-1">
-            <div className="flex items-center gap-1 text-muted">
-              <MapPin className="w-3 h-3 text-primary" />
-              <span className="text-[10px] font-bold uppercase tracking-tight">{business.zona || 'Acapulco'}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Star className="w-3 h-3 fill-accent text-accent" />
-              <span className="text-[10px] font-black text-dark">{business.estrellas || 4.5}</span>
-            </div>
+        {business.tipo === 'hotel' && (
+          <div className="absolute bottom-3 left-3 bg-primary text-white px-2 py-1 rounded-sm text-[10px] font-bold flex items-center gap-1.5 shadow-lg z-20">
+            <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+            {disponibles !== null ? `${disponibles} disponibles` : 'Cargando...'}
           </div>
-          <div className="flex gap-2 mt-3">
-            <button 
-              onClick={handleReserve}
-              className="flex-1 py-2 bg-primary text-white text-[9px] font-black uppercase tracking-widest rounded-none hover:bg-primary/90 transition-all"
-            >
-              Reservar
-            </button>
+        )}
+      </div>
+
+      <div className="p-4 flex flex-col flex-1 gap-2">
+        <div className="flex justify-between items-start gap-2">
+          <h3 className="font-bold text-dark text-base leading-tight group-hover:text-primary transition-colors line-clamp-2">{business.nombre}</h3>
+          <div className="flex flex-col items-end shrink-0">
+            <div className="flex items-center gap-1 bg-navy text-white px-1.5 py-0.5 rounded-sm">
+              <span className="text-xs font-bold">{business.estrellas || 4.5}</span>
+            </div>
+            <span className="text-[10px] font-medium text-muted mt-1">Excelente</span>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-1 text-muted">
+          <MapPin className="w-3.5 h-3.5" />
+          <span className="text-xs font-medium">{business.zona || 'Acapulco'}</span>
+        </div>
+
+        <div className="mt-auto pt-3 flex items-end justify-between border-t border-gray-100">
+          <div className="flex flex-col">
+            <span className="text-[10px] text-muted font-medium">Desde</span>
+            <span className="text-lg font-black text-dark">{business.tipo === 'hotel' ? '$2,500' : '$1,200'}</span>
+            <span className="text-[10px] text-muted">Incluye impuestos</span>
+          </div>
+          <div className="flex gap-2">
             <button 
               onClick={(e) => {
                 e.stopPropagation();
@@ -142,9 +150,15 @@ function PopularCard({ business }: { business: any, key?: string }) {
                   price: business.tipo === 'hotel' ? '$2,500' : '$1,200'
                 });
               }}
-              className="w-10 h-8 bg-dark text-white flex items-center justify-center rounded-none hover:bg-dark/90 transition-all"
+              className="w-10 h-10 border border-primary text-primary flex items-center justify-center rounded-sm hover:bg-primary/5 transition-all"
             >
-              <ShoppingBag className="w-4 h-4" />
+              <ShoppingBag className="w-5 h-5" />
+            </button>
+            <button 
+              onClick={handleReserve}
+              className="px-4 py-2 bg-primary text-white text-xs font-bold rounded-sm hover:bg-primary/90 transition-all"
+            >
+              Ver disponibilidad
             </button>
           </div>
         </div>
@@ -156,7 +170,7 @@ function PopularCard({ business }: { business: any, key?: string }) {
 export default function ClienteFeed() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { searchQuery } = useSearch();
+  const { searchQuery, setSearchQuery } = useSearch();
   const [establecimientos, setEstablecimientos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -310,81 +324,107 @@ export default function ClienteFeed() {
   }
 
   return (
-    <div className="space-y-10">
-      {/* Featured Card */}
-        <section className="relative aspect-[16/9] lg:aspect-[21/9] rounded-none overflow-hidden shadow-2xl group">
-          <img 
-            src="https://images.unsplash.com/photo-1506929199175-60933ee89334?auto=format&fit=crop&q=80&w=1920" 
-            alt="Destacado" 
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-1000"
-          />
-          <div className="absolute inset-0 bg-gradient-to-r from-black/40 to-transparent" />
-          <div className="absolute inset-y-0 left-0 p-8 lg:p-12 flex flex-col justify-center space-y-4">
-            <div className="bg-white/20 backdrop-blur-md px-4 py-2 rounded-none border border-white/30 w-fit">
-              <span className="text-white text-[10px] font-black uppercase tracking-widest">Destino Destacado</span>
+    <div className="space-y-12">
+      {/* Hero Section with Search */}
+      <section className="relative bg-navy pt-12 pb-24 lg:pt-20 lg:pb-32 overflow-hidden">
+        {/* Abstract Background Shapes */}
+        <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/20 rounded-full -mr-64 -mt-64 blur-[120px]" />
+        <div className="absolute bottom-0 left-0 w-[300px] h-[300px] bg-accent/10 rounded-full -ml-32 -mb-32 blur-[80px]" />
+
+        <div className="relative z-10 px-6 lg:px-12 max-w-7xl mx-auto space-y-8">
+          <div className="space-y-4">
+            <h1 className="text-4xl lg:text-6xl font-black text-white tracking-tighter leading-tight">
+              Encuentra tu próximo <br />
+              <span className="text-accent">destino en Acapulco</span>
+            </h1>
+            <p className="text-white/70 text-lg lg:text-xl font-medium max-w-2xl">
+              Busca ofertas en hoteles, casas de renta, experiencias únicas y mucho más...
+            </p>
+          </div>
+
+          {/* Booking-style Search Bar */}
+          <div className="bg-accent p-1 rounded-sm shadow-2xl flex flex-col lg:flex-row items-stretch gap-1">
+            <div className="flex-1 bg-white flex items-center gap-3 px-4 py-4 border-r border-accent/20">
+              <Search className="w-5 h-5 text-muted" />
+              <input 
+                type="text"
+                placeholder="¿A dónde vas?"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full bg-transparent focus:outline-none text-dark font-bold placeholder:text-muted/60"
+              />
             </div>
-            <h2 className="text-3xl lg:text-5xl font-black text-white tracking-tighter leading-tight">
-              Experiencia en la<br />Bahía de Acapulco
-            </h2>
-            <button className="bg-white text-dark px-6 py-3 rounded-none font-black text-[10px] uppercase tracking-widest shadow-xl w-fit hover:bg-primary hover:text-white transition-all">
-              Explorar Ahora
+            <div className="flex-1 bg-white flex items-center gap-3 px-4 py-4 border-r border-accent/20">
+              <Calendar className="w-5 h-5 text-muted" />
+              <span className="text-dark font-bold whitespace-nowrap">Entrada — Salida</span>
+            </div>
+            <div className="flex-1 bg-white flex items-center gap-3 px-4 py-4">
+              <Users className="w-5 h-5 text-muted" />
+              <span className="text-dark font-bold whitespace-nowrap">2 adultos · 0 niños · 1 habitación</span>
+            </div>
+            <button className="bg-primary text-white px-12 py-4 font-black text-lg uppercase tracking-widest hover:bg-primary/90 transition-all">
+              Buscar
             </button>
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Categories Grid */}
-        <section className="-mt-8 relative z-20">
-          <div className="flex gap-4 overflow-x-auto no-scrollbar px-6 pb-4">
-            {CATEGORIES.map((cat) => (
-              <button
-                key={cat.id}
-                onClick={() => setSelectedCategory(cat.id)}
-                className={cn(
-                  "flex flex-col items-center gap-3 flex-shrink-0 w-28 p-4 bg-white shadow-xl shadow-black/5 border border-gray-100 transition-all",
-                  selectedCategory === cat.id ? "scale-105 border-primary/20" : "hover:bg-gray-50"
-                )}
-              >
-                <div className={cn(
-                  "w-14 h-14 rounded-full flex items-center justify-center transition-all shadow-inner",
-                  selectedCategory === cat.id 
-                    ? "bg-primary text-white" 
-                    : "bg-gray-50 text-dark"
-                )}>
-                  <cat.icon className="w-6 h-6" />
-                </div>
-                <span className={cn(
-                  "text-[9px] font-black uppercase tracking-widest text-center leading-tight",
-                  selectedCategory === cat.id ? "text-primary" : "text-muted"
-                )}>
-                  {cat.label}
-                </span>
-              </button>
-            ))}
-          </div>
-        </section>
-
-        {/* Popular Section */}
-        <section className="space-y-6 pb-20">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-black text-dark tracking-tight">Popular</h2>
-            <button className="text-primary text-[10px] font-black uppercase tracking-widest hover:underline">Ver todo</button>
-          </div>
-          
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
-            {filteredBusinesses.map(business => (
-              <PopularCard key={business.id} business={business} />
-            ))}
-          </div>
-
-          {filteredBusinesses.length === 0 && (
-            <div className="text-center py-20 space-y-4">
-              <div className="w-20 h-20 bg-white rounded-none flex items-center justify-center mx-auto shadow-sm">
-                <Palmtree className="w-10 h-10 text-gray-200" />
+      {/* Categories Grid (Visual Tiles) */}
+      <section className="px-6 lg:px-12 max-w-7xl mx-auto -mt-12 relative z-20">
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+          {CATEGORIES.map((cat) => (
+            <button
+              key={cat.id}
+              onClick={() => setSelectedCategory(cat.id)}
+              className={cn(
+                "flex flex-col items-center gap-3 p-6 bg-white shadow-xl shadow-black/5 border transition-all group",
+                selectedCategory === cat.id ? "border-primary ring-2 ring-primary/10 scale-105" : "border-gray-100 hover:border-primary/30"
+              )}
+            >
+              <div className={cn(
+                "w-12 h-12 rounded-full flex items-center justify-center transition-all",
+                selectedCategory === cat.id ? "bg-primary text-white" : "bg-gray-50 text-primary group-hover:bg-primary/10"
+              )}>
+                <cat.icon className="w-6 h-6" />
               </div>
-              <p className="text-sm font-bold text-muted uppercase tracking-widest">No se encontraron destinos en esta categoría</p>
+              <span className={cn(
+                "text-xs font-black uppercase tracking-widest text-center",
+                selectedCategory === cat.id ? "text-primary" : "text-muted"
+              )}>
+                {cat.label}
+              </span>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* Popular Section */}
+      <section className="px-6 lg:px-12 max-w-7xl mx-auto space-y-8 pb-20">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-black text-dark tracking-tight">Destinos populares en Acapulco</h2>
+            <p className="text-muted text-sm font-medium">Las mejores opciones elegidas por viajeros como tú</p>
+          </div>
+          <button className="text-primary text-sm font-black uppercase tracking-widest hover:underline flex items-center gap-2">
+            Ver todo <ChevronRight className="w-4 h-4" />
+          </button>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          {filteredBusinesses.map(business => (
+            <PopularCard key={business.id} business={business} />
+          ))}
+        </div>
+
+        {filteredBusinesses.length === 0 && (
+          <div className="text-center py-20 space-y-4">
+            <div className="w-20 h-20 bg-white rounded-none flex items-center justify-center mx-auto shadow-sm">
+              <Palmtree className="w-10 h-10 text-gray-200" />
             </div>
-          )}
-        </section>
+            <p className="text-sm font-bold text-muted uppercase tracking-widest">No se encontraron destinos en esta categoría</p>
+          </div>
+        )}
+      </section>
     </div>
   );
 }

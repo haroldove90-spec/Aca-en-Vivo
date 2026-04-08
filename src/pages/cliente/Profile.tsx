@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { User, MapPin, Mail, Phone, Calendar, Edit3, Settings, LogOut, Shield, Loader2 } from 'lucide-react';
+import { User, MapPin, Mail, Phone, Calendar, Edit3, Settings, LogOut, Shield, Loader2, Star, Palmtree, Hotel } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { useNavigate } from 'react-router-dom';
@@ -71,113 +71,132 @@ export default function ClienteProfile() {
   }
 
   return (
-    <div className="space-y-10 pb-20">
-      {/* Profile Header Card */}
-        <section className="bg-white rounded-none p-8 lg:p-12 shadow-2xl shadow-black/5 border border-gray-100 relative overflow-hidden">
-          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-none blur-3xl -mr-32 -mt-32" />
+    <div className="space-y-8 pb-20 pt-8 px-6 lg:px-0">
+      {/* Profile Header */}
+      <div className="flex flex-col lg:flex-row items-center lg:items-start gap-8">
+        <div className="relative group">
+          <div className="w-32 h-32 lg:w-40 lg:h-40 rounded-full overflow-hidden border-4 border-white shadow-xl">
+            <img 
+              src={userData.avatar} 
+              alt={userData.name} 
+              className="w-full h-full object-cover"
+              referrerPolicy="no-referrer"
+            />
+          </div>
+          <button 
+            onClick={() => navigate('/settings')}
+            className="absolute bottom-1 right-1 w-10 h-10 bg-white text-primary rounded-full flex items-center justify-center shadow-lg border border-gray-100 hover:scale-110 transition-transform"
+          >
+            <Edit3 className="w-5 h-5" />
+          </button>
+        </div>
+
+        <div className="text-center lg:text-left space-y-4 flex-1">
+          <div className="space-y-1">
+            <h1 className="text-3xl lg:text-4xl font-black text-dark tracking-tight">{userData.name}</h1>
+            <p className="text-muted font-medium">{userData.username} · Miembro desde {userData.joined}</p>
+          </div>
           
-          <div className="flex flex-col lg:flex-row items-center gap-10 relative z-10">
-            <div className="relative group">
-              <div className="w-40 h-40 rounded-none overflow-hidden shadow-2xl shadow-primary/20 border-4 border-white bg-gray-50">
-                <img 
-                  src={userData.avatar} 
-                  alt={userData.name} 
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                  referrerPolicy="no-referrer"
-                />
-              </div>
-              <button 
-                onClick={() => navigate('/settings')}
-                className="absolute -bottom-2 -right-2 w-12 h-12 bg-primary text-white rounded-none flex items-center justify-center shadow-xl border-4 border-white hover:scale-110 transition-transform"
-              >
-                <Edit3 className="w-5 h-5" />
-              </button>
+          <div className="flex flex-wrap justify-center lg:justify-start gap-4">
+            <div className="flex items-center gap-1.5 bg-accent/10 text-accent px-3 py-1 rounded-full text-xs font-bold">
+              <Star className="w-3.5 h-3.5 fill-current" />
+              Nivel Genius 2
             </div>
-            
-            <div className="text-center lg:text-left space-y-4 flex-1">
-              <div>
-                <h1 className="text-4xl font-black text-dark tracking-tighter uppercase leading-none">{userData.name}</h1>
-                <p className="text-primary font-black text-sm uppercase tracking-widest mt-2">{userData.username}</p>
+            <div className="flex items-center gap-1.5 bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold">
+              <Shield className="w-3.5 h-3.5" />
+              Perfil Verificado
+            </div>
+          </div>
+        </div>
+
+        <div className="flex lg:flex-col gap-3 w-full lg:w-auto">
+          <button 
+            onClick={() => navigate('/settings')}
+            className="flex-1 lg:w-48 py-3 bg-white border border-primary text-primary rounded-sm font-bold text-sm hover:bg-primary/5 transition-all"
+          >
+            Gestionar cuenta
+          </button>
+          <button 
+            onClick={handleLogout}
+            className="flex-1 lg:w-48 py-3 bg-white border border-rose-200 text-rose-500 rounded-sm font-bold text-sm hover:bg-rose-50 transition-all"
+          >
+            Cerrar sesión
+          </button>
+        </div>
+      </div>
+
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {userData.stats.map((stat) => (
+          <div key={stat.label} className="bg-white p-6 rounded-sm border border-gray-200 shadow-sm flex flex-col items-center text-center gap-1">
+            <span className="text-2xl font-black text-dark">{stat.value}</span>
+            <span className="text-xs font-bold text-muted uppercase tracking-widest">{stat.label}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Info Sections */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <section className="bg-white rounded-sm border border-gray-200 shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-gray-100">
+            <h3 className="font-black text-dark uppercase tracking-widest text-sm">Información Personal</h3>
+          </div>
+          <div className="p-6 space-y-6">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-primary">
+                <Mail className="w-5 h-5" />
               </div>
-              
-              <div className="flex flex-wrap justify-center lg:justify-start gap-6">
-                <div className="flex items-center gap-2 text-muted">
-                  <MapPin className="w-4 h-4 text-primary" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest">{userData.location}</span>
-                </div>
-                <div className="flex items-center gap-2 text-muted">
-                  <Calendar className="w-4 h-4 text-primary" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest">Miembro desde {userData.joined}</span>
-                </div>
+              <div>
+                <p className="text-[10px] font-bold text-muted uppercase tracking-widest">Correo electrónico</p>
+                <p className="text-sm font-bold text-dark">{userData.email}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-primary">
+                <Phone className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-muted uppercase tracking-widest">Teléfono</p>
+                <p className="text-sm font-bold text-dark">{userData.phone}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-gray-50 rounded-full flex items-center justify-center text-primary">
+                <MapPin className="w-5 h-5" />
+              </div>
+              <div>
+                <p className="text-[10px] font-bold text-muted uppercase tracking-widest">Ubicación</p>
+                <p className="text-sm font-bold text-dark">{userData.location}</p>
               </div>
             </div>
           </div>
         </section>
 
-        {/* Profile Options Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-          <section className="bg-white rounded-none p-8 shadow-xl shadow-black/5 border border-gray-100 space-y-8">
-            <h3 className="text-sm font-black text-dark uppercase tracking-widest flex items-center gap-2">
-              <User className="w-5 h-5 text-primary" />
-              Información de Contacto
-            </h3>
-            
-            <div className="space-y-6">
-              <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-none border border-gray-100">
-                <div className="w-10 h-10 bg-white rounded-none flex items-center justify-center shadow-sm">
-                  <Mail className="w-5 h-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-[9px] font-black text-muted uppercase tracking-widest">Email</p>
-                  <p className="text-sm font-bold text-dark">{userData.email}</p>
-                </div>
+        <section className="bg-white rounded-sm border border-gray-200 shadow-sm overflow-hidden">
+          <div className="p-6 border-b border-gray-100">
+            <h3 className="font-black text-dark uppercase tracking-widest text-sm">Preferencias de Viaje</h3>
+          </div>
+          <div className="p-6 space-y-4">
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-sm">
+              <div className="flex items-center gap-3">
+                <Palmtree className="w-5 h-5 text-primary" />
+                <span className="text-sm font-bold text-dark">Destino favorito</span>
               </div>
-              <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-none border border-gray-100">
-                <div className="w-10 h-10 bg-white rounded-none flex items-center justify-center shadow-sm">
-                  <Phone className="w-5 h-5 text-primary" />
-                </div>
-                <div>
-                  <p className="text-[9px] font-black text-muted uppercase tracking-widest">Teléfono</p>
-                  <p className="text-sm font-bold text-dark">{userData.phone}</p>
-                </div>
+              <span className="text-xs font-bold text-primary">Acapulco Diamante</span>
+            </div>
+            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-sm">
+              <div className="flex items-center gap-3">
+                <Hotel className="w-5 h-5 text-primary" />
+                <span className="text-sm font-bold text-dark">Tipo de alojamiento</span>
               </div>
+              <span className="text-xs font-bold text-primary">Hoteles de Lujo</span>
             </div>
-          </section>
-
-          <section className="bg-white rounded-none p-8 shadow-xl shadow-black/5 border border-gray-100 space-y-8">
-            <h3 className="text-sm font-black text-dark uppercase tracking-widest flex items-center gap-2">
-              <Settings className="w-5 h-5 text-primary" />
-              Acciones Rápidas
-            </h3>
-            
-            <div className="grid grid-cols-1 gap-4">
-              <button 
-                onClick={() => navigate('/settings')}
-                className="flex items-center justify-between p-4 bg-gray-50 hover:bg-primary/5 rounded-none border border-gray-100 transition-all group"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-white rounded-none flex items-center justify-center shadow-sm group-hover:bg-primary group-hover:text-white transition-all">
-                    <Shield className="w-5 h-5" />
-                  </div>
-                  <span className="text-xs font-black text-dark uppercase tracking-widest">Seguridad y Privacidad</span>
-                </div>
-                <Edit3 className="w-4 h-4 text-muted" />
-              </button>
-              
-              <button 
-                onClick={handleLogout}
-                className="flex items-center justify-between p-4 bg-rose-50 hover:bg-rose-100 rounded-none border border-rose-100 transition-all group"
-              >
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-white rounded-none flex items-center justify-center shadow-sm text-rose-500">
-                    <LogOut className="w-5 h-5" />
-                  </div>
-                  <span className="text-xs font-black text-rose-600 uppercase tracking-widest">Cerrar Sesión</span>
-                </div>
-              </button>
-            </div>
-          </section>
-        </div>
+            <button className="w-full py-3 text-primary font-bold text-sm hover:underline">
+              Editar preferencias de viaje
+            </button>
+          </div>
+        </section>
       </div>
+    </div>
   );
 }

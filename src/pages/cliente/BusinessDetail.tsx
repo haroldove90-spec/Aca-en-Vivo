@@ -17,7 +17,10 @@ import {
   CheckCircle2,
   Loader2,
   Zap,
-  Calendar
+  Calendar,
+  Users,
+  Hotel,
+  Palmtree
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
@@ -105,192 +108,182 @@ export default function BusinessDetail() {
   const active = isFavorite(id || '');
 
   return (
-    <div className="pb-24">
-      {/* Hero Gallery */}
-      <div className="relative h-[50vh] lg:h-[60vh] bg-dark overflow-hidden">
-        <img 
-          src={business.image || business.galeria?.[0] || HOTEL_IMAGES.EXTERIOR} 
-          alt={business.nombre}
-          className="w-full h-full object-cover opacity-80"
-          referrerPolicy="no-referrer"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-dark via-transparent to-transparent" />
-        
-        {/* Top Controls */}
-        <div className="absolute top-8 left-8 right-8 flex justify-between items-center z-10">
-          <button 
-            onClick={() => navigate(-1)}
-            className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-none flex items-center justify-center text-white border border-white/20 hover:bg-white/20 transition-all"
-          >
-            <ChevronLeft className="w-6 h-6" />
+    <div className="pb-24 bg-white lg:bg-bg">
+      {/* Top Navigation Bar (Mobile only, desktop has global header) */}
+      <div className="lg:hidden sticky top-0 z-50 bg-white border-b border-gray-100 px-4 py-3 flex items-center justify-between">
+        <button onClick={() => navigate(-1)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+          <ChevronLeft className="w-6 h-6 text-dark" />
+        </button>
+        <div className="flex gap-2">
+          <button className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+            <Share2 className="w-5 h-5 text-dark" />
           </button>
-          <div className="flex gap-4">
-            <button className="w-12 h-12 bg-white/10 backdrop-blur-md rounded-none flex items-center justify-center text-white border border-white/20 hover:bg-white/20 transition-all">
-              <Share2 className="w-5 h-5" />
-            </button>
-            <button 
-              onClick={() => toggleFavorite({
-                id: business.id,
-                name: business.nombre,
-                category: business.tipo,
-                image: business.image || business.galeria?.[0] || HOTEL_IMAGES.EXTERIOR,
-                price: '$2,500',
-                rating: business.estrellas
-              })}
-              className={cn(
-                "w-12 h-12 backdrop-blur-md rounded-none flex items-center justify-center border transition-all",
-                active ? "bg-rose-500 border-rose-500 text-white" : "bg-white/10 border-white/20 text-white hover:bg-white/20"
-              )}
-            >
-              <Heart className={cn("w-6 h-6", active && "fill-current")} />
-            </button>
-          </div>
-        </div>
-
-        {/* Title Overlay */}
-        <div className="absolute bottom-12 left-8 right-8">
-          <div className="max-w-7xl mx-auto">
-            <div className="flex items-center gap-3 mb-4">
-              <span className="px-4 py-1.5 bg-primary text-white text-[10px] font-black uppercase tracking-[0.2em] rounded-none">
-                {business.tipo}
-              </span>
-              <div className="flex items-center gap-1 bg-accent/90 backdrop-blur-md px-3 py-1.5 rounded-none">
-                <Star className="w-3.5 h-3.5 fill-white text-white" />
-                <span className="text-[11px] font-black text-white">{business.estrellas}</span>
-              </div>
-            </div>
-            <h1 className="text-5xl lg:text-7xl font-black text-white tracking-tighter uppercase leading-none mb-4">
-              {business.nombre}
-            </h1>
-            <div className="flex items-center gap-6 text-white/80">
-              <div className="flex items-center gap-2">
-                <MapPin className="w-5 h-5 text-primary" />
-                <span className="text-sm font-bold uppercase tracking-widest">{business.zona || 'Acapulco, Guerrero'}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Clock className="w-5 h-5 text-primary" />
-                <span className="text-sm font-bold uppercase tracking-widest">Abierto ahora</span>
-              </div>
-            </div>
-          </div>
+          <button 
+            onClick={() => toggleFavorite({
+              id: business.id,
+              name: business.nombre,
+              category: business.tipo,
+              image: business.image || business.galeria?.[0] || HOTEL_IMAGES.EXTERIOR,
+              price: '$2,500',
+              rating: business.estrellas
+            })}
+            className={cn("p-2 rounded-full transition-colors", active ? "text-rose-500" : "text-dark")}
+          >
+            <Heart className={cn("w-6 h-6", active && "fill-current")} />
+          </button>
         </div>
       </div>
 
-      {/* Content Grid */}
-      <div className="max-w-7xl mx-auto px-8 py-16 grid grid-cols-1 lg:grid-cols-3 gap-16">
-        {/* Left Column: Info */}
-        <div className="lg:col-span-2 space-y-12">
-          <section className="space-y-6">
-            <h2 className="text-2xl font-black text-dark uppercase tracking-tight border-l-4 border-primary pl-6">Descripción</h2>
-            <p className="text-lg text-muted leading-relaxed font-medium">
-              {business.descripcion}
-            </p>
-          </section>
-
-          <section className="space-y-8">
-            <h2 className="text-2xl font-black text-dark uppercase tracking-tight border-l-4 border-primary pl-6">Amenidades</h2>
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-              {[
-                { id: 'wifi', label: 'WiFi Gratis', icon: Wifi },
-                { id: 'pool', label: 'Alberca', icon: Waves },
-                { id: 'pet', label: 'Pet Friendly', icon: Dog },
-                { id: 'parking', label: 'Parking', icon: ParkingCircle },
-              ].map((item) => (
-                <div 
-                  key={item.id}
-                  className={cn(
-                    "flex flex-col items-center gap-4 p-8 border-2 transition-all",
-                    business.amenidades?.includes(item.id) 
-                      ? "bg-primary/5 border-primary/20 text-primary" 
-                      : "bg-gray-50 border-transparent text-gray-300 opacity-50"
-                  )}
-                >
-                  <item.icon className="w-8 h-8" />
-                  <span className="text-[10px] font-black uppercase tracking-widest text-center">{item.label}</span>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          <section className="space-y-8">
-            <h2 className="text-2xl font-black text-dark uppercase tracking-tight border-l-4 border-primary pl-6">Galería</h2>
-            <div className="grid grid-cols-2 gap-4">
-              {[HOTEL_IMAGES.ROOM, HOTEL_IMAGES.POOL, HOTEL_IMAGES.RESTAURANT, HOTEL_IMAGES.BEACH].map((img, i) => (
-                <div key={i} className="aspect-video bg-gray-100 rounded-none overflow-hidden group">
-                  <img 
-                    src={img} 
-                    alt="Gallery" 
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                    referrerPolicy="no-referrer"
-                  />
-                </div>
-              ))}
-            </div>
-          </section>
+      <div className="max-w-7xl mx-auto lg:px-12 lg:py-8">
+        {/* Gallery Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-2 h-[400px] lg:h-[500px] overflow-hidden lg:rounded-lg">
+          <div className="lg:col-span-2 h-full relative group cursor-pointer">
+            <img 
+              src={business.image || business.galeria?.[0] || HOTEL_IMAGES.EXTERIOR} 
+              alt={business.nombre}
+              className="w-full h-full object-cover group-hover:brightness-90 transition-all"
+              referrerPolicy="no-referrer"
+            />
+          </div>
+          <div className="hidden lg:grid grid-cols-2 grid-rows-2 gap-2 lg:col-span-2 h-full">
+            {[HOTEL_IMAGES.ROOM, HOTEL_IMAGES.POOL, HOTEL_IMAGES.RESTAURANT, HOTEL_IMAGES.BEACH].map((img, i) => (
+              <div key={i} className="relative group cursor-pointer overflow-hidden">
+                <img 
+                  src={img} 
+                  alt={`Gallery ${i}`}
+                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
+                  referrerPolicy="no-referrer"
+                />
+                {i === 3 && (
+                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
+                    <span className="text-white font-bold text-lg">+12 fotos</span>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
         </div>
 
-        {/* Right Column: Booking Card */}
-        <div className="space-y-8">
-          <div className="bg-white p-10 rounded-none shadow-2xl shadow-black/5 border border-gray-100 sticky top-32">
-            <div className="flex justify-between items-end mb-8">
-              <div>
-                <p className="text-[10px] font-black text-muted uppercase tracking-widest mb-1">Desde</p>
-                <h3 className="text-4xl font-black text-dark tracking-tighter">$2,500 <span className="text-sm font-bold text-muted uppercase">MXN</span></h3>
-              </div>
-              <span className="text-xs font-bold text-emerald-500 uppercase tracking-widest">Disponible</span>
-            </div>
-
-            <div className="space-y-4 mb-10">
-              <div className="p-4 bg-gray-50 border border-gray-100 rounded-none flex items-center gap-4">
-                <Calendar className="w-5 h-5 text-primary" />
-                <div>
-                  <p className="text-[9px] font-black text-muted uppercase tracking-widest">Fecha de Entrada</p>
-                  <p className="text-xs font-bold text-dark">Seleccionar fecha</p>
+        {/* Content Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8 px-6 lg:px-0">
+          {/* Left Column: Info */}
+          <div className="lg:col-span-2 space-y-8">
+            <div className="flex flex-col gap-4">
+              <div className="flex items-center gap-2">
+                <span className="bg-primary text-white px-2 py-1 rounded-sm text-[10px] font-bold uppercase tracking-wider">{business.tipo}</span>
+                <div className="flex gap-0.5">
+                  {[...Array(5)].map((_, i) => (
+                    <Star key={i} className={cn("w-3 h-3", i < Math.floor(business.estrellas) ? "fill-accent text-accent" : "text-gray-300")} />
+                  ))}
                 </div>
               </div>
-              <div className="p-4 bg-gray-50 border border-gray-100 rounded-none flex items-center gap-4">
-                <Zap className="w-5 h-5 text-amber-500" />
-                <div>
-                  <p className="text-[9px] font-black text-muted uppercase tracking-widest">Oferta Especial</p>
-                  <p className="text-xs font-bold text-dark">15% de descuento hoy</p>
+              <div className="flex justify-between items-start">
+                <h1 className="text-3xl lg:text-4xl font-black text-dark tracking-tight">{business.nombre}</h1>
+                <div className="flex items-center gap-3">
+                  <div className="text-right">
+                    <p className="font-bold text-dark leading-none">Excelente</p>
+                    <p className="text-xs text-muted mt-1">1,240 comentarios</p>
+                  </div>
+                  <div className="bg-navy text-white w-10 h-10 flex items-center justify-center rounded-sm font-bold text-lg">
+                    {business.estrellas}
+                  </div>
                 </div>
+              </div>
+              <div className="flex items-center gap-2 text-primary font-medium text-sm">
+                <MapPin className="w-4 h-4" />
+                <span>{business.zona || 'Acapulco, Guerrero'}</span>
+                <span className="text-muted mx-1">·</span>
+                <button className="hover:underline">Excelente ubicación — ver mapa</button>
               </div>
             </div>
 
-            <button 
-              onClick={handleReserve}
-              disabled={reserving}
-              className="w-full py-6 bg-primary text-white rounded-none font-black text-xs uppercase tracking-[0.3em] shadow-2xl shadow-primary/40 flex items-center justify-center gap-3 active:scale-95 transition-all hover:bg-primary/90 disabled:opacity-50"
-            >
-              {reserving ? <Loader2 className="w-6 h-6 animate-spin" /> : 'Reservar Ahora'}
-            </button>
+            <div className="border-t border-gray-100 pt-8">
+              <h2 className="text-xl font-black text-dark mb-4">Lo que ofrece este lugar</h2>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
+                {[
+                  { id: 'wifi', label: 'WiFi gratis', icon: Wifi },
+                  { id: 'pool', label: 'Alberca al aire libre', icon: Waves },
+                  { id: 'pet', label: 'Se aceptan mascotas', icon: Dog },
+                  { id: 'parking', label: 'Estacionamiento', icon: ParkingCircle },
+                ].map((item) => (
+                  <div key={item.id} className={cn(
+                    "flex items-center gap-3",
+                    business.amenidades?.includes(item.id) ? "text-dark" : "text-gray-300"
+                  )}>
+                    <item.icon className="w-5 h-5" />
+                    <span className="text-sm font-medium">{item.label}</span>
+                  </div>
+                ))}
+              </div>
+              <button className="mt-6 text-primary font-bold text-sm hover:underline">Mostrar las 24 amenidades</button>
+            </div>
 
-            <button 
-              onClick={() => addItem({
-                id: business.id,
-                name: business.nombre,
-                category: business.tipo,
-                image: business.image || business.galeria?.[0] || HOTEL_IMAGES.EXTERIOR,
-                price: '$2,500'
-              })}
-              className="w-full mt-4 py-6 bg-white text-dark border-2 border-dark rounded-none font-black text-xs uppercase tracking-[0.3em] flex items-center justify-center gap-3 active:scale-95 transition-all hover:bg-dark hover:text-white"
-            >
-              Añadir al Carrito
-            </button>
-
-            <p className="text-[10px] text-center text-muted font-bold uppercase tracking-widest mt-6">
-              No se realizará ningún cargo todavía
-            </p>
+            <div className="border-t border-gray-100 pt-8">
+              <h2 className="text-xl font-black text-dark mb-4">Descripción</h2>
+              <p className="text-muted leading-relaxed whitespace-pre-line">
+                {business.descripcion}
+              </p>
+            </div>
           </div>
 
-          <div className="bg-dark p-8 rounded-none text-white space-y-4">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-white/10 rounded-none flex items-center justify-center">
-                <Phone className="w-6 h-6 text-primary" />
+          {/* Right Column: Booking Card */}
+          <div className="relative">
+            <div className="bg-white p-6 rounded-sm shadow-xl border border-gray-200 sticky top-24 space-y-6">
+              <div className="bg-primary/5 p-4 rounded-sm border border-primary/10">
+                <p className="text-xs font-bold text-primary mb-1">Oferta por tiempo limitado</p>
+                <p className="text-[10px] text-muted">Ahorra un 15% si reservas hoy mismo</p>
               </div>
+
               <div>
-                <p className="text-[10px] font-black text-white/40 uppercase tracking-widest">Contacto Directo</p>
-                <p className="text-sm font-black uppercase tracking-tight">{business.telefono}</p>
+                <div className="flex items-baseline gap-2">
+                  <span className="text-muted line-through text-sm">$2,950</span>
+                  <span className="text-2xl font-black text-dark">$2,500</span>
+                </div>
+                <p className="text-xs text-muted">por noche (impuestos incluidos)</p>
+              </div>
+
+              <div className="space-y-3">
+                <div className="p-3 border border-gray-200 rounded-sm flex items-center gap-3 cursor-pointer hover:border-primary transition-colors">
+                  <Calendar className="w-5 h-5 text-muted" />
+                  <div>
+                    <p className="text-[10px] font-bold text-muted uppercase">Entrada — Salida</p>
+                    <p className="text-xs font-bold text-dark">Seleccionar fechas</p>
+                  </div>
+                </div>
+                <div className="p-3 border border-gray-200 rounded-sm flex items-center gap-3 cursor-pointer hover:border-primary transition-colors">
+                  <Users className="w-5 h-5 text-muted" />
+                  <div>
+                    <p className="text-[10px] font-bold text-muted uppercase">Huéspedes</p>
+                    <p className="text-xs font-bold text-dark">2 adultos · 1 habitación</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="space-y-3">
+                <button 
+                  onClick={handleReserve}
+                  disabled={reserving}
+                  className="w-full py-4 bg-primary text-white rounded-sm font-black text-sm uppercase tracking-widest hover:bg-primary/90 transition-all disabled:opacity-50"
+                >
+                  {reserving ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Ver disponibilidad'}
+                </button>
+                <button 
+                  onClick={() => addItem({
+                    id: business.id,
+                    name: business.nombre,
+                    category: business.tipo,
+                    image: business.image || business.galeria?.[0] || HOTEL_IMAGES.EXTERIOR,
+                    price: '$2,500'
+                  })}
+                  className="w-full py-4 bg-white text-primary border border-primary rounded-sm font-black text-sm uppercase tracking-widest hover:bg-primary/5 transition-all"
+                >
+                  Añadir al carrito
+                </button>
+              </div>
+
+              <div className="flex items-center gap-2 text-[10px] text-muted font-medium">
+                <CheckCircle2 className="w-4 h-4 text-emerald-500" />
+                <span>Reserva ahora y paga después</span>
               </div>
             </div>
           </div>

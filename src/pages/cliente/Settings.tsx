@@ -109,189 +109,146 @@ export default function ClienteSettings() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-10 pb-20">
-      <header className="space-y-2">
-        <h1 className="text-4xl font-black text-dark tracking-tighter uppercase leading-none">Configuración</h1>
-        <p className="text-muted text-sm font-bold uppercase tracking-widest">Personaliza tu experiencia en Acapulco</p>
-      </header>
+    <>
+      <div className="max-w-4xl mx-auto space-y-12 pb-20 pt-8 px-6 lg:px-0">
+        <div className="space-y-2">
+          <h1 className="text-3xl font-black text-dark tracking-tight">Configuración de la cuenta</h1>
+          <p className="text-muted font-medium">Gestiona tu información personal, seguridad y preferencias</p>
+        </div>
 
-      {/* Tabs */}
-      <div className="flex gap-4 p-2 bg-gray-100 rounded-none w-fit">
-        {[
-          { id: 'profile', label: 'Perfil', icon: User },
-          { id: 'notifications', label: 'Notificaciones', icon: Bell },
-          { id: 'security', label: 'Seguridad', icon: Shield },
-        ].map((tab) => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
-            className={cn(
-              "flex items-center gap-2 px-6 py-3 rounded-none text-[10px] font-black uppercase tracking-widest transition-all",
-              activeTab === tab.id 
-                ? "bg-white text-primary shadow-lg" 
-                : "text-muted hover:text-dark"
-            )}
-          >
-            <tab.icon className="w-4 h-4" />
-            {tab.label}
-          </button>
-        ))}
-      </div>
-
-      <AnimatePresence mode="wait">
-        {activeTab === 'profile' && (
-          <motion.div
-            key="profile"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="bg-white rounded-none p-8 lg:p-12 shadow-2xl shadow-black/5 border border-gray-100 space-y-10"
-          >
-            {/* Avatar Section */}
-            <div className="flex flex-col md:flex-row items-center gap-10">
-              <div className="relative group">
-                <div className="w-40 h-40 rounded-none overflow-hidden shadow-2xl shadow-primary/20 border-4 border-white bg-gray-50 flex items-center justify-center">
-                  {capturedImage ? (
-                    <img src={capturedImage} alt="Perfil" className="w-full h-full object-cover" />
-                  ) : (
-                    <User className="w-16 h-16 text-gray-200" />
-                  )}
-                </div>
-                <div className="absolute -bottom-2 -right-2 flex flex-col gap-2">
-                  <button 
-                    onClick={() => setShowCamera(true)}
-                    className="w-10 h-10 bg-primary text-white rounded-none flex items-center justify-center shadow-xl border-2 border-white hover:scale-110 transition-transform"
-                  >
-                    <Camera className="w-5 h-5" />
-                  </button>
-                  <button 
-                    onClick={() => fileInputRef.current?.click()}
-                    className="w-10 h-10 bg-navy text-white rounded-none flex items-center justify-center shadow-xl border-2 border-white hover:scale-110 transition-transform"
-                  >
-                    <Upload className="w-5 h-5" />
-                  </button>
-                </div>
-                <input 
-                  type="file" 
-                  ref={fileInputRef} 
-                  className="hidden" 
-                  accept="image/*" 
-                  onChange={handleFileUpload}
-                />
-              </div>
-              
-              <div className="flex-1 space-y-4 text-center md:text-left">
-                <h3 className="text-xl font-black text-dark uppercase tracking-tight">Foto de Perfil</h3>
-                <p className="text-xs font-bold text-muted uppercase tracking-widest leading-relaxed max-w-sm">
-                  Sube una foto o tómala directamente con tu cámara. Formatos permitidos: JPG, PNG. Máx 5MB.
-                </p>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-10 border-t border-gray-100">
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-4">Nombre Completo</label>
-                <input 
-                  type="text" 
-                  value={profileData.name}
-                  onChange={(e) => setProfileData({...profileData, name: e.target.value})}
-                  className="w-full px-6 py-4 bg-gray-50 border border-gray-100 rounded-none font-bold text-dark focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                />
-              </div>
-              <div className="space-y-2">
-                <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-4">Nombre de Usuario</label>
-                <div className="relative">
-                  <span className="absolute left-6 top-1/2 -translate-y-1/2 text-primary font-black">@</span>
-                  <input 
-                    type="text" 
-                    value={profileData.username}
-                    onChange={(e) => setProfileData({...profileData, username: e.target.value})}
-                    className="w-full pl-10 pr-6 py-4 bg-gray-50 border border-gray-100 rounded-none font-bold text-dark focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2 md:col-span-2">
-                <label className="text-[10px] font-black text-muted uppercase tracking-widest ml-4">Correo Electrónico</label>
-                <input 
-                  type="email" 
-                  value={profileData.email}
-                  disabled
-                  className="w-full px-6 py-4 bg-gray-100 border border-gray-200 rounded-none font-bold text-muted cursor-not-allowed"
-                />
-              </div>
-            </div>
-          </motion.div>
-        )}
-
-        {activeTab === 'notifications' && (
-          <motion.div
-            key="notifications"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="bg-white rounded-none p-8 lg:p-12 shadow-2xl shadow-black/5 border border-gray-100 space-y-10"
-          >
-            <div className="flex items-center justify-between">
-              <div className="space-y-1">
-                <h3 className="text-xl font-black text-dark uppercase tracking-tight">Centro de Notificaciones</h3>
-                <p className="text-[10px] font-bold text-muted uppercase tracking-widest">Controla cómo te mantenemos informado</p>
-              </div>
-              <button 
-                onClick={requestNotificationPermission}
-                className="px-6 py-3 bg-primary/10 text-primary rounded-none text-[10px] font-black uppercase tracking-widest hover:bg-primary hover:text-white transition-all"
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Sidebar Tabs */}
+          <div className="lg:col-span-1 space-y-1">
+            {[
+              { id: 'profile', label: 'Información personal', icon: User },
+              { id: 'notifications', label: 'Notificaciones', icon: Bell },
+              { id: 'security', label: 'Seguridad', icon: Shield },
+            ].map((tab) => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as any)}
+                className={cn(
+                  "w-full flex items-center gap-3 px-4 py-3 rounded-sm text-sm font-bold transition-all",
+                  activeTab === tab.id 
+                    ? "bg-primary/10 text-primary" 
+                    : "text-muted hover:bg-gray-50 hover:text-dark"
+                )}
               >
-                Probar Permisos
+                <tab.icon className="w-4 h-4" />
+                {tab.label}
               </button>
-            </div>
+            ))}
+          </div>
 
-            <div className="space-y-4">
-              {[
-                { id: 'push', label: 'Notificaciones Push', desc: 'Alertas en tiempo real en tu navegador', icon: Bell },
-                { id: 'email', label: 'Correo Electrónico', desc: 'Resúmenes semanales y confirmaciones', icon: ImageIcon },
-                { id: 'sms', label: 'Mensajes SMS', desc: 'Alertas críticas de seguridad', icon: Smartphone },
-              ].map((item) => (
-                <div key={item.id} className="flex items-center justify-between p-6 bg-gray-50 rounded-none border border-gray-100">
-                  <div className="flex items-center gap-4">
-                    <div className="w-12 h-12 bg-white rounded-none flex items-center justify-center shadow-sm text-primary">
-                      <item.icon className="w-6 h-6" />
+          {/* Content Area */}
+          <div className="lg:col-span-3">
+            <AnimatePresence mode="wait">
+              {activeTab === 'profile' && (
+                <motion.div
+                  key="profile"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="bg-white rounded-sm border border-gray-200 shadow-sm overflow-hidden"
+                >
+                  <div className="p-6 border-b border-gray-100">
+                    <h2 className="font-black text-dark uppercase tracking-widest text-sm">Información Personal</h2>
+                  </div>
+                  <div className="p-8 space-y-8">
+                    <div className="flex items-center gap-8">
+                      <div className="relative group">
+                        <div className="w-24 h-24 rounded-full overflow-hidden border-2 border-gray-100">
+                          <img src={capturedImage || `https://api.dicebear.com/7.x/avataaars/svg?seed=${profileData.email}`} alt="Avatar" className="w-full h-full object-cover" />
+                        </div>
+                        <button 
+                          onClick={() => setShowCamera(true)}
+                          className="absolute inset-0 bg-black/40 text-white opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-[10px] font-bold uppercase"
+                        >
+                          Cambiar
+                        </button>
+                      </div>
+                      <div className="flex-1 space-y-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black text-muted uppercase tracking-widest">Nombre completo</label>
+                            <input 
+                              type="text" 
+                              value={profileData.name}
+                              onChange={(e) => setProfileData({...profileData, name: e.target.value})}
+                              className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-sm"
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <label className="text-[10px] font-black text-muted uppercase tracking-widest">Nombre de usuario</label>
+                            <input 
+                              type="text" 
+                              value={profileData.username}
+                              onChange={(e) => setProfileData({...profileData, username: e.target.value})}
+                              className="w-full px-4 py-2 bg-gray-50 border border-gray-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-primary/20 transition-all font-bold text-sm"
+                            />
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-sm font-black text-dark uppercase tracking-tight">{item.label}</p>
-                      <p className="text-[10px] font-bold text-muted uppercase tracking-widest">{item.desc}</p>
+
+                    <div className="flex justify-end pt-4">
+                      <button 
+                        onClick={handleSave}
+                        disabled={isSaving}
+                        className="px-8 py-3 bg-primary text-white rounded-sm font-black text-xs uppercase tracking-widest hover:bg-primary/90 transition-all flex items-center gap-2"
+                      >
+                        {isSaving ? <Loader2 className="w-4 h-4 animate-spin" /> : 'Guardar cambios'}
+                      </button>
                     </div>
                   </div>
-                  <button 
-                    onClick={() => setProfileData({
-                      ...profileData, 
-                      notifications: { ...profileData.notifications, [item.id]: !profileData.notifications[item.id as keyof typeof profileData.notifications] }
-                    })}
-                    className={cn(
-                      "w-14 h-8 rounded-none p-1 transition-all duration-300",
-                      profileData.notifications[item.id as keyof typeof profileData.notifications] ? "bg-primary" : "bg-gray-300"
-                    )}
-                  >
-                    <div className={cn(
-                      "w-6 h-6 bg-white rounded-none shadow-md transition-all duration-300",
-                      profileData.notifications[item.id as keyof typeof profileData.notifications] ? "translate-x-6" : "translate-x-0"
-                    )} />
-                  </button>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                </motion.div>
+              )}
 
-      {/* Global Save Button - Positioned to avoid nav bar obstruction */}
-      <div className="flex justify-end pt-10 pb-12 border-t border-gray-100">
-        <button 
-          onClick={handleSave}
-          disabled={isSaving}
-          className="w-full md:w-auto flex items-center justify-center gap-3 px-10 py-5 bg-primary text-white rounded-none font-black text-xs uppercase tracking-widest shadow-2xl shadow-primary/30 hover:bg-primary/90 transition-all active:scale-95 disabled:opacity-50"
-        >
-          {isSaving ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
-          Guardar Cambios
-        </button>
+              {activeTab === 'notifications' && (
+                <motion.div
+                  key="notifications"
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -20 }}
+                  className="bg-white rounded-sm border border-gray-200 shadow-sm overflow-hidden"
+                >
+                  <div className="p-6 border-b border-gray-100">
+                    <h2 className="font-black text-dark uppercase tracking-widest text-sm">Preferencias de Notificación</h2>
+                  </div>
+                  <div className="p-8 space-y-6">
+                    {[
+                      { id: 'email', label: 'Notificaciones por email', desc: 'Recibe actualizaciones sobre tus reservas en tu correo' },
+                      { id: 'push', label: 'Notificaciones push', desc: 'Alertas en tiempo real en tu navegador o móvil' },
+                      { id: 'sms', label: 'Mensajes de texto', desc: 'Recordatorios importantes vía SMS' },
+                    ].map((item) => (
+                      <div key={item.id} className="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors rounded-sm">
+                        <div className="space-y-1">
+                          <p className="text-sm font-bold text-dark">{item.label}</p>
+                          <p className="text-xs text-muted">{item.desc}</p>
+                        </div>
+                        <button 
+                          onClick={() => setProfileData({
+                            ...profileData, 
+                            notifications: { ...profileData.notifications, [item.id]: !profileData.notifications[item.id as keyof typeof profileData.notifications] }
+                          })}
+                          className={cn(
+                            "w-12 h-6 rounded-full transition-all relative",
+                            profileData.notifications[item.id as keyof typeof profileData.notifications] ? "bg-primary" : "bg-gray-200"
+                          )}
+                        >
+                          <div className={cn(
+                            "absolute top-1 w-4 h-4 bg-white rounded-full transition-all",
+                            profileData.notifications[item.id as keyof typeof profileData.notifications] ? "right-1" : "left-1"
+                          )} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
+        </div>
       </div>
 
       <CameraModal 
@@ -299,6 +256,6 @@ export default function ClienteSettings() {
         onClose={() => setShowCamera(false)}
         onCapture={(img) => setCapturedImage(img)}
       />
-    </div>
+    </>
   );
 }
