@@ -22,12 +22,14 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { useFavorites } from '../../contexts/FavoritesContext';
+import { useCart } from '../../contexts/CartContext';
 import { HOTEL_IMAGES } from '../../constants/images';
 
 export default function BusinessDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toggleFavorite, isFavorite } = useFavorites();
+  const { addItem } = useCart();
   const [business, setBusiness] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [reserving, setReserving] = useState(false);
@@ -261,6 +263,19 @@ export default function BusinessDetail() {
               className="w-full py-6 bg-primary text-white rounded-none font-black text-xs uppercase tracking-[0.3em] shadow-2xl shadow-primary/40 flex items-center justify-center gap-3 active:scale-95 transition-all hover:bg-primary/90 disabled:opacity-50"
             >
               {reserving ? <Loader2 className="w-6 h-6 animate-spin" /> : 'Reservar Ahora'}
+            </button>
+
+            <button 
+              onClick={() => addItem({
+                id: business.id,
+                name: business.nombre,
+                category: business.tipo,
+                image: business.image || business.galeria?.[0] || HOTEL_IMAGES.EXTERIOR,
+                price: '$2,500'
+              })}
+              className="w-full mt-4 py-6 bg-white text-dark border-2 border-dark rounded-none font-black text-xs uppercase tracking-[0.3em] flex items-center justify-center gap-3 active:scale-95 transition-all hover:bg-dark hover:text-white"
+            >
+              Añadir al Carrito
             </button>
 
             <p className="text-[10px] text-center text-muted font-bold uppercase tracking-widest mt-6">

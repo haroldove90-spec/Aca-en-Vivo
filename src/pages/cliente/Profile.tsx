@@ -1,28 +1,56 @@
-import React from 'react';
-import { User, MapPin, Mail, Phone, Calendar, Edit3, Settings, LogOut, Shield } from 'lucide-react';
+import React, { useEffect, useState } from 'react';
+import { User, MapPin, Mail, Phone, Calendar, Edit3, Settings, LogOut, Shield, Loader2 } from 'lucide-react';
 import { motion } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { useNavigate } from 'react-router-dom';
-import { auth } from '../../lib/firebase';
+import { auth, db } from '../../lib/firebase';
 import { signOut } from 'firebase/auth';
-
-const MOCK_USER = {
-  name: 'Harold Dev',
-  username: '@harold_aca',
-  email: 'haroldove90@gmail.com',
-  phone: '+52 744 123 4567',
-  location: 'Acapulco, Guerrero',
-  joined: 'Abril 2024',
-  avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Harold',
-  stats: [
-    { label: 'Reservas', value: '12' },
-    { label: 'Favoritos', value: '45' },
-    { label: 'Reseñas', value: '8' },
-  ]
-};
+import { doc, getDoc } from 'firebase/firestore';
 
 export default function ClienteProfile() {
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+  const [userData, setUserData] = useState({
+    name: 'Harold Dev',
+    username: '@harold_aca',
+    email: 'haroldove90@gmail.com',
+    phone: '+52 744 123 4567',
+    location: 'Acapulco, Guerrero',
+    joined: 'Abril 2024',
+    avatar: 'https://api.dicebear.com/7.x/avataaars/svg?seed=Harold',
+    stats: [
+      { label: 'Reservas', value: '12' },
+      { label: 'Favoritos', value: '45' },
+      { label: 'Reseñas', value: '8' },
+    ]
+  });
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const user = auth.currentUser;
+      if (user) {
+        try {
+          const docRef = doc(db, 'profiles', user.uid);
+          const docSnap = await getDoc(docRef);
+          if (docSnap.exists()) {
+            const data = docSnap.data();
+            setUserData(prev => ({
+              ...prev,
+              name: data.name || user.displayName || prev.name,
+              username: data.username ? `@${data.username}` : prev.username,
+              email: user.email || prev.email,
+              avatar: data.photoURL || user.photoURL || prev.avatar,
+              location: data.location || prev.location
+            }));
+          }
+        } catch (err) {
+          console.error("Error fetching profile:", err);
+        }
+      }
+      setLoading(false);
+    };
+    fetchProfile();
+  }, []);
 
   const handleLogout = async () => {
     try {
@@ -34,6 +62,14 @@ export default function ClienteProfile() {
     }
   };
 
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="w-10 h-10 text-primary animate-spin" />
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-10 pb-20">
       {/* Profile Header Card */}
@@ -42,10 +78,10 @@ export default function ClienteProfile() {
           
           <div className="flex flex-col lg:flex-row items-center gap-10 relative z-10">
             <div className="relative group">
-              <div className="w-40 h-40 rounded-none overflow-hidden shadow-2xl shadow-primary/20 border-4 border-white">
+              <div className="w-40 h-40 rounded-none overflow-hidden shadow-2xl shadow-primary/20 border-4 border-white bg-gray-50">
                 <img 
-                  src={MOCK_USER.avatar} 
-                  alt={MOCK_USER.name} 
+                  src={userData.avatar} 
+                  alt={userData.name} 
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
                   referrerPolicy="no-referrer"
                 />
@@ -60,18 +96,18 @@ export default function ClienteProfile() {
             
             <div className="text-center lg:text-left space-y-4 flex-1">
               <div>
-                <h1 className="text-4xl font-black text-dark tracking-tighter uppercase leading-none">{MOCK_USER.name}</h1>
-                <p className="text-primary font-black text-sm uppercase tracking-widest mt-2">{MOCK_USER.username}</p>
+                <h1 className="text-4xl font-black text-dark tracking-tighter uppercase leading-none">{userData.name}</h1>
+                <p className="text-primary font-black text-sm uppercase tracking-widest mt-2">{userData.username}</p>
               </div>
               
               <div className="flex flex-wrap justify-center lg:justify-start gap-6">
                 <div className="flex items-center gap-2 text-muted">
                   <MapPin className="w-4 h-4 text-primary" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest">{MOCK_USER.location}</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest">{userData.location}</span>
                 </div>
                 <div className="flex items-center gap-2 text-muted">
                   <Calendar className="w-4 h-4 text-primary" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest">Miembro desde {MOCK_USER.joined}</span>
+                  <span className="text-[10px] font-bold uppercase tracking-widest">Miembro desde {userData.joined}</span>
                 </div>
               </div>
             </div>
@@ -93,7 +129,7 @@ export default function ClienteProfile() {
                 </div>
                 <div>
                   <p className="text-[9px] font-black text-muted uppercase tracking-widest">Email</p>
-                  <p className="text-sm font-bold text-dark">{MOCK_USER.email}</p>
+                  <p className="text-sm font-bold text-dark">{userData.email}</p>
                 </div>
               </div>
               <div className="flex items-center gap-4 p-4 bg-gray-50 rounded-none border border-gray-100">
@@ -102,7 +138,7 @@ export default function ClienteProfile() {
                 </div>
                 <div>
                   <p className="text-[9px] font-black text-muted uppercase tracking-widest">Teléfono</p>
-                  <p className="text-sm font-bold text-dark">{MOCK_USER.phone}</p>
+                  <p className="text-sm font-bold text-dark">{userData.phone}</p>
                 </div>
               </div>
             </div>

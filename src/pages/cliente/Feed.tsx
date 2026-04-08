@@ -28,6 +28,7 @@ import {
 import { useRealtimeAvailability } from '../../hooks/useRealtimeAvailability';
 import { useFavorites } from '../../contexts/FavoritesContext';
 import { useSearch } from '../../contexts/SearchContext';
+import { useCart } from '../../contexts/CartContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { DemoAccess } from '../../components/DemoAccess';
@@ -48,6 +49,8 @@ const CATEGORIES = [
 // --- Popular Card ---
 function PopularCard({ business }: { business: any, key?: string }) {
   const { toggleFavorite, isFavorite } = useFavorites();
+  const { addItem } = useCart();
+  const { disponibles } = useRealtimeAvailability(business.id);
   const navigate = useNavigate();
   const active = isFavorite(business.id);
 
@@ -82,6 +85,12 @@ function PopularCard({ business }: { business: any, key?: string }) {
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 pointer-events-none"
           referrerPolicy="no-referrer"
         />
+        {business.tipo === 'hotel' && (
+          <div className="absolute top-4 left-4 bg-emerald-500 text-white px-3 py-1 rounded-none text-[8px] font-black uppercase tracking-widest flex items-center gap-2 shadow-xl z-20">
+            <div className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+            {disponibles !== null ? `${disponibles} Libres` : 'Cargando...'}
+          </div>
+        )}
         <button 
           onClick={(e) => {
             e.stopPropagation();
@@ -115,12 +124,29 @@ function PopularCard({ business }: { business: any, key?: string }) {
               <span className="text-[10px] font-black text-dark">{business.estrellas || 4.5}</span>
             </div>
           </div>
-          <button 
-            onClick={handleReserve}
-            className="w-full mt-3 py-2 bg-primary text-white text-[9px] font-black uppercase tracking-widest rounded-none hover:bg-primary/90 transition-all"
-          >
-            Reservar Ahora
-          </button>
+          <div className="flex gap-2 mt-3">
+            <button 
+              onClick={handleReserve}
+              className="flex-1 py-2 bg-primary text-white text-[9px] font-black uppercase tracking-widest rounded-none hover:bg-primary/90 transition-all"
+            >
+              Reservar
+            </button>
+            <button 
+              onClick={(e) => {
+                e.stopPropagation();
+                addItem({
+                  id: business.id,
+                  name: business.nombre,
+                  category: business.tipo,
+                  image: business.image || HOTEL_IMAGES.EXTERIOR,
+                  price: business.tipo === 'hotel' ? '$2,500' : '$1,200'
+                });
+              }}
+              className="w-10 h-8 bg-dark text-white flex items-center justify-center rounded-none hover:bg-dark/90 transition-all"
+            >
+              <ShoppingBag className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
     </motion.div>
@@ -145,7 +171,14 @@ export default function ClienteFeed() {
     }
   };
 
-  const [showOnboarding, setShowOnboarding] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(() => {
+    return localStorage.getItem('aca_onboarding_completed') !== 'true';
+  });
+
+  const handleCompleteOnboarding = () => {
+    localStorage.setItem('aca_onboarding_completed', 'true');
+    setShowOnboarding(false);
+  };
 
   const DEMO_ROLES = [
     { id: 'admin-dev', label: 'Dev', path: '/admin-dev', color: 'bg-yellow-400' },
@@ -263,7 +296,7 @@ export default function ClienteFeed() {
             animate={{ opacity: 1, scale: 1 }}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            onClick={() => setShowOnboarding(false)}
+            onClick={handleCompleteOnboarding}
             className="w-full lg:w-auto px-10 py-6 bg-primary text-white rounded-none font-black text-lg uppercase tracking-widest shadow-2xl shadow-primary/40 flex items-center justify-center gap-4 group"
           >
             Empezar
@@ -300,27 +333,27 @@ export default function ClienteFeed() {
         </section>
 
         {/* Categories Grid */}
-        <section className="space-y-6">
-          <div className="flex items-center justify-between">
-            <h2 className="text-xl font-black text-dark tracking-tight">Categoría</h2>
-          </div>
-          <div className="flex gap-6 overflow-x-auto no-scrollbar pb-2">
+        <section className="-mt-8 relative z-20">
+          <div className="flex gap-4 overflow-x-auto no-scrollbar px-6 pb-4">
             {CATEGORIES.map((cat) => (
               <button
                 key={cat.id}
                 onClick={() => setSelectedCategory(cat.id)}
-                className="flex flex-col items-center gap-3 flex-shrink-0 group"
+                className={cn(
+                  "flex flex-col items-center gap-3 flex-shrink-0 w-28 p-4 bg-white shadow-xl shadow-black/5 border border-gray-100 transition-all",
+                  selectedCategory === cat.id ? "scale-105 border-primary/20" : "hover:bg-gray-50"
+                )}
               >
                 <div className={cn(
-                  "w-16 h-16 rounded-none flex items-center justify-center transition-all shadow-lg",
+                  "w-14 h-14 rounded-full flex items-center justify-center transition-all shadow-inner",
                   selectedCategory === cat.id 
-                    ? "bg-primary text-white scale-110" 
-                    : "bg-white text-muted hover:bg-primary/10 hover:text-primary"
+                    ? "bg-primary text-white" 
+                    : "bg-gray-50 text-dark"
                 )}>
-                  <cat.icon className="w-7 h-7" />
+                  <cat.icon className="w-6 h-6" />
                 </div>
                 <span className={cn(
-                  "text-[10px] font-black uppercase tracking-widest transition-colors",
+                  "text-[9px] font-black uppercase tracking-widest text-center leading-tight",
                   selectedCategory === cat.id ? "text-primary" : "text-muted"
                 )}>
                   {cat.label}

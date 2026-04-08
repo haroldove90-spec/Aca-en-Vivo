@@ -31,13 +31,17 @@ import {
   Calendar,
   Phone,
   Activity,
-  Database
+  Database,
+  ShoppingBag,
+  Edit2
 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNotifications } from '../contexts/NotificationContext';
 import { useSearch } from '../contexts/SearchContext';
+import { useCart } from '../contexts/CartContext';
 import { SupportChat } from './SupportChat';
+import { CartSidebar } from './CartSidebar';
 
 import { auth } from '../lib/firebase';
 import { signOut } from 'firebase/auth';
@@ -104,8 +108,18 @@ export function Layout({ children }: LayoutProps) {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const [isNotifOpen, setIsNotifOpen] = React.useState(false);
+  const [isCartOpen, setIsCartOpen] = React.useState(false);
   const { notifications, unreadCount, markAsRead } = useNotifications();
   const { searchQuery, setSearchQuery } = useSearch();
+  const { totalItems } = useCart();
+
+  const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setSearchQuery(value);
+    if (value.trim() && location.pathname !== '/') {
+      navigate('/');
+    }
+  };
 
   const navItems = getNavItems(location.pathname);
   const isAdmin = location.pathname.includes('admin') || location.pathname.includes('agencia');
@@ -180,44 +194,66 @@ export function Layout({ children }: LayoutProps) {
       </aside>
 
       {/* Mobile/Tablet Top Nav */}
-      <header className="lg:hidden bg-white border-b border-gray-200 px-4 py-3 sticky top-0 z-50 shadow-sm">
-        <div className="flex items-center justify-between gap-3">
-          {/* App Logo & Name */}
-          <div className="flex items-center gap-2 shrink-0">
-            <div className="w-8 h-8 bg-primary rounded-none flex items-center justify-center shadow-lg shadow-primary/20">
-              <Palmtree className="w-5 h-5 text-white" />
+      <header className="lg:hidden bg-navy px-6 pt-8 pb-12 relative z-50 shadow-2xl overflow-hidden">
+        {/* Abstract Background Shapes */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-primary/10 rounded-full -mr-32 -mt-32 blur-3xl" />
+        <div className="absolute bottom-0 left-0 w-48 h-48 bg-accent/5 rounded-full -ml-24 -mb-24 blur-2xl" />
+
+        <div className="relative z-10 space-y-6">
+          {/* Top Row: Logo & Cart */}
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-white/10 backdrop-blur-md rounded-none flex items-center justify-center border border-white/20 rotate-3">
+                <Palmtree className="w-6 h-6 text-white" />
+              </div>
+              <h1 className="text-2xl font-black text-white tracking-tighter uppercase leading-none">AcaEnVivo</h1>
             </div>
-            <h1 className="text-sm font-black text-dark tracking-tighter uppercase leading-none">AcaEnVivo</h1>
+            
+            <button 
+              onClick={() => setIsCartOpen(true)}
+              className="relative w-12 h-12 bg-white/10 backdrop-blur-md rounded-none flex items-center justify-center border border-white/20 text-accent group active:scale-90 transition-all"
+            >
+              <ShoppingBag className="w-6 h-6" />
+              {totalItems > 0 && (
+                <div className="absolute -top-1 -right-1 w-5 h-5 bg-accent text-dark rounded-none flex items-center justify-center text-[10px] font-black border-2 border-navy">
+                  {totalItems}
+                </div>
+              )}
+            </button>
           </div>
 
-          {/* Minimalist Search Bar */}
-          <div className="flex-1 relative group max-w-[140px] sm:max-w-xs">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted group-focus-within:text-primary transition-colors" />
+          {/* Greeting & Question */}
+          <div className="space-y-1">
+            <h2 className="text-2xl font-black text-white tracking-tight">¡Hola, invitado!</h2>
+            <p className="text-accent text-xl font-black tracking-tight">¿De qué tienes antojo hoy?</p>
+          </div>
+
+          {/* Search Bar */}
+          <div className="relative group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-white/40 group-focus-within:text-accent transition-colors" />
             <input 
               type="text" 
-              placeholder="Buscar..."
+              placeholder="Buscar destinos, hoteles, experiencias..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-gray-100 text-dark rounded-none py-2 pl-8 pr-3 text-[10px] font-bold placeholder:text-muted focus:outline-none focus:ring-2 focus:ring-primary/10 border border-transparent focus:border-primary/20 transition-all"
+              onChange={handleSearchChange}
+              className="w-full bg-white/10 backdrop-blur-md rounded-none py-3 pl-12 pr-4 text-xs font-bold text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-accent/20 transition-all border border-white/10 focus:border-accent/30"
             />
           </div>
 
-          <div className="flex gap-1.5 shrink-0">
-            <button 
-              onClick={() => setIsNotifOpen(!isNotifOpen)}
-              className="w-9 h-9 bg-gray-100 rounded-none flex items-center justify-center border border-gray-200 relative text-muted"
-            >
-              <Bell className="w-4.5 h-4.5" />
-              {unreadCount > 0 && (
-                <div className="absolute top-2 right-2 w-1.5 h-1.5 bg-rose-500 rounded-none border border-white" />
-              )}
-            </button>
-            <button 
-              onClick={handleLogout}
-              className="w-9 h-9 bg-gray-100 rounded-none flex items-center justify-center border border-gray-200 text-rose-500 hover:bg-rose-50 transition-all"
-            >
-              <LogOut className="w-4.5 h-4.5" />
-            </button>
+          {/* Pickup Selector Bar */}
+          <div className="bg-white rounded-none p-4 flex items-center justify-between shadow-2xl shadow-black/20 group cursor-pointer active:scale-[0.98] transition-all">
+            <div className="flex items-center gap-4">
+              <div className="w-10 h-10 bg-accent/10 rounded-none flex items-center justify-center">
+                <MapPin className="w-5 h-5 text-accent" />
+              </div>
+              <div>
+                <p className="text-[10px] font-black text-accent uppercase tracking-widest leading-none mb-1">Recoger en</p>
+                <p className="text-sm font-black text-dark uppercase tracking-tight">Acapulco Tradicional</p>
+              </div>
+            </div>
+            <div className="w-10 h-10 bg-accent rounded-none flex items-center justify-center shadow-lg shadow-accent/20 group-hover:rotate-12 transition-transform">
+              <Edit2 className="w-5 h-5 text-dark" />
+            </div>
           </div>
         </div>
       </header>
@@ -225,26 +261,41 @@ export function Layout({ children }: LayoutProps) {
       {/* Main Content Area */}
       <main className="flex-1 overflow-y-auto">
         {/* Desktop Top Header (Hidden on mobile) */}
-        <header className="hidden lg:flex items-center justify-between px-12 py-4 bg-white/80 backdrop-blur-xl border-b border-gray-100 sticky top-0 z-40">
-          <div className="flex-1 max-w-xl relative group">
-            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-muted group-focus-within:text-primary transition-colors" />
+        <header className="hidden lg:flex items-center justify-between px-12 py-6 bg-navy border-b border-white/10 sticky top-0 z-40 overflow-hidden">
+          {/* Background Glow */}
+          <div className="absolute top-0 right-0 w-96 h-96 bg-primary/10 rounded-full -mr-48 -mt-48 blur-[100px]" />
+          
+          <div className="flex-1 max-w-xl relative group z-10">
+            <Search className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-white/40 group-focus-within:text-accent transition-colors" />
             <input 
               type="text" 
-              placeholder="Buscar destinos, hoteles, experiencias..."
+              placeholder="¿Qué estás buscando hoy?"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="w-full bg-gray-50 rounded-none py-2.5 pl-14 pr-4 text-sm font-bold placeholder:text-muted focus:outline-none focus:ring-4 focus:ring-primary/5 transition-all border border-transparent focus:border-primary/10"
+              onChange={handleSearchChange}
+              className="w-full bg-white/10 backdrop-blur-md rounded-none py-3 pl-14 pr-4 text-sm font-bold text-white placeholder:text-white/40 focus:outline-none focus:ring-4 focus:ring-accent/10 transition-all border border-white/10 focus:border-accent/30"
             />
           </div>
-          <div className="flex items-center gap-8 ml-12">
+          
+          <div className="flex items-center gap-8 ml-12 relative z-10">
+            <button 
+              onClick={() => setIsCartOpen(true)}
+              className="relative text-white/60 hover:text-accent transition-all hover:scale-110"
+            >
+              <ShoppingBag className="w-7 h-7" />
+              {totalItems > 0 && (
+                <div className="absolute -top-1 -right-1 w-4 h-4 bg-accent rounded-none border-2 border-navy flex items-center justify-center text-[8px] font-black text-dark">
+                  {totalItems}
+                </div>
+              )}
+            </button>
             <div className="relative">
               <button 
                 onClick={() => setIsNotifOpen(!isNotifOpen)}
-                className="relative text-muted hover:text-primary transition-all hover:scale-110"
+                className="relative text-white/60 hover:text-accent transition-all hover:scale-110"
               >
                 <Bell className="w-7 h-7" />
                 {unreadCount > 0 && (
-                  <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-rose-500 rounded-none border-2 border-white flex items-center justify-center text-[8px] font-black text-white">
+                  <div className="absolute -top-1 -right-1 w-4 h-4 bg-accent rounded-none border-2 border-navy flex items-center justify-center text-[8px] font-black text-dark">
                     {unreadCount}
                   </div>
                 )}
@@ -301,7 +352,13 @@ export function Layout({ children }: LayoutProps) {
                         ))
                       )}
                     </div>
-                    <button className="w-full p-6 bg-gray-50 text-dark font-black text-[10px] uppercase tracking-widest hover:bg-primary hover:text-white transition-all">
+                    <button 
+                      onClick={() => {
+                        navigate('/notificaciones');
+                        setIsNotifOpen(false);
+                      }}
+                      className="w-full p-6 bg-gray-50 text-dark font-black text-[10px] uppercase tracking-widest hover:bg-primary hover:text-white transition-all"
+                    >
                       Ver Todo el Historial
                     </button>
                   </motion.div>
@@ -314,12 +371,12 @@ export function Layout({ children }: LayoutProps) {
             >
               <LogOut className="w-6 h-6" />
             </button>
-            <div className="flex items-center gap-4 pl-8 border-l border-gray-100">
+            <div className="flex items-center gap-4 pl-8 border-l border-white/10">
               <div className="text-right">
-                <p className="text-sm font-black text-dark tracking-tight leading-none">Jack Fitzgerald</p>
-                <p className="text-[10px] font-bold text-primary uppercase tracking-[0.2em] mt-1">Miembro Premium</p>
+                <p className="text-sm font-black text-white tracking-tight leading-none">Jack Fitzgerald</p>
+                <p className="text-[10px] font-bold text-accent uppercase tracking-[0.2em] mt-1">Miembro Premium</p>
               </div>
-              <div className="w-12 h-12 rounded-none overflow-hidden border-2 border-gray-50 shadow-lg hover:rotate-3 transition-transform cursor-pointer">
+              <div className="w-12 h-12 rounded-none overflow-hidden border-2 border-white/20 shadow-lg hover:rotate-3 transition-transform cursor-pointer">
                 <img 
                   src="https://api.dicebear.com/7.x/avataaars/svg?seed=Jack" 
                   alt="Usuario" 
@@ -342,6 +399,7 @@ export function Layout({ children }: LayoutProps) {
       </main>
 
       <SupportChat isAdmin={isAdmin} />
+      <CartSidebar isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
 
       {/* Mobile Bottom Nav */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl flex justify-around items-center border-t border-gray-100 z-50 h-16">
