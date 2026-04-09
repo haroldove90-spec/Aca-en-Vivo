@@ -24,6 +24,9 @@ import {
 import { cn } from '../../lib/utils';
 import { useNavigate } from 'react-router-dom';
 
+import { supabase } from '../../lib/supabase';
+import { useAcaData } from '../../hooks/useAcaData';
+
 type Step = 1 | 2 | 3;
 
 interface HotelData {
@@ -53,6 +56,7 @@ const AMENITIES = [
 
 export default function HotelRegistro() {
   const navigate = useNavigate();
+  const { addEntity } = useAcaData();
   const [step, setStep] = useState<Step>(1);
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -118,10 +122,46 @@ export default function HotelRegistro() {
 
   const handleFinalize = async () => {
     setLoading(true);
-    // Simular guardado
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setLoading(false);
-    setShowSuccess(true);
+    try {
+      const { data: newEnt, error } = await supabase
+        .from('entities')
+        .insert([{
+          nombre: formData.nombre,
+          descripcion: formData.descripcion,
+          zona: formData.zona,
+          precio: Number(formData.precio),
+          capacidad: Number(formData.habitaciones),
+          whatsapp: formData.whatsapp,
+          tipo: 'hotel',
+          status: 'pendiente',
+          imagen: formData.imagen || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=800'
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      addEntity({
+        id: newEnt.id,
+        nombre: newEnt.nombre,
+        descripcion: newEnt.descripcion,
+        precio: newEnt.precio,
+        zona: newEnt.zona,
+        imagen: newEnt.imagen,
+        status: newEnt.status,
+        tipo: newEnt.tipo,
+        whatsapp: newEnt.whatsapp,
+        capacidad: newEnt.capacidad,
+        estrellas: 0
+      });
+
+      setShowSuccess(true);
+    } catch (error) {
+      console.error("Error registering hotel:", error);
+      alert('Error al registrar el hotel');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

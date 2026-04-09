@@ -25,6 +25,9 @@ import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { useNavigate } from 'react-router-dom';
 
+import { supabase } from '../../lib/supabase';
+import { useAcaData } from '../../hooks/useAcaData';
+
 const ZONES = ['Diamante', 'Dorada', 'Tradicional', 'Pie de la Cuesta', 'Las Brisas'];
 
 const AMENITIES = [
@@ -38,6 +41,7 @@ const AMENITIES = [
 
 export default function ClasificadosRegistro() {
   const navigate = useNavigate();
+  const { addEntity } = useAcaData();
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -67,10 +71,45 @@ export default function ClasificadosRegistro() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    // Simular guardado
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setLoading(false);
-    setShowSuccess(true);
+    try {
+      const { data: newEnt, error } = await supabase
+        .from('entities')
+        .insert([{
+          nombre: formData.nombre,
+          descripcion: `Dirección: ${formData.direccion}. ${formData.cuartos} Recámaras, ${formData.banos} Baños.`,
+          zona: formData.zona,
+          precio: Number(formData.precio),
+          capacidad: formData.capacidad,
+          whatsapp: formData.whatsapp,
+          tipo: 'clasificados',
+          status: 'pendiente',
+          imagen: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&q=80&w=800'
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      addEntity({
+        id: newEnt.id,
+        nombre: newEnt.nombre,
+        descripcion: newEnt.descripcion,
+        precio: newEnt.precio,
+        zona: newEnt.zona,
+        imagen: newEnt.imagen,
+        status: newEnt.status,
+        tipo: newEnt.tipo,
+        whatsapp: newEnt.whatsapp,
+        capacidad: newEnt.capacidad
+      });
+
+      setShowSuccess(true);
+    } catch (error) {
+      console.error("Error registering property:", error);
+      alert('Error al registrar la propiedad');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

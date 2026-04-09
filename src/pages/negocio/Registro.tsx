@@ -22,6 +22,9 @@ import {
 import { cn } from '../../lib/utils';
 import { useNavigate } from 'react-router-dom';
 
+import { supabase } from '../../lib/supabase';
+import { useAcaData } from '../../hooks/useAcaData';
+
 type Step = 1 | 2;
 
 interface BusinessData {
@@ -47,6 +50,7 @@ const ZONAS = ['Diamante', 'Dorada', 'Tradicional', 'Pie de la Cuesta'];
 
 export default function NegocioRegistro() {
   const navigate = useNavigate();
+  const { addEntity } = useAcaData();
   const [step, setStep] = useState<Step>(1);
   const [loading, setLoading] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -97,9 +101,45 @@ export default function NegocioRegistro() {
 
   const handleFinalize = async () => {
     setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    setLoading(false);
-    setShowSuccess(true);
+    try {
+      const { data: newEnt, error } = await supabase
+        .from('entities')
+        .insert([{
+          nombre: formData.nombre,
+          categoria: formData.categoria,
+          zona: formData.zona,
+          whatsapp: formData.whatsapp,
+          tipo: 'negocio',
+          status: 'pendiente',
+          descripcion: `Horario: ${formData.horario}. Rango: ${formData.rangoPrecio}`,
+          imagen: formData.imagen || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=800'
+        }])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      addEntity({
+        id: newEnt.id,
+        nombre: newEnt.nombre,
+        categoria: newEnt.categoria,
+        zona: newEnt.zona,
+        whatsapp: newEnt.whatsapp,
+        tipo: newEnt.tipo,
+        status: newEnt.status,
+        descripcion: newEnt.descripcion,
+        imagen: newEnt.imagen,
+        precio: 0,
+        estrellas: 0
+      });
+
+      setShowSuccess(true);
+    } catch (error) {
+      console.error("Error registering business:", error);
+      alert('Error al registrar el negocio');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const SelectedIcon = CATEGORIES.find(c => c.id === formData.categoria)?.icon || Store;

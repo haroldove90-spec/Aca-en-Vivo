@@ -167,6 +167,62 @@ export default function ClasificadosDashboard() {
               </button>
             </div>
 
+            {/* Novel Feature: Booking Calendar */}
+            <div className="bg-white border border-gray-100 shadow-xl shadow-black/5 p-8 space-y-8">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-primary/10 rounded-none flex items-center justify-center">
+                    <Calendar className="w-5 h-5 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="text-[10px] font-black uppercase tracking-widest text-dark">Calendario de Disponibilidad</h3>
+                    <p className="text-[8px] font-bold text-muted uppercase tracking-widest">Gestiona tus fechas bloqueadas</p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-emerald-500 rounded-full" />
+                    <span className="text-[8px] font-black uppercase text-muted">Libre</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 bg-rose-500 rounded-full" />
+                    <span className="text-[8px] font-black uppercase text-muted">Ocupado</span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-7 gap-2">
+                {['D', 'L', 'M', 'M', 'J', 'V', 'S'].map(d => (
+                  <div key={d} className="text-center text-[8px] font-black text-muted py-2">{d}</div>
+                ))}
+                {Array.from({ length: 31 }).map((_, i) => {
+                  const day = i + 1;
+                  const isOccupied = [5, 6, 12, 13, 14, 20, 21, 27, 28].includes(day);
+                  return (
+                    <button 
+                      key={i}
+                      className={cn(
+                        "aspect-square flex items-center justify-center text-[10px] font-black transition-all border",
+                        isOccupied 
+                          ? "bg-rose-50 border-rose-100 text-rose-600" 
+                          : "bg-emerald-50 border-emerald-100 text-emerald-600 hover:bg-emerald-100"
+                      )}
+                    >
+                      {day}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <div className="p-4 bg-gray-50 border border-gray-100 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <AlertCircle className="w-4 h-4 text-amber-500" />
+                  <p className="text-[9px] font-bold text-muted uppercase tracking-tight">Tienes 3 solicitudes de reserva para este fin de semana</p>
+                </div>
+                <button className="text-[9px] font-black text-primary uppercase tracking-widest hover:underline">Ver Solicitudes</button>
+              </div>
+            </div>
+
             {/* Properties List */}
             <div className="space-y-6">
               <h2 className="text-[10px] font-black uppercase tracking-[0.3em] text-muted ml-2">Mis Propiedades</h2>

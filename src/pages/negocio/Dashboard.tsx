@@ -18,8 +18,21 @@ import {
   Navigation,
   X,
   Calendar,
-  AlertCircle
+  AlertCircle,
+  Plus,
+  MousePointer2,
+  Share2
 } from 'lucide-react';
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  Cell
+} from 'recharts';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { CameraModal } from '../../components/CameraModal';
@@ -55,6 +68,16 @@ export default function NegocioDashboard() {
     { id: '1', user_id: 'user_12345', created_at: new Date().toISOString(), status: 'pendiente' },
     { id: '2', user_id: 'user_67890', created_at: new Date().toISOString(), status: 'confirmada' },
   ]);
+
+  const performanceData = [
+    { name: 'Lun', clicks: 120 },
+    { name: 'Mar', clicks: 150 },
+    { name: 'Mie', clicks: 180 },
+    { name: 'Jue', clicks: 210 },
+    { name: 'Vie', clicks: 350 },
+    { name: 'Sab', clicks: 420 },
+    { name: 'Dom', clicks: 290 },
+  ];
 
   useEffect(() => {
     if (businesses.length > 0 && !selectedBusiness) {
@@ -134,9 +157,18 @@ export default function NegocioDashboard() {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-3 bg-white px-5 py-2.5 rounded-none border border-gray-100 shadow-sm">
-          <Clock className="w-4 h-4 text-primary" />
-          <span className="text-[10px] font-black text-dark uppercase tracking-widest">Estado en Vivo</span>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => navigate('/negocio/registro')}
+            className="px-5 py-2.5 bg-dark text-white rounded-none text-[10px] font-black uppercase tracking-widest hover:bg-primary transition-all flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Registrar Negocio
+          </button>
+          <div className="flex items-center gap-3 bg-white px-5 py-2.5 rounded-none border border-gray-100 shadow-sm">
+            <Clock className="w-4 h-4 text-primary" />
+            <span className="text-[10px] font-black text-dark uppercase tracking-widest">Estado en Vivo</span>
+          </div>
         </div>
       </div>
 
@@ -209,6 +241,79 @@ export default function NegocioDashboard() {
                       <span className="text-[10px] font-black uppercase tracking-widest">{level.label}</span>
                     </button>
                   ))}
+                </div>
+
+                {/* Novel Feature: Promotion Performance Tracker */}
+                <div className="pt-10 space-y-6 text-left border-t border-gray-50">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-primary/10 rounded-none flex items-center justify-center">
+                        <TrendingUp className="w-5 h-5 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="text-[10px] font-black uppercase tracking-widest text-dark">Impacto de Promociones</h3>
+                        <p className="text-[8px] font-bold text-muted uppercase tracking-widest">Clicks y visualizaciones reales</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[8px] font-black text-emerald-600 uppercase tracking-widest">+24% este mes</p>
+                    </div>
+                  </div>
+
+                  <div className="h-48 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <BarChart data={performanceData}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                        <XAxis 
+                          dataKey="name" 
+                          axisLine={false} 
+                          tickLine={false} 
+                          tick={{ fontSize: 8, fontWeight: 900, fill: '#94a3b8' }} 
+                        />
+                        <YAxis hide />
+                        <Tooltip 
+                          cursor={{ fill: '#f8fafc' }}
+                          contentStyle={{ 
+                            backgroundColor: '#1e293b', 
+                            border: 'none', 
+                            borderRadius: '0', 
+                            fontSize: '10px',
+                            color: '#fff'
+                          }}
+                          itemStyle={{ color: '#fff' }}
+                        />
+                        <Bar dataKey="clicks" radius={[2, 2, 0, 0]}>
+                          {performanceData.map((entry, index) => (
+                            <Cell key={`cell-${index}`} fill={index === 5 ? '#FF7F50' : '#cbd5e1'} />
+                          ))}
+                        </Bar>
+                      </BarChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-4">
+                    <div className="p-4 bg-gray-50 border border-gray-100">
+                      <div className="flex items-center gap-2 mb-1">
+                        <MousePointer2 className="w-3 h-3 text-primary" />
+                        <p className="text-[8px] font-black uppercase tracking-widest text-muted">Clicks</p>
+                      </div>
+                      <p className="text-sm font-black text-dark uppercase tracking-tight">1,720</p>
+                    </div>
+                    <div className="p-4 bg-gray-50 border border-gray-100">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Share2 className="w-3 h-3 text-primary" />
+                        <p className="text-[8px] font-black uppercase tracking-widest text-muted">Shares</p>
+                      </div>
+                      <p className="text-sm font-black text-dark uppercase tracking-tight">458</p>
+                    </div>
+                    <div className="p-4 bg-gray-50 border border-gray-100">
+                      <div className="flex items-center gap-2 mb-1">
+                        <MessageCircle className="w-3 h-3 text-primary" />
+                        <p className="text-[8px] font-black uppercase tracking-widest text-muted">Leads</p>
+                      </div>
+                      <p className="text-sm font-black text-dark uppercase tracking-tight">124</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </motion.div>

@@ -118,7 +118,7 @@ type Tab = 'dashboard' | 'afiliados' | 'usuarios' | 'zonas' | 'pagos' | 'chat';
 export default function AgenciaDashboard() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { data, updateEntity, deleteEntity } = useAcaData();
+  const { data, updateEntity, deleteEntity, addEntity } = useAcaData();
   
   const queryParams = new URLSearchParams(location.search);
   const activeTab = (queryParams.get('tab') as Tab) || 'dashboard';

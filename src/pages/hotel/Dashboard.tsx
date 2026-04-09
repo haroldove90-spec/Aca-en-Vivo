@@ -20,8 +20,21 @@ import {
   Star,
   User,
   RotateCcw,
-  Zap
+  Zap,
+  TrendingUp,
+  BarChart3
 } from 'lucide-react';
+import { 
+  BarChart, 
+  Bar, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip, 
+  ResponsiveContainer,
+  AreaChart,
+  Area
+} from 'recharts';
 import { cn } from '../../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { CameraModal } from '../../components/CameraModal';
@@ -61,6 +74,16 @@ export default function HotelDashboard() {
   const [amenities, setAmenities] = useState<string[]>(['wifi', 'pool']);
   const [promo, setPromo] = useState('Desayuno buffet incluido en tu estancia este fin de semana.');
   const [isPremium, setIsPremium] = useState(true);
+
+  const occupancyData = [
+    { name: 'Lun', actual: 45, forecast: 48 },
+    { name: 'Mar', actual: 52, forecast: 50 },
+    { name: 'Mie', actual: 48, forecast: 55 },
+    { name: 'Jue', actual: 61, forecast: 65 },
+    { name: 'Vie', actual: 85, forecast: 82 },
+    { name: 'Sab', actual: 95, forecast: 98 },
+    { name: 'Dom', actual: 70, forecast: 75 },
+  ];
 
   useEffect(() => {
     if (hotels.length > 0 && !selectedHotel) {
@@ -170,11 +193,20 @@ export default function HotelDashboard() {
             </p>
           </div>
         </div>
-        <div className="flex items-center gap-3 bg-white px-5 py-2.5 rounded-none border border-gray-100 shadow-sm">
-          <Clock className="w-4 h-4 text-primary" />
-          <span className="text-[10px] font-black text-dark uppercase tracking-widest">
-            {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-          </span>
+        <div className="flex items-center gap-3">
+          <button 
+            onClick={() => navigate('/hotel/registro')}
+            className="px-5 py-2.5 bg-dark text-white rounded-none text-[10px] font-black uppercase tracking-widest hover:bg-primary transition-all flex items-center gap-2"
+          >
+            <Plus className="w-4 h-4" />
+            Registrar Hotel
+          </button>
+          <div className="flex items-center gap-3 bg-white px-5 py-2.5 rounded-none border border-gray-100 shadow-sm">
+            <Clock className="w-4 h-4 text-primary" />
+            <span className="text-[10px] font-black text-dark uppercase tracking-widest">
+              {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          </div>
         </div>
       </div>
 
@@ -230,6 +262,82 @@ export default function HotelDashboard() {
                     <RotateCcw className="w-4 h-4 lg:w-5 lg:h-5" />
                     Restablecer
                   </button>
+                </div>
+
+                {/* Novel Feature: Smart Occupancy Forecast */}
+                <div className="pt-10 space-y-6 text-left border-t border-gray-50">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-emerald-50 rounded-none flex items-center justify-center">
+                        <TrendingUp className="w-5 h-5 text-emerald-500" />
+                      </div>
+                      <div>
+                        <h3 className="text-[10px] font-black uppercase tracking-widest text-dark">Smart Occupancy Forecast</h3>
+                        <p className="text-[8px] font-bold text-muted uppercase tracking-widest">Predicción basada en tendencias locales</p>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-[8px] font-black text-emerald-600 uppercase tracking-widest">+12% vs semana pasada</p>
+                    </div>
+                  </div>
+
+                  <div className="h-48 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <AreaChart data={occupancyData}>
+                        <defs>
+                          <linearGradient id="colorActual" x1="0" y1="0" x2="0" y2="1">
+                            <stop offset="5%" stopColor="#00A8CC" stopOpacity={0.3}/>
+                            <stop offset="95%" stopColor="#00A8CC" stopOpacity={0}/>
+                          </linearGradient>
+                        </defs>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                        <XAxis 
+                          dataKey="name" 
+                          axisLine={false} 
+                          tickLine={false} 
+                          tick={{ fontSize: 8, fontWeight: 900, fill: '#94a3b8' }} 
+                        />
+                        <YAxis hide />
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: '#1e293b', 
+                            border: 'none', 
+                            borderRadius: '0', 
+                            fontSize: '10px',
+                            color: '#fff'
+                          }}
+                          itemStyle={{ color: '#fff' }}
+                        />
+                        <Area 
+                          type="monotone" 
+                          dataKey="actual" 
+                          stroke="#00A8CC" 
+                          strokeWidth={3}
+                          fillOpacity={1} 
+                          fill="url(#colorActual)" 
+                        />
+                        <Area 
+                          type="monotone" 
+                          dataKey="forecast" 
+                          stroke="#94a3b8" 
+                          strokeWidth={2}
+                          strokeDasharray="5 5"
+                          fill="transparent" 
+                        />
+                      </AreaChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="p-4 bg-gray-50 border border-gray-100">
+                      <p className="text-[8px] font-black uppercase tracking-widest text-muted mb-1">Pico Esperado</p>
+                      <p className="text-sm font-black text-dark uppercase tracking-tight">Sábado (98%)</p>
+                    </div>
+                    <div className="p-4 bg-gray-50 border border-gray-100">
+                      <p className="text-[8px] font-black uppercase tracking-widest text-muted mb-1">Recomendación</p>
+                      <p className="text-sm font-black text-primary uppercase tracking-tight">Ajustar Tarifa +5%</p>
+                    </div>
+                  </div>
                 </div>
               </div>
             </motion.div>
