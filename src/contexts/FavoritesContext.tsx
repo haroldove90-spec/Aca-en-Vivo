@@ -87,6 +87,7 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
           .eq('id', existing.id);
 
         if (error) {
+          console.error('Error removing favorite from Supabase:', error);
           await fetchFavorites(); // Revert on error
           throw error;
         }
@@ -113,14 +114,15 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
           .insert({
             item_id: item.id,
             user_id: session.user.id,
-            name: item.name,
-            category: item.category || 'General',
-            image: item.image || HOTEL_IMAGES.EXTERIOR,
-            price: item.price || '$0',
+            name: item.nombre || item.name,
+            category: item.tipo || item.category || 'General',
+            image: item.imagen || item.image || HOTEL_IMAGES.EXTERIOR,
+            price: item.precio || item.price || '$0',
             rating: item.rating || 5.0
           });
 
         if (error) {
+          console.error('Error adding favorite to Supabase:', error);
           await fetchFavorites(); // Revert on error
           throw error;
         }

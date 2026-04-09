@@ -30,7 +30,7 @@ export default function ClienteFavorites() {
                 />
                 <div className="absolute top-4 right-4 flex gap-2">
                   <button 
-                    onClick={() => toggleFavorite({ id: fav.itemId, name: fav.name })}
+                    onClick={() => toggleFavorite({ id: fav.item_id, name: fav.name })}
                     className="w-10 h-10 bg-white/20 backdrop-blur-md rounded-none flex items-center justify-center border border-white/30 text-white hover:bg-rose-500 hover:text-white transition-all"
                   >
                     <Trash2 className="w-5 h-5" />

@@ -109,16 +109,29 @@ export function Layout({ children, onAuthClick }: LayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const [isNotifOpen, setIsNotifOpen] = React.useState(false);
   const [user, setUser] = React.useState<any>(null);
+  const [profileRole, setProfileRole] = React.useState<string | null>(null);
   const { notifications, unreadCount, markAsRead } = useNotifications();
   const { searchQuery, setSearchQuery } = useSearch();
 
   React.useEffect(() => {
+    const fetchProfile = async (userId: string) => {
+      const { data } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', userId)
+        .single();
+      if (data) setProfileRole(data.role);
+    };
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user ?? null);
+      if (session?.user) fetchProfile(session.user.id);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
+      if (session?.user) fetchProfile(session.user.id);
+      else setProfileRole(null);
     });
 
     return () => subscription.unsubscribe();
@@ -150,8 +163,8 @@ export function Layout({ children, onAuthClick }: LayoutProps) {
     return location.pathname + location.search === path;
   };
 
-  const userRole = user?.user_metadata?.role || (user?.email === 'haroldove90@gmail.com' ? 'admin' : null);
-  const canSwitchRoles = userRole === 'admin' || userRole === 'admin-dev';
+  const userRole = profileRole || user?.user_metadata?.role || (user?.email === 'haroldove90@gmail.com' ? 'admin' : null);
+  const canSwitchRoles = userRole === 'admin' || userRole === 'admin-dev' || userRole === 'agencia' || user?.email === 'haroldove90@gmail.com';
 
   return (
     <div className="min-h-screen bg-bg flex flex-col font-sans selection:bg-primary/30">
@@ -182,7 +195,7 @@ export function Layout({ children, onAuthClick }: LayoutProps) {
 
               <div className="flex items-center gap-4 lg:gap-6">
                 {canSwitchRoles && (
-                  <div className="hidden lg:flex items-center gap-2 bg-white/5 p-1 rounded-none border border-white/10">
+                  <div className="flex items-center gap-2 bg-white/5 p-1 rounded-none border border-white/10">
                     {[
                       { id: 'admin', label: 'Agencia', path: '/admin-agencia', icon: ShieldCheck },
                       { id: 'dev', label: 'Dev', path: '/admin-dev', icon: Database },
@@ -192,14 +205,14 @@ export function Layout({ children, onAuthClick }: LayoutProps) {
                         key={role.id}
                         onClick={() => navigate(role.path)}
                         className={cn(
-                          "flex items-center gap-2 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest transition-all",
+                          "flex items-center gap-2 px-2 lg:px-3 py-1.5 text-[8px] lg:text-[9px] font-black uppercase tracking-widest transition-all",
                           (location.pathname === role.path || (role.id === 'cliente' && location.pathname === '/'))
                             ? "bg-primary text-white"
                             : "text-white/60 hover:text-white hover:bg-white/10"
                         )}
                       >
                         <role.icon className="w-3 h-3" />
-                        {role.label}
+                        <span className={cn(role.id === 'cliente' ? "hidden sm:inline" : "inline")}>{role.label}</span>
                       </button>
                     ))}
                   </div>

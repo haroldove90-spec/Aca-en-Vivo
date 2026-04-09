@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { motion, AnimatePresence } from 'motion/react';
-import { X, Mail, Lock, User, Loader2, CheckCircle2, Palmtree, Building2 } from 'lucide-react';
+import { X, Mail, Lock, User, Loader2, CheckCircle2, Palmtree, Building2, Eye, EyeOff } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 interface AuthModalProps {
@@ -18,6 +18,7 @@ export function AuthModal({ isOpen, onClose, message }: AuthModalProps) {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [fullName, setFullName] = useState('');
   const [role, setRole] = useState('cliente');
   const [businessName, setBusinessName] = useState('');
@@ -277,18 +278,29 @@ export function AuthModal({ isOpen, onClose, message }: AuthModalProps) {
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted flex items-center gap-2">
-                        <Lock className="w-3 h-3" />
-                        Contraseña
+                      <label className="text-[10px] font-black uppercase tracking-widest text-muted flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <Lock className="w-3 h-3" />
+                          Contraseña
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setShowPassword(!showPassword)}
+                          className="text-primary hover:text-primary/80 transition-colors"
+                        >
+                          {showPassword ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                        </button>
                       </label>
-                      <input
-                        type="password"
-                        required
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                        className="w-full bg-gray-50 border-b-2 border-transparent focus:border-primary rounded-none py-4 px-4 text-xs font-bold transition-all outline-none"
-                        placeholder="••••••••"
-                      />
+                      <div className="relative">
+                        <input
+                          type={showPassword ? "text" : "password"}
+                          required
+                          value={password}
+                          onChange={(e) => setPassword(e.target.value)}
+                          className="w-full bg-gray-50 border-b-2 border-transparent focus:border-primary rounded-none py-4 px-4 text-xs font-bold transition-all outline-none"
+                          placeholder="••••••••"
+                        />
+                      </div>
                     </div>
                   </div>
 
