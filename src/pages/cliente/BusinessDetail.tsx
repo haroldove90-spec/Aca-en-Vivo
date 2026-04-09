@@ -25,14 +25,12 @@ import {
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { useFavorites } from '../../contexts/FavoritesContext';
-import { useCart } from '../../contexts/CartContext';
 import { HOTEL_IMAGES } from '../../constants/images';
 
 export default function BusinessDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const { toggleFavorite, isFavorite } = useFavorites();
-  const { addItem } = useCart();
   const [business, setBusiness] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [reserving, setReserving] = useState(false);
@@ -140,11 +138,12 @@ export default function BusinessDetail() {
         return;
       }
 
-      const { error } = await supabase.from('reservations').insert({
+      // 1. Guardar en base de datos para historial
+      await supabase.from('reservations').insert({
         user_id: session.user.id,
         business_id: id,
         business_name: business.nombre,
-        business_image: business.image || business.galeria?.[0] || HOTEL_IMAGES.EXTERIOR,
+        business_image: business.imagen || business.image || business.galeria?.[0] || HOTEL_IMAGES.EXTERIOR,
         status: 'confirmada',
         check_in: checkIn,
         check_out: checkOut,
@@ -153,7 +152,25 @@ export default function BusinessDetail() {
         guests
       });
 
-      if (error) throw error;
+      // 2. Generar mensaje de WhatsApp
+      const centralWhatsApp = '+525624222449';
+      const customerName = session.user.user_metadata?.full_name || 'Cliente';
+      const message = `*NUEVA RESERVA - AcaEnVivo*%0A%0A` +
+                     `*Establecimiento:* ${business.nombre}%0A` +
+                     `*Categoría:* ${business.tipo.toUpperCase()}%0A` +
+                     `*Zona:* ${business.zona || 'Acapulco'}%0A` +
+                     `*Entrada:* ${checkIn}%0A` +
+                     `*Salida:* ${checkOut}%0A` +
+                     `*Noches:* ${nights}%0A` +
+                     `*Huéspedes:* ${guests}%0A` +
+                     `*Total Estimado:* $${(totalPrice || basePrice).toLocaleString()}%0A%0A` +
+                     `*Cliente:* ${customerName}%0A` +
+                     `*Email:* ${session.user.email}%0A%0A` +
+                     `_Hola, me gustaría confirmar la disponibilidad para estas fechas._`;
+
+      // 3. Abrir WhatsApp
+      window.open(`https://wa.me/${centralWhatsApp.replace('+', '')}?text=${message}`, '_blank');
+
       setShowSuccess(true);
       setTimeout(() => {
         setShowSuccess(false);
@@ -431,21 +448,14 @@ export default function BusinessDetail() {
                 <button 
                   onClick={handleReserve}
                   disabled={reserving}
-                  className="w-full py-4 bg-primary text-white rounded-sm font-black text-sm uppercase tracking-widest hover:bg-primary/90 transition-all disabled:opacity-50"
+                  className="w-full py-5 bg-primary text-white rounded-none font-black text-sm uppercase tracking-widest hover:bg-primary/90 transition-all shadow-2xl shadow-primary/20 flex items-center justify-center gap-3 disabled:opacity-50"
                 >
-                  {reserving ? <Loader2 className="w-5 h-5 animate-spin mx-auto" /> : 'Ver disponibilidad'}
-                </button>
-                <button 
-                  onClick={() => addItem({
-                    id: business.id,
-                    name: business.nombre,
-                    category: business.tipo,
-                    image: business.image || business.galeria?.[0] || HOTEL_IMAGES.EXTERIOR,
-                    price: totalPrice > 0 ? `$${totalPrice.toLocaleString()}` : `$${basePrice.toLocaleString()}`
-                  })}
-                  className="w-full py-4 bg-white text-primary border border-primary rounded-sm font-black text-sm uppercase tracking-widest hover:bg-primary/5 transition-all"
-                >
-                  Añadir al carrito
+                  {reserving ? <Loader2 className="w-5 h-5 animate-spin" /> : (
+                    <>
+                      <Calendar className="w-5 h-5" />
+                      Ver disponibilidad
+                    </>
+                  )}
                 </button>
               </div>
             </div>

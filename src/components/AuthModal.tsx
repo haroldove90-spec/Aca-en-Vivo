@@ -7,9 +7,10 @@ import { cn } from '../lib/utils';
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
+  message?: string;
 }
 
-export function AuthModal({ isOpen, onClose }: AuthModalProps) {
+export function AuthModal({ isOpen, onClose, message }: AuthModalProps) {
   const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -118,7 +119,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 {isLogin ? 'Bienvenido' : 'Únete'}
               </h2>
               <p className="text-white/50 text-[8px] lg:text-[10px] font-black uppercase tracking-[0.3em] mt-2 lg:mt-4">
-                {isLogin ? 'Ingresa a tu cuenta' : 'Crea tu perfil en AcaEnVivo'}
+                {message || (isLogin ? 'Ingresa a tu cuenta' : 'Crea tu perfil en AcaEnVivo')}
               </p>
             </div>
 

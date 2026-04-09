@@ -39,9 +39,7 @@ import { cn } from '../lib/utils';
 import { motion, AnimatePresence } from 'motion/react';
 import { useNotifications } from '../contexts/NotificationContext';
 import { useSearch } from '../contexts/SearchContext';
-import { useCart } from '../contexts/CartContext';
 import { SupportChat } from './SupportChat';
-import { CartSidebar } from './CartSidebar';
 
 import { supabase } from '../lib/supabase';
 
@@ -109,11 +107,9 @@ export function Layout({ children, onAuthClick }: LayoutProps) {
   const location = useLocation();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = React.useState(false);
   const [isNotifOpen, setIsNotifOpen] = React.useState(false);
-  const [isCartOpen, setIsCartOpen] = React.useState(false);
   const [user, setUser] = React.useState<any>(null);
   const { notifications, unreadCount, markAsRead } = useNotifications();
   const { searchQuery, setSearchQuery } = useSearch();
-  const { totalItems } = useCart();
 
   React.useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -181,18 +177,6 @@ export function Layout({ children, onAuthClick }: LayoutProps) {
               </div>
 
               <div className="flex items-center gap-4 lg:gap-6">
-                <button 
-                  onClick={() => setIsCartOpen(true)}
-                  className="relative text-white/60 hover:text-accent transition-all hover:scale-110"
-                >
-                  <ShoppingBag className="w-6 h-6 lg:w-7 lg:h-7" />
-                  {totalItems > 0 && (
-                    <div className="absolute -top-1 -right-1 w-4 h-4 bg-accent rounded-none border-2 border-navy flex items-center justify-center text-[8px] font-black text-dark">
-                      {totalItems}
-                    </div>
-                  )}
-                </button>
-
                 <div className="relative">
                   <button 
                     onClick={() => setIsNotifOpen(!isNotifOpen)}
@@ -347,7 +331,6 @@ export function Layout({ children, onAuthClick }: LayoutProps) {
       </main>
 
       <SupportChat isAdmin={isAdmin} />
-      <CartSidebar isOpen={isCartOpen} onClose={() => setIsCartOpen(false)} />
 
       {/* Mobile Bottom Nav (Optional, maybe keep for better UX) */}
       <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white/95 backdrop-blur-xl flex justify-around items-center border-t border-gray-100 z-50 h-16">

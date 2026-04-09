@@ -29,7 +29,6 @@ import {
 import { useRealtimeAvailability } from '../../hooks/useRealtimeAvailability';
 import { useFavorites } from '../../contexts/FavoritesContext';
 import { useSearch } from '../../contexts/SearchContext';
-import { useCart } from '../../contexts/CartContext';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { DemoAccess } from '../../components/DemoAccess';
@@ -47,9 +46,8 @@ const CATEGORIES = [
 ];
 
 // --- Popular Card ---
-function PopularCard({ business }: { business: any, key?: string }) {
+function PopularCard({ business, onAuthRequired }: { business: any, onAuthRequired: (msg: string) => void, key?: string }) {
   const { toggleFavorite, isFavorite } = useFavorites();
-  const { addItem } = useCart();
   const { disponibles } = useRealtimeAvailability(business.id);
   const navigate = useNavigate();
   const active = isFavorite(business.id);
@@ -59,21 +57,37 @@ function PopularCard({ business }: { business: any, key?: string }) {
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
-        alert('Por favor inicia sesión para reservar');
+        onAuthRequired('Inicia sesión para reservar este destino');
         return;
       }
 
-      const { error } = await supabase.from('reservations').insert({
+      // 1. Guardar en base de datos para historial
+      await supabase.from('reservations').insert({
         user_id: session.user.id,
         business_id: business.id,
         business_name: business.nombre,
-        business_image: business.image || HOTEL_IMAGES.EXTERIOR,
+        business_image: business.imagen || business.image || HOTEL_IMAGES.EXTERIOR,
         status: 'confirmada',
-        total_price: business.tipo === 'hotel' ? 2500 : 1200,
+        total_price: business.precio || (business.tipo === 'hotel' ? 2500 : 1200),
         guests: 2
       });
 
-      if (error) throw error;
+      // 2. Generar mensaje de WhatsApp
+      const centralWhatsApp = '+525624222449';
+      const customerName = session.user.user_metadata?.full_name || 'Cliente';
+      const message = `*NUEVA RESERVA - AcaEnVivo*%0A%0A` +
+                     `*Establecimiento:* ${business.nombre}%0A` +
+                     `*Categoría:* ${business.tipo.toUpperCase()}%0A` +
+                     `*Zona:* ${business.zona || 'Acapulco'}%0A` +
+                     `*Precio:* $${business.precio || (business.tipo === 'hotel' ? 2500 : 1200)}%0A%0A` +
+                     `*Cliente:* ${customerName}%0A` +
+                     `*Email:* ${session.user.email}%0A%0A` +
+                     `_Hola, me gustaría confirmar la disponibilidad para este destino._`;
+
+      // 3. Abrir WhatsApp
+      window.open(`https://wa.me/${centralWhatsApp.replace('+', '')}?text=${message}`, '_blank');
+      
+      // 4. Notificar éxito localmente
       navigate('/reservas');
     } catch (err) {
       console.error("Error reserving:", err);
@@ -94,8 +108,13 @@ function PopularCard({ business }: { business: any, key?: string }) {
           referrerPolicy="no-referrer"
         />
         <button 
-          onClick={(e) => {
+          onClick={async (e) => {
             e.stopPropagation();
+            const { data: { session } } = await supabase.auth.getSession();
+            if (!session) {
+              onAuthRequired('Inicia sesión para guardar tus favoritos');
+              return;
+            }
             toggleFavorite({
               id: business.id,
               name: business.nombre,
@@ -141,29 +160,15 @@ function PopularCard({ business }: { business: any, key?: string }) {
         <div className="mt-auto pt-3 flex items-end justify-between border-t border-gray-100">
           <div className="flex flex-col">
             <span className="text-[10px] text-muted font-medium">Desde</span>
-            <span className="text-lg font-black text-dark">{business.tipo === 'hotel' ? '$2,500' : '$1,200'}</span>
+            <span className="text-lg font-black text-dark">${business.precio || (business.tipo === 'hotel' ? '2,500' : '1,200')}</span>
             <span className="text-[10px] text-muted">Incluye impuestos</span>
           </div>
           <div className="flex gap-2">
             <button 
-              onClick={(e) => {
-                e.stopPropagation();
-                addItem({
-                  id: business.id,
-                  name: business.nombre,
-                  category: business.tipo,
-                  image: business.imagen || business.image || HOTEL_IMAGES.EXTERIOR,
-                  price: business.tipo === 'hotel' ? '$2,500' : '$1,200'
-                });
-              }}
-              className="w-10 h-10 border border-primary text-primary flex items-center justify-center rounded-sm hover:bg-primary/5 transition-all"
-            >
-              <ShoppingBag className="w-5 h-5" />
-            </button>
-            <button 
               onClick={handleReserve}
-              className="px-4 py-2 bg-primary text-white text-xs font-bold rounded-sm hover:bg-primary/90 transition-all"
+              className="px-6 py-3 bg-primary text-white text-[10px] font-black uppercase tracking-widest rounded-none hover:bg-primary/90 transition-all shadow-lg shadow-primary/20 flex items-center gap-2"
             >
+              <Calendar className="w-4 h-4" />
               Ver disponibilidad
             </button>
           </div>
@@ -174,6 +179,7 @@ function PopularCard({ business }: { business: any, key?: string }) {
 }
 
 import { useAcaData } from '../../hooks/useAcaData';
+import { AuthModal } from '../../components/AuthModal';
 
 export default function ClienteFeed() {
   const navigate = useNavigate();
@@ -182,6 +188,44 @@ export default function ClienteFeed() {
   const { data: establecimientos, loading } = useAcaData();
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [showGuestPicker, setShowGuestPicker] = useState(false);
+  const [showAuthModal, setShowAuthModal] = useState(false);
+  const [authMessage, setAuthMessage] = useState<string | undefined>(undefined);
+  const [userRole, setUserRole] = useState<string | null>(null);
+  
+  useEffect(() => {
+    const checkUserRole = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session?.user) {
+        // First check metadata
+        const role = session.user.user_metadata?.role;
+        if (role) {
+          setUserRole(role);
+        } else {
+          // Fallback to profiles table
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('role')
+            .eq('id', session.user.id)
+            .single();
+          if (profile) setUserRole(profile.role);
+        }
+      } else {
+        setUserRole(null);
+      }
+    };
+
+    checkUserRole();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setUserRole(session.user.user_metadata?.role || null);
+      } else {
+        setUserRole(null);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
   
   const queryParams = new URLSearchParams(location.search);
   const selectedCategory = queryParams.get('cat') || 'all';
@@ -267,25 +311,27 @@ export default function ClienteFeed() {
             </p>
           </motion.div>
 
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.5 }}
-            className="flex flex-wrap gap-4"
-          >
-            {DEMO_ROLES.map((role) => (
-              <button
-                key={role.id}
-                onClick={() => navigate(role.path)}
-                className={cn(
-                  "px-6 py-3 rounded-none text-[10px] font-black uppercase tracking-widest transition-all border border-white/20 hover:bg-white hover:text-dark",
-                  role.color.replace('bg-', 'text-')
-                )}
-              >
-                {role.label}
-              </button>
-            ))}
-          </motion.div>
+          {userRole === 'admin' && (
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.5 }}
+              className="flex flex-wrap gap-4"
+            >
+              {DEMO_ROLES.map((role) => (
+                <button
+                  key={role.id}
+                  onClick={() => navigate(role.path)}
+                  className={cn(
+                    "px-6 py-3 rounded-none text-[10px] font-black uppercase tracking-widest transition-all border border-white/20 hover:bg-white hover:text-dark",
+                    role.color.replace('bg-', 'text-')
+                  )}
+                >
+                  {role.label}
+                </button>
+              ))}
+            </motion.div>
+          )}
 
           <motion.button
             initial={{ opacity: 0, scale: 0.9 }}
@@ -307,6 +353,11 @@ export default function ClienteFeed() {
 
   return (
     <div className="space-y-12">
+      <AuthModal 
+        isOpen={showAuthModal} 
+        onClose={() => setShowAuthModal(false)} 
+        message={authMessage}
+      />
       {/* Hero Section with Search */}
       <section className="relative bg-navy pt-12 pb-24 lg:pt-20 lg:pb-32 overflow-hidden">
         <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/20 rounded-full -mr-64 -mt-64 blur-[120px]" />
@@ -482,7 +533,14 @@ export default function ClienteFeed() {
         
         <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredBusinesses.map(business => (
-            <PopularCard key={business.id} business={business} />
+            <PopularCard 
+              key={business.id} 
+              business={business} 
+              onAuthRequired={(msg) => {
+                setAuthMessage(msg);
+                setShowAuthModal(true);
+              }}
+            />
           ))}
         </div>
 
