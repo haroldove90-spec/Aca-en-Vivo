@@ -71,7 +71,7 @@ export default function BusinessDetail() {
       if (!id) return;
       try {
         const { data, error } = await supabase
-          .from('establishments')
+          .from('entities')
           .select('*')
           .eq('id', id)
           .single();

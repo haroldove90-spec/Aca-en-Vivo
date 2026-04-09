@@ -29,11 +29,12 @@ import {
 import { useRealtimeAvailability } from '../../hooks/useRealtimeAvailability';
 import { useFavorites } from '../../contexts/FavoritesContext';
 import { useSearch } from '../../contexts/SearchContext';
+import { useAcaData } from '../../hooks/useAcaData';
+import { AuthModal } from '../../components/AuthModal';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
 import { DemoAccess } from '../../components/DemoAccess';
 import { HOTEL_IMAGES } from '../../constants/images';
-
 import { useNavigate, useLocation } from 'react-router-dom';
 
 // --- Categories Definition ---
@@ -178,9 +179,6 @@ function PopularCard({ business, onAuthRequired }: { business: any, onAuthRequir
   );
 }
 
-import { useAcaData } from '../../hooks/useAcaData';
-import { AuthModal } from '../../components/AuthModal';
-
 export default function ClienteFeed() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -196,6 +194,11 @@ export default function ClienteFeed() {
     const checkUserRole = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
+        // Special check for default admin email
+        if (session.user.email === 'haroldove90@gmail.com') {
+          setUserRole('admin');
+          return;
+        }
         // First check metadata
         const role = session.user.user_metadata?.role;
         if (role) {
@@ -217,11 +220,7 @@ export default function ClienteFeed() {
     checkUserRole();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      if (session?.user) {
-        setUserRole(session.user.user_metadata?.role || null);
-      } else {
-        setUserRole(null);
-      }
+      checkUserRole();
     });
 
     return () => subscription.unsubscribe();
@@ -311,7 +310,7 @@ export default function ClienteFeed() {
             </p>
           </motion.div>
 
-          {userRole === 'admin' && (
+          {(userRole === 'admin' || userRole === 'admin-dev') && (
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}

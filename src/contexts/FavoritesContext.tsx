@@ -85,6 +85,7 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
           .eq('id', existing.id);
 
         if (error) throw error;
+        await fetchFavorites();
         sendLocalNotification('Eliminado', `${item.name} eliminado de favoritos.`);
       } catch (error) {
         console.error('Error removing favorite:', error);
@@ -104,6 +105,7 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
           });
 
         if (error) throw error;
+        await fetchFavorites();
         sendLocalNotification('Guardado', `${item.name} guardado en favoritos.`);
       } catch (error) {
         console.error('Error adding favorite:', error);
