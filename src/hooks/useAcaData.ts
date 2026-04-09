@@ -30,7 +30,8 @@ export function useAcaData() {
             whatsapp: item.whatsapp,
             categoria: item.categoria,
             capacidad: item.capacidad,
-            estrellas: item.rating || item.estrellas
+            estrellas: item.rating || item.estrellas,
+            afluencia: item.afluencia
           }));
           setData(mappedData);
         } else {

@@ -86,11 +86,30 @@ export default function HotelDashboard() {
   const handleSaveChanges = async () => {
     if (!selectedHotel) return;
     setSaving(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    updateEntity(selectedHotel.id, selectedHotel);
-    setSaving(false);
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000);
+    try {
+      const { error } = await supabase
+        .from('entities')
+        .update({
+          nombre: selectedHotel.nombre,
+          descripcion: selectedHotel.descripcion,
+          capacidad: displayCount,
+          whatsapp: selectedHotel.whatsapp,
+          status: selectedHotel.status,
+          imagen: selectedHotel.imagen
+        })
+        .eq('id', selectedHotel.id);
+      
+      if (error) throw error;
+      
+      updateEntity(selectedHotel.id, { ...selectedHotel, capacidad: displayCount });
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    } catch (error) {
+      console.error("Error saving hotel changes:", error);
+      alert('Error al guardar los cambios');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDeleteHotel = () => {

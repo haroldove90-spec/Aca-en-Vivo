@@ -70,11 +70,31 @@ export default function NegocioDashboard() {
   const handleSaveChanges = async () => {
     if (!selectedBusiness) return;
     setSaving(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    updateEntity(selectedBusiness.id, selectedBusiness);
-    setSaving(false);
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000);
+    try {
+      const { error } = await supabase
+        .from('entities')
+        .update({
+          nombre: selectedBusiness.nombre,
+          zona: selectedBusiness.zona,
+          whatsapp: selectedBusiness.whatsapp,
+          status: selectedBusiness.status,
+          descripcion: selectedBusiness.descripcion,
+          imagen: selectedBusiness.imagen,
+          afluencia: selectedBusiness.afluencia
+        })
+        .eq('id', selectedBusiness.id);
+      
+      if (error) throw error;
+      
+      updateEntity(selectedBusiness.id, selectedBusiness);
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    } catch (error) {
+      console.error("Error saving business changes:", error);
+      alert('Error al guardar los cambios');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleDeleteBusiness = () => {

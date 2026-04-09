@@ -271,24 +271,27 @@ export function Layout({ children, onAuthClick }: LayoutProps) {
                     </button>
                   )}
                   {canSwitchRoles && (
-                    <div className="flex items-center gap-2 bg-white/5 p-1 rounded-none border border-white/10">
+                    <div className="flex items-center gap-2 bg-white/5 p-1 rounded-none border border-white/10 overflow-x-auto no-scrollbar max-w-[300px] sm:max-w-none">
                       {[
                         { id: 'admin', label: 'Agencia', path: '/admin-agencia', icon: ShieldCheck },
+                        { id: 'hotel', label: 'Hotel', path: '/hotel', icon: Hotel },
+                        { id: 'negocio', label: 'Negocio', path: '/negocio', icon: Store },
+                        { id: 'clasificados', label: 'Rentas', path: '/clasificados', icon: Building2 },
                         { id: 'dev', label: 'Dev', path: '/admin-dev', icon: Database },
-                        { id: 'cliente', label: 'Cliente', path: '/', icon: User },
+                        { id: 'cliente', label: 'Cliente', path: '/?preview=true', icon: User },
                       ].map((role) => (
                         <button
                           key={role.id}
                           onClick={() => navigate(role.path)}
                           className={cn(
-                            "flex items-center gap-2 px-2 lg:px-3 py-1.5 text-[8px] lg:text-[9px] font-black uppercase tracking-widest transition-all",
-                            (location.pathname === role.path || (role.id === 'cliente' && location.pathname === '/'))
+                            "flex items-center gap-2 px-2 lg:px-3 py-1.5 text-[8px] lg:text-[9px] font-black uppercase tracking-widest transition-all whitespace-nowrap",
+                            (location.pathname === role.path || (role.id === 'cliente' && isPreview))
                               ? "bg-primary text-white"
                               : "text-white/60 hover:text-white hover:bg-white/10"
                           )}
                         >
                           <role.icon className="w-3 h-3" />
-                          <span className={cn(role.id === 'cliente' ? "hidden sm:inline" : "inline")}>{role.label}</span>
+                          <span className={cn(role.id === 'cliente' ? "inline" : "inline")}>{role.label}</span>
                         </button>
                       ))}
                     </div>

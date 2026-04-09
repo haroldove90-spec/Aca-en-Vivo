@@ -14,6 +14,7 @@ export interface BaseEntity {
   categoria?: string; // Para negocios
   capacidad?: number; // Para clasificados/hoteles
   estrellas?: number;
+  afluencia?: 'baja' | 'media' | 'alta';
 }
 
 export const MOCK_DATA: BaseEntity[] = [

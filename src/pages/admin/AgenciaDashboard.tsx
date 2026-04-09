@@ -19,7 +19,9 @@ import {
   ArrowUpRight,
   ArrowDownRight,
   Loader2,
-  Trash2
+  Trash2,
+  Plus,
+  Edit2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { cn } from '../../lib/utils';
@@ -124,6 +126,10 @@ export default function AgenciaDashboard() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [selectedEntity, setSelectedEntity] = useState<BaseEntity | null>(null);
+  const [editingEntity, setEditingEntity] = useState<BaseEntity | null>(null);
+  const [editingProfile, setEditingProfile] = useState<any | null>(null);
+  const [isAddingEntity, setIsAddingEntity] = useState(false);
+  const [isAddingProfile, setIsAddingProfile] = useState(false);
   const [profiles, setProfiles] = useState<any[]>([]);
   const [stats, setStats] = useState({
     comisiones: 0,
@@ -197,6 +203,130 @@ export default function AgenciaDashboard() {
       setStats(prev => ({ ...prev, pendientes: prev.pendientes - 1 }));
     } catch (error) {
       console.error("Error updating status:", error);
+    }
+  };
+
+  const handleUpdateProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingProfile) return;
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          full_name: editingProfile.full_name,
+          phone: editingProfile.phone,
+          address: editingProfile.address,
+          role: editingProfile.role
+        })
+        .eq('id', editingProfile.id);
+      
+      if (error) throw error;
+      
+      setProfiles(prev => prev.map(p => p.id === editingProfile.id ? editingProfile : p));
+      setEditingProfile(null);
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      alert('Error al actualizar el perfil');
+    }
+  };
+
+  const handleUpdateEntityDetails = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingEntity) return;
+    try {
+      const { error } = await supabase
+        .from('entities')
+        .update({
+          nombre: editingEntity.nombre,
+          descripcion: editingEntity.descripcion,
+          zona: editingEntity.zona,
+          capacidad: editingEntity.capacidad,
+          whatsapp: editingEntity.whatsapp,
+          status: editingEntity.status
+        })
+        .eq('id', editingEntity.id);
+      
+      if (error) throw error;
+      
+      updateEntity(editingEntity.id, editingEntity);
+      setEditingEntity(null);
+    } catch (error) {
+      console.error("Error updating entity:", error);
+      alert('Error al actualizar el registro');
+    }
+  };
+
+  const handleAddProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingProfile) return;
+    try {
+      const { data: newProf, error } = await supabase
+        .from('profiles')
+        .insert([{
+          id: crypto.randomUUID(), // In a real app, this would be handled by Auth
+          full_name: editingProfile.full_name,
+          email: editingProfile.email,
+          phone: editingProfile.phone,
+          address: editingProfile.address,
+          role: editingProfile.role || 'cliente'
+        }])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      setProfiles(prev => [newProf, ...prev]);
+      setEditingProfile(null);
+      setIsAddingProfile(false);
+    } catch (error) {
+      console.error("Error adding profile:", error);
+      alert('Error al registrar el usuario. Nota: En este prototipo la creación de usuarios reales requiere registro vía Auth.');
+    }
+  };
+
+  const handleAddEntity = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingEntity) return;
+    try {
+      const { data: newEnt, error } = await supabase
+        .from('entities')
+        .insert([{
+          nombre: editingEntity.nombre,
+          descripcion: editingEntity.descripcion,
+          zona: editingEntity.zona,
+          capacidad: editingEntity.capacidad,
+          whatsapp: editingEntity.whatsapp,
+          status: editingEntity.status || 'pendiente',
+          tipo: editingEntity.tipo || 'negocio',
+          imagen: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=800'
+        }])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      
+      // Map to BaseEntity
+      const mapped: BaseEntity = {
+        id: newEnt.id,
+        nombre: newEnt.nombre,
+        descripcion: newEnt.descripcion,
+        zona: newEnt.zona,
+        capacidad: newEnt.capacidad,
+        whatsapp: newEnt.whatsapp,
+        status: newEnt.status,
+        tipo: newEnt.tipo,
+        imagen: newEnt.imagen,
+        precio: 0,
+        categoria: '',
+        estrellas: 0
+      };
+
+      addEntity(mapped);
+      setEditingEntity(null);
+      setIsAddingEntity(false);
+    } catch (error) {
+      console.error("Error adding entity:", error);
+      alert('Error al registrar el establecimiento');
     }
   };
 
@@ -298,6 +428,29 @@ export default function AgenciaDashboard() {
                   </h3>
                 </div>
                 <div className="flex gap-2 overflow-x-auto no-scrollbar w-full sm:w-auto">
+                  <button
+                    onClick={() => {
+                      setEditingEntity({
+                        id: '',
+                        nombre: '',
+                        descripcion: '',
+                        zona: 'Zona Dorada',
+                        tipo: 'negocio',
+                        status: 'pendiente',
+                        capacidad: 0,
+                        whatsapp: '',
+                        imagen: '',
+                        precio: 0,
+                        categoria: '',
+                        estrellas: 0
+                      });
+                      setIsAddingEntity(true);
+                    }}
+                    className="px-5 py-2.5 bg-dark text-white rounded-none text-[10px] font-black uppercase tracking-widest hover:bg-primary transition-all flex items-center gap-2"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Nuevo Registro
+                  </button>
                   {['all', 'hotel', 'negocio', 'clasificado'].map((cat) => (
                     <button
                       key={cat}
@@ -374,6 +527,13 @@ export default function AgenciaDashboard() {
                               </>
                             )}
                             <button 
+                              onClick={() => setEditingEntity(a)}
+                              className="w-10 h-10 flex items-center justify-center text-gray-400 hover:bg-primary/5 hover:text-primary rounded-none transition-all"
+                              title="Editar"
+                            >
+                              <Edit2 className="w-5 h-5" />
+                            </button>
+                            <button 
                               onClick={() => handleDeleteEntity(a.id)}
                               className="w-10 h-10 flex items-center justify-center text-gray-400 hover:bg-rose-50 hover:text-rose-600 rounded-none transition-all"
                             >
@@ -429,11 +589,28 @@ export default function AgenciaDashboard() {
             exit={{ opacity: 0, y: -20 }}
           >
             <div className="bg-white rounded-none shadow-xl shadow-black/5 border border-gray-100 overflow-hidden">
-              <div className="p-8 lg:p-10 border-b border-gray-100">
+              <div className="p-8 lg:p-10 border-b border-gray-100 flex items-center justify-between">
                 <h3 className="text-sm font-black text-dark uppercase tracking-[0.2em] flex items-center gap-3">
                   <Users className="w-6 h-6 text-primary" />
                   Directorio de Usuarios
                 </h3>
+                <button
+                  onClick={() => {
+                    setEditingProfile({
+                      id: '',
+                      full_name: '',
+                      email: '',
+                      phone: '',
+                      address: '',
+                      role: 'cliente'
+                    });
+                    setIsAddingProfile(true);
+                  }}
+                  className="px-5 py-2.5 bg-dark text-white rounded-none text-[10px] font-black uppercase tracking-widest hover:bg-primary transition-all flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Nuevo Usuario
+                </button>
               </div>
               <div className="overflow-x-auto">
                 <table className="w-full text-left">
@@ -477,12 +654,21 @@ export default function AgenciaDashboard() {
                           </div>
                         </td>
                         <td className="px-10 py-6 text-right">
-                          <button 
-                            onClick={() => handleDeleteProfile(p.id)}
-                            className="w-10 h-10 flex items-center justify-center text-rose-600 hover:bg-rose-50 rounded-none transition-all"
-                          >
-                            <XCircle className="w-5 h-5" />
-                          </button>
+                          <div className="flex items-center justify-end gap-3">
+                            <button 
+                              onClick={() => setEditingProfile(p)}
+                              className="w-10 h-10 flex items-center justify-center text-gray-400 hover:bg-primary/5 hover:text-primary rounded-none transition-all"
+                              title="Editar"
+                            >
+                              <Edit2 className="w-5 h-5" />
+                            </button>
+                            <button 
+                              onClick={() => handleDeleteProfile(p.id)}
+                              className="w-10 h-10 flex items-center justify-center text-rose-600 hover:bg-rose-50 rounded-none transition-all"
+                            >
+                              <XCircle className="w-5 h-5" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}
@@ -495,6 +681,235 @@ export default function AgenciaDashboard() {
       </AnimatePresence>
 
       <AnimatePresence>
+        {(editingEntity || isAddingEntity) && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] bg-dark/60 backdrop-blur-sm flex items-center justify-center p-6"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="bg-white rounded-none shadow-2xl max-w-2xl w-full overflow-hidden"
+            >
+              <div className="bg-dark p-8 text-white flex justify-between items-center">
+                <div>
+                  <h3 className="text-xl font-black uppercase tracking-tighter">
+                    {isAddingEntity ? 'Nuevo Registro' : 'Editar Registro'}
+                  </h3>
+                  <p className="text-[10px] font-bold text-white/60 uppercase tracking-widest mt-1">
+                    {isAddingEntity ? 'Completa los datos del establecimiento' : editingEntity?.nombre}
+                  </p>
+                </div>
+                <button onClick={() => { setEditingEntity(null); setIsAddingEntity(false); }} className="text-white/60 hover:text-white">
+                  <XCircle className="w-6 h-6" />
+                </button>
+              </div>
+              <form onSubmit={isAddingEntity ? handleAddEntity : handleUpdateEntityDetails} className="p-8 space-y-6">
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted">Nombre</label>
+                    <input 
+                      type="text" 
+                      required
+                      value={editingEntity?.nombre || ''}
+                      onChange={e => setEditingEntity({...editingEntity!, nombre: e.target.value})}
+                      className="w-full bg-gray-50 border border-gray-100 p-4 text-sm font-bold focus:outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted">Tipo</label>
+                    <select 
+                      value={editingEntity?.tipo || 'negocio'}
+                      onChange={e => setEditingEntity({...editingEntity!, tipo: e.target.value as any})}
+                      className="w-full bg-gray-50 border border-gray-100 p-4 text-sm font-bold focus:outline-none focus:border-primary"
+                    >
+                      <option value="hotel">Hotel</option>
+                      <option value="negocio">Negocio</option>
+                      <option value="clasificado">Clasificado</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted">Zona</label>
+                    <select 
+                      value={editingEntity?.zona || 'Zona Dorada'}
+                      onChange={e => setEditingEntity({...editingEntity!, zona: e.target.value})}
+                      className="w-full bg-gray-50 border border-gray-100 p-4 text-sm font-bold focus:outline-none focus:border-primary"
+                    >
+                      {ZONES.map(z => <option key={z.id} value={z.name}>{z.name}</option>)}
+                    </select>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted">WhatsApp</label>
+                    <input 
+                      type="text" 
+                      value={editingEntity?.whatsapp || ''}
+                      onChange={e => setEditingEntity({...editingEntity!, whatsapp: e.target.value})}
+                      className="w-full bg-gray-50 border border-gray-100 p-4 text-sm font-bold focus:outline-none focus:border-primary"
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted">Descripción</label>
+                  <textarea 
+                    required
+                    value={editingEntity?.descripcion || ''}
+                    onChange={e => setEditingEntity({...editingEntity!, descripcion: e.target.value})}
+                    className="w-full bg-gray-50 border border-gray-100 p-4 text-sm font-bold focus:outline-none focus:border-primary h-24 resize-none"
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted">Capacidad / Info</label>
+                    <input 
+                      type="number" 
+                      value={editingEntity?.capacidad || 0}
+                      onChange={e => setEditingEntity({...editingEntity!, capacidad: parseInt(e.target.value)})}
+                      className="w-full bg-gray-50 border border-gray-100 p-4 text-sm font-bold focus:outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted">Estado</label>
+                    <select 
+                      value={editingEntity?.status || 'pendiente'}
+                      onChange={e => setEditingEntity({...editingEntity!, status: e.target.value as EntityStatus})}
+                      className="w-full bg-gray-50 border border-gray-100 p-4 text-sm font-bold focus:outline-none focus:border-primary"
+                    >
+                      <option value="activo">Activo</option>
+                      <option value="pendiente">Pendiente</option>
+                      <option value="inactivo">Inactivo</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="flex justify-end gap-4 pt-4">
+                  <button 
+                    type="button"
+                    onClick={() => { setEditingEntity(null); setIsAddingEntity(false); }}
+                    className="px-8 py-3 bg-gray-100 text-dark font-black text-[10px] uppercase tracking-widest"
+                  >
+                    Cancelar
+                  </button>
+                  <button 
+                    type="submit"
+                    className="px-8 py-3 bg-primary text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20"
+                  >
+                    {isAddingEntity ? 'Registrar Ahora' : 'Guardar Cambios'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+
+        {(editingProfile || isAddingProfile) && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] bg-dark/60 backdrop-blur-sm flex items-center justify-center p-6"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="bg-white rounded-none shadow-2xl max-w-2xl w-full overflow-hidden"
+            >
+              <div className="bg-dark p-8 text-white flex justify-between items-center">
+                <div>
+                  <h3 className="text-xl font-black uppercase tracking-tighter">
+                    {isAddingProfile ? 'Nuevo Usuario' : 'Editar Usuario'}
+                  </h3>
+                  <p className="text-[10px] font-bold text-white/60 uppercase tracking-widest mt-1">
+                    {isAddingProfile ? 'Registra un nuevo miembro en la plataforma' : editingProfile?.email}
+                  </p>
+                </div>
+                <button onClick={() => { setEditingProfile(null); setIsAddingProfile(false); }} className="text-white/60 hover:text-white">
+                  <XCircle className="w-6 h-6" />
+                </button>
+              </div>
+              <form onSubmit={isAddingProfile ? handleAddProfile : handleUpdateProfile} className="p-8 space-y-6">
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted">Nombre Completo</label>
+                    <input 
+                      type="text" 
+                      required
+                      value={editingProfile?.full_name || ''}
+                      onChange={e => setEditingProfile({...editingProfile!, full_name: e.target.value})}
+                      className="w-full bg-gray-50 border border-gray-100 p-4 text-sm font-bold focus:outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted">Email</label>
+                    <input 
+                      type="email" 
+                      required
+                      disabled={!isAddingProfile}
+                      value={editingProfile?.email || ''}
+                      onChange={e => setEditingProfile({...editingProfile!, email: e.target.value})}
+                      className="w-full bg-gray-50 border border-gray-100 p-4 text-sm font-bold focus:outline-none focus:border-primary disabled:opacity-50"
+                    />
+                  </div>
+                </div>
+                <div className="grid grid-cols-2 gap-6">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted">Teléfono</label>
+                    <input 
+                      type="text" 
+                      value={editingProfile?.phone || ''}
+                      onChange={e => setEditingProfile({...editingProfile!, phone: e.target.value})}
+                      className="w-full bg-gray-50 border border-gray-100 p-4 text-sm font-bold focus:outline-none focus:border-primary"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black uppercase tracking-widest text-muted">Rol</label>
+                    <select 
+                      value={editingProfile?.role || 'cliente'}
+                      onChange={e => setEditingProfile({...editingProfile!, role: e.target.value})}
+                      className="w-full bg-gray-50 border border-gray-100 p-4 text-sm font-bold focus:outline-none focus:border-primary"
+                    >
+                      <option value="cliente">Cliente</option>
+                      <option value="hotel">Hotel</option>
+                      <option value="negocio">Negocio</option>
+                      <option value="clasificados">Clasificados</option>
+                      <option value="agencia">Agencia</option>
+                      <option value="admin">Administrador</option>
+                    </select>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted">Dirección</label>
+                  <input 
+                    type="text" 
+                    value={editingProfile?.address || ''}
+                    onChange={e => setEditingProfile({...editingProfile!, address: e.target.value})}
+                    className="w-full bg-gray-50 border border-gray-100 p-4 text-sm font-bold focus:outline-none focus:border-primary"
+                  />
+                </div>
+                <div className="flex justify-end gap-4 pt-4">
+                  <button 
+                    type="button"
+                    onClick={() => { setEditingProfile(null); setIsAddingProfile(false); }}
+                    className="px-8 py-3 bg-gray-100 text-dark font-black text-[10px] uppercase tracking-widest"
+                  >
+                    Cancelar
+                  </button>
+                  <button 
+                    type="submit"
+                    className="px-8 py-3 bg-primary text-white font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20"
+                  >
+                    {isAddingProfile ? 'Registrar Ahora' : 'Guardar Cambios'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
+          </motion.div>
+        )}
+
         {selectedEntity && (
           <motion.div
             initial={{ opacity: 0 }}
