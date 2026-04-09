@@ -49,7 +49,7 @@ interface LayoutProps {
   onAuthClick?: () => void;
 }
 
-const getNavItems = (pathname: string) => {
+const getNavItems = (pathname: string, userRole: string | null, isPreview: boolean) => {
   if (pathname.startsWith('/admin-agencia')) {
     return [
       { id: 'dashboard', label: 'Panel', icon: Grid, path: '/admin-agencia' },
@@ -92,8 +92,9 @@ const getNavItems = (pathname: string) => {
       { id: 'config', label: 'Config', icon: Settings, path: '/admin-dev?tab=config' },
     ];
   }
+
   // Default (Cliente)
-  return [
+  const items = [
     { id: 'explorar', label: 'Inicio', icon: Home, path: '/' },
     { id: 'favoritos', label: 'Favoritos', icon: Heart, path: '/favoritos' },
     { id: 'reservas', label: 'Reservas', icon: Bookmark, path: '/reservas' },
@@ -102,6 +103,19 @@ const getNavItems = (pathname: string) => {
     { id: 'hoteles', label: 'Hoteles', icon: Hotel, path: '/?cat=hotel' },
     { id: 'settings', label: 'Ajustes', icon: Settings, path: '/settings' },
   ];
+
+  // If non-client and not in preview, "Inicio" should go to their dashboard
+  if (userRole && userRole !== 'cliente' && !isPreview) {
+    const dashboardPath = 
+      userRole === 'hotel' ? '/hotel' :
+      userRole === 'negocio' ? '/negocio' :
+      userRole === 'clasificados' ? '/clasificados' :
+      (userRole === 'admin' || userRole === 'agencia') ? '/admin-agencia' : '/';
+    
+    items[0].path = dashboardPath;
+  }
+
+  return items;
 };
 
 export function Layout({ children, onAuthClick }: LayoutProps) {
@@ -148,7 +162,6 @@ export function Layout({ children, onAuthClick }: LayoutProps) {
     }
   };
 
-  const navItems = getNavItems(location.pathname);
   const isManagementRoute = location.pathname.includes('admin') || location.pathname.includes('agencia');
 
   const handleLogout = async () => {
@@ -170,7 +183,21 @@ export function Layout({ children, onAuthClick }: LayoutProps) {
   const isAdmin = userRole === 'admin' || userRole === 'agencia';
   const canSwitchRoles = userRole === 'admin' || userRole === 'admin-dev' || userRole === 'agencia' || user?.email === 'haroldove90@gmail.com' || user?.email === 'haroldo90@hotmail.com';
 
-  const isPortalRestricted = userRole && userRole !== 'cliente' && location.pathname === '/';
+  const queryParams = new URLSearchParams(location.search);
+  const isPreview = queryParams.get('preview') === 'true';
+  const isPortalRestricted = userRole && userRole !== 'cliente' && location.pathname === '/' && !isPreview;
+
+  const navItems = getNavItems(location.pathname, userRole, isPreview);
+
+  // Auto-redirect from portal to dashboard for non-clients if not in preview
+  React.useEffect(() => {
+    if (userRole && userRole !== 'cliente' && location.pathname === '/' && !isPreview) {
+      if (userRole === 'hotel') navigate('/hotel');
+      else if (userRole === 'negocio') navigate('/negocio');
+      else if (userRole === 'clasificados') navigate('/clasificados');
+      else if (userRole === 'admin' || userRole === 'agencia') navigate('/admin-agencia');
+    }
+  }, [userRole, location.pathname, isPreview]);
 
   const roleLabels: Record<string, string> = {
     'admin': 'Administrador',
@@ -221,11 +248,26 @@ export function Layout({ children, onAuthClick }: LayoutProps) {
                 <div className="flex items-center gap-4 lg:gap-6">
                   {userRole && userRole !== 'cliente' && (
                     <button
-                      onClick={() => navigate('/')}
-                      className="hidden sm:flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all border border-emerald-400 shadow-lg shadow-emerald-500/20"
+                      onClick={() => {
+                        if (isPreview) {
+                          if (userRole === 'hotel') navigate('/hotel');
+                          else if (userRole === 'negocio') navigate('/negocio');
+                          else if (userRole === 'clasificados') navigate('/clasificados');
+                          else if (userRole === 'admin' || userRole === 'agencia') navigate('/admin-agencia');
+                          else navigate('/');
+                        } else {
+                          navigate('/?preview=true');
+                        }
+                      }}
+                      className={cn(
+                        "hidden sm:flex items-center gap-2 px-4 py-2 text-[10px] font-black uppercase tracking-widest transition-all border shadow-lg",
+                        isPreview 
+                          ? "bg-rose-500 text-white border-rose-400 shadow-rose-500/20" 
+                          : "bg-emerald-500 text-white border-emerald-400 shadow-emerald-500/20 hover:bg-emerald-600"
+                      )}
                     >
                       <Globe className="w-4 h-4" />
-                      Ver Portal
+                      {isPreview ? 'Cerrar Portal' : 'Ver Portal'}
                     </button>
                   )}
                   {canSwitchRoles && (

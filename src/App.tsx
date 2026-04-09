@@ -41,7 +41,9 @@ function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode,
           .select('role')
           .eq('id', session.user.id)
           .single();
-        setRole(profile?.role || 'cliente');
+        
+        const detectedRole = profile?.role || (session.user.email === 'haroldove90@gmail.com' || session.user.email === 'haroldo90@hotmail.com' ? 'admin' : 'cliente');
+        setRole(detectedRole);
       } else {
         setUser(null);
         setRole(null);
@@ -59,7 +61,9 @@ function ProtectedRoute({ children, allowedRoles }: { children: React.ReactNode,
           .select('role')
           .eq('id', session.user.id)
           .single();
-        setRole(profile?.role || 'cliente');
+        
+        const detectedRole = profile?.role || (session.user.email === 'haroldove90@gmail.com' || session.user.email === 'haroldo90@hotmail.com' ? 'admin' : 'cliente');
+        setRole(detectedRole);
       } else {
         setUser(null);
         setRole(null);
