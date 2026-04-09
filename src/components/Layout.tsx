@@ -110,6 +110,8 @@ export function Layout({ children, onAuthClick }: LayoutProps) {
   const [isNotifOpen, setIsNotifOpen] = React.useState(false);
   const [user, setUser] = React.useState<any>(null);
   const [profileRole, setProfileRole] = React.useState<string | null>(null);
+  const [language, setLanguage] = React.useState<'ES' | 'EN'>('ES');
+  const [currency, setCurrency] = React.useState<'MXN' | 'USD'>('MXN');
   const { notifications, unreadCount, markAsRead } = useNotifications();
   const { searchQuery, setSearchQuery } = useSearch();
 
@@ -163,8 +165,18 @@ export function Layout({ children, onAuthClick }: LayoutProps) {
     return location.pathname + location.search === path;
   };
 
-  const userRole = profileRole || user?.user_metadata?.role || (user?.email === 'haroldove90@gmail.com' ? 'admin' : null);
-  const canSwitchRoles = userRole === 'admin' || userRole === 'admin-dev' || userRole === 'agencia' || user?.email === 'haroldove90@gmail.com';
+  const userRole = profileRole || user?.user_metadata?.role || (user?.email === 'haroldove90@gmail.com' || user?.email === 'haroldo90@hotmail.com' ? 'admin' : null);
+  const canSwitchRoles = userRole === 'admin' || userRole === 'admin-dev' || userRole === 'agencia' || user?.email === 'haroldove90@gmail.com' || user?.email === 'haroldo90@hotmail.com';
+
+  const roleLabels: Record<string, string> = {
+    'admin': 'Administrador',
+    'agencia': 'Agencia',
+    'hotel': 'Hotelero',
+    'negocio': 'Socio Comercial',
+    'clasificados': 'Anunciante',
+    'cliente': 'Cliente Premium',
+    'admin-dev': 'Desarrollador'
+  };
 
   return (
     <div className="min-h-screen bg-bg flex flex-col font-sans selection:bg-primary/30">
@@ -185,40 +197,50 @@ export function Layout({ children, onAuthClick }: LayoutProps) {
               </div>
               <h1 className="text-2xl font-black text-white tracking-tighter uppercase leading-none">AcaEnVivo</h1>
             </div>
+              <div className="flex items-center gap-4 lg:gap-8">
+                {/* Desktop Actions */}
+                <div className="hidden lg:flex items-center gap-6 pr-6 border-r border-white/10">
+                  <button 
+                    onClick={() => setCurrency(currency === 'MXN' ? 'USD' : 'MXN')}
+                    className="text-white/80 hover:text-white text-[10px] font-black uppercase tracking-widest transition-colors"
+                  >
+                    {currency}
+                  </button>
+                  <button 
+                    onClick={() => setLanguage(language === 'ES' ? 'EN' : 'ES')}
+                    className="text-white/80 hover:text-white text-[10px] font-black uppercase tracking-widest transition-colors"
+                  >
+                    {language}
+                  </button>
+                </div>
 
-            <div className="flex items-center gap-4 lg:gap-8">
-              {/* Desktop Actions */}
-              <div className="hidden lg:flex items-center gap-6 pr-6 border-r border-white/10">
-                <button className="text-white/80 hover:text-white text-[10px] font-black uppercase tracking-widest transition-colors">MXN</button>
-                <button className="text-white/80 hover:text-white text-[10px] font-black uppercase tracking-widest transition-colors">ES</button>
-              </div>
+                <div className="flex items-center gap-4 lg:gap-6">
+                  {canSwitchRoles && (
+                    <div className="flex items-center gap-2 bg-white/5 p-1 rounded-none border border-white/10">
+                      {[
+                        { id: 'admin', label: 'Agencia', path: '/admin-agencia', icon: ShieldCheck },
+                        { id: 'dev', label: 'Dev', path: '/admin-dev', icon: Database },
+                        { id: 'cliente', label: 'Cliente', path: '/', icon: User },
+                      ].map((role) => (
+                        <button
+                          key={role.id}
+                          onClick={() => navigate(role.path)}
+                          className={cn(
+                            "flex items-center gap-2 px-2 lg:px-3 py-1.5 text-[8px] lg:text-[9px] font-black uppercase tracking-widest transition-all",
+                            (location.pathname === role.path || (role.id === 'cliente' && location.pathname === '/'))
+                              ? "bg-primary text-white"
+                              : "text-white/60 hover:text-white hover:bg-white/10"
+                          )}
+                        >
+                          <role.icon className="w-3 h-3" />
+                          <span className={cn(role.id === 'cliente' ? "hidden sm:inline" : "inline")}>{role.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
 
-              <div className="flex items-center gap-4 lg:gap-6">
-                {canSwitchRoles && (
-                  <div className="flex items-center gap-2 bg-white/5 p-1 rounded-none border border-white/10">
-                    {[
-                      { id: 'admin', label: 'Agencia', path: '/admin-agencia', icon: ShieldCheck },
-                      { id: 'dev', label: 'Dev', path: '/admin-dev', icon: Database },
-                      { id: 'cliente', label: 'Cliente', path: '/', icon: User },
-                    ].map((role) => (
-                      <button
-                        key={role.id}
-                        onClick={() => navigate(role.path)}
-                        className={cn(
-                          "flex items-center gap-2 px-2 lg:px-3 py-1.5 text-[8px] lg:text-[9px] font-black uppercase tracking-widest transition-all",
-                          (location.pathname === role.path || (role.id === 'cliente' && location.pathname === '/'))
-                            ? "bg-primary text-white"
-                            : "text-white/60 hover:text-white hover:bg-white/10"
-                        )}
-                      >
-                        <role.icon className="w-3 h-3" />
-                        <span className={cn(role.id === 'cliente' ? "hidden sm:inline" : "inline")}>{role.label}</span>
-                      </button>
-                    ))}
-                  </div>
-                )}
+                  <div className="relative">
 
-                <div className="relative">
                   <button 
                     onClick={() => setIsNotifOpen(!isNotifOpen)}
                     className="relative text-white/60 hover:text-accent transition-all hover:scale-110"
@@ -315,7 +337,9 @@ export function Layout({ children, onAuthClick }: LayoutProps) {
                       <p className="text-xs font-black text-white tracking-tight leading-none group-hover:text-accent transition-colors">
                         {user.user_metadata?.full_name || 'Usuario'}
                       </p>
-                      <p className="text-[9px] font-bold text-accent uppercase tracking-[0.2em] mt-1">Premium</p>
+                      <p className="text-[9px] font-bold text-accent uppercase tracking-[0.2em] mt-1">
+                        {roleLabels[userRole || 'cliente'] || 'Cliente'}
+                      </p>
                     </div>
                     <div className="w-10 h-10 lg:w-11 lg:h-11 rounded-none overflow-hidden border-2 border-white/20 shadow-lg group-hover:rotate-3 transition-transform">
                       <img 

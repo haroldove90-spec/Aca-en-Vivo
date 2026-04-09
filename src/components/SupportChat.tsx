@@ -131,6 +131,7 @@ export function SupportChat({ isAdmin = false, inline = false }: { isAdmin?: boo
 
     const channel = supabase.channel('chat_messages')
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, (payload) => {
+        console.log('New message received via Realtime:', payload.new);
         const newMsg = payload.new as Message;
         const sessionId = isAdmin ? activeChat : (currentUser?.id || guestId);
         
@@ -172,7 +173,11 @@ export function SupportChat({ isAdmin = false, inline = false }: { isAdmin?: boo
           sender_role: isAdmin ? 'admin' : userRole
         });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Error sending message to Supabase:', error);
+        throw error;
+      }
+      console.log('Message sent successfully:', newMessage);
       setNewMessage('');
     } catch (error) {
       console.error('Error sending message:', error);
