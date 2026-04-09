@@ -7,6 +7,7 @@ import {
   User, 
   Grid, 
   Bell,
+  Globe,
   Search,
   LogOut,
   Settings,
@@ -148,7 +149,7 @@ export function Layout({ children, onAuthClick }: LayoutProps) {
   };
 
   const navItems = getNavItems(location.pathname);
-  const isAdmin = location.pathname.includes('admin') || location.pathname.includes('agencia');
+  const isManagementRoute = location.pathname.includes('admin') || location.pathname.includes('agencia');
 
   const handleLogout = async () => {
     try {
@@ -166,7 +167,10 @@ export function Layout({ children, onAuthClick }: LayoutProps) {
   };
 
   const userRole = profileRole || user?.user_metadata?.role || (user?.email === 'haroldove90@gmail.com' || user?.email === 'haroldo90@hotmail.com' ? 'admin' : null);
+  const isAdmin = userRole === 'admin' || userRole === 'agencia';
   const canSwitchRoles = userRole === 'admin' || userRole === 'admin-dev' || userRole === 'agencia' || user?.email === 'haroldove90@gmail.com' || user?.email === 'haroldo90@hotmail.com';
+
+  const isPortalRestricted = userRole && userRole !== 'cliente' && location.pathname === '/';
 
   const roleLabels: Record<string, string> = {
     'admin': 'Administrador',
@@ -215,6 +219,15 @@ export function Layout({ children, onAuthClick }: LayoutProps) {
                 </div>
 
                 <div className="flex items-center gap-4 lg:gap-6">
+                  {userRole && userRole !== 'cliente' && (
+                    <button
+                      onClick={() => navigate('/')}
+                      className="hidden sm:flex items-center gap-2 px-4 py-2 bg-emerald-500 text-white text-[10px] font-black uppercase tracking-widest hover:bg-emerald-600 transition-all border border-emerald-400 shadow-lg shadow-emerald-500/20"
+                    >
+                      <Globe className="w-4 h-4" />
+                      Ver Portal
+                    </button>
+                  )}
                   {canSwitchRoles && (
                     <div className="flex items-center gap-2 bg-white/5 p-1 rounded-none border border-white/10">
                       {[
@@ -390,7 +403,32 @@ export function Layout({ children, onAuthClick }: LayoutProps) {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-            {children}
+            {isPortalRestricted ? (
+              <div className="min-h-[60vh] flex flex-col items-center justify-center p-10 text-center space-y-8">
+                <div className="w-24 h-24 bg-primary/10 rounded-none flex items-center justify-center border-2 border-primary/20 rotate-3">
+                  <ShieldCheck className="w-12 h-12 text-primary" />
+                </div>
+                <div className="space-y-4 max-w-md">
+                  <h2 className="text-3xl font-black text-dark uppercase tracking-tighter leading-none">Acceso Restringido</h2>
+                  <p className="text-sm font-bold text-muted uppercase tracking-widest leading-relaxed">
+                    El portal de clientes está desactivado para tu rol actual. Por favor, utiliza tu panel de gestión o haz clic en "Ver Portal" para previsualizar.
+                  </p>
+                </div>
+                <div className="flex flex-col sm:flex-row gap-4">
+                  <button 
+                    onClick={() => {
+                      if (userRole === 'hotel') navigate('/hotel');
+                      else if (userRole === 'negocio') navigate('/negocio');
+                      else if (userRole === 'clasificados') navigate('/clasificados');
+                      else if (userRole === 'admin' || userRole === 'agencia') navigate('/admin-agencia');
+                    }}
+                    className="px-10 py-4 bg-dark text-white font-black text-[10px] uppercase tracking-widest hover:bg-primary transition-all shadow-xl"
+                  >
+                    Ir a mi Panel
+                  </button>
+                </div>
+              </div>
+            ) : children}
           </motion.div>
         </div>
       </main>
