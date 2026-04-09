@@ -38,6 +38,7 @@ interface HotelData {
   precio: string;
   amenidades: string[];
   imagen: string | null;
+  imagenes_secundarias: string[];
   telefono: string;
   whatsapp: string;
   descripcion: string;
@@ -69,6 +70,7 @@ export default function HotelRegistro() {
     precio: '',
     amenidades: [],
     imagen: null,
+    imagenes_secundarias: [],
     telefono: '',
     whatsapp: '',
     descripcion: '',
@@ -88,14 +90,26 @@ export default function HotelRegistro() {
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        updateFormData('imagen', reader.result as string);
-      };
-      reader.readAsDataURL(file);
+    const files = e.target.files;
+    if (files) {
+      const newImages = Array.from(files).map(file => URL.createObjectURL(file));
+      setFormData(prev => ({
+        ...prev,
+        imagen: prev.imagen || newImages[0],
+        imagenes_secundarias: [...prev.imagenes_secundarias, ...newImages].slice(0, 6)
+      }));
     }
+  };
+
+  const removeImage = (index: number) => {
+    setFormData(prev => {
+      const newSec = prev.imagenes_secundarias.filter((_, i) => i !== index);
+      return {
+        ...prev,
+        imagenes_secundarias: newSec,
+        imagen: prev.imagen === prev.imagenes_secundarias[index] ? (newSec[0] || null) : prev.imagen
+      };
+    });
   };
 
   const isStepValid = () => {
@@ -133,8 +147,9 @@ export default function HotelRegistro() {
           capacidad: Number(formData.habitaciones),
           whatsapp: formData.whatsapp,
           tipo: 'hotel',
-          status: 'pendiente',
-          imagen: formData.imagen || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=800'
+          status: 'activo',
+          imagen: formData.imagen || 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&q=80&w=800',
+          imagenes_secundarias: formData.imagenes_secundarias
         }])
         .select()
         .single();
@@ -338,33 +353,50 @@ export default function HotelRegistro() {
               </div>
 
               <div className="space-y-6">
-                <div className="space-y-2">
-                  <label className="text-[10px] font-black uppercase tracking-widest text-muted">Imagen de Portada</label>
+                <div className="space-y-4">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-muted">Galería de Fotos</label>
                   <div 
                     onClick={() => document.getElementById('hotel-image')?.click()}
-                    className={cn(
-                      "h-48 border-4 border-dashed border-gray-100 rounded-none flex flex-col items-center justify-center gap-4 cursor-pointer hover:bg-gray-50 transition-all relative overflow-hidden",
-                      formData.imagen && "border-none"
-                    )}
+                    className="h-48 border-4 border-dashed border-gray-100 rounded-none flex flex-col items-center justify-center gap-4 cursor-pointer hover:bg-gray-50 transition-all relative overflow-hidden"
                   >
-                    {formData.imagen ? (
-                      <img src={formData.imagen} className="w-full h-full object-cover" alt="Preview" referrerPolicy="no-referrer" />
-                    ) : (
-                      <>
-                        <div className="w-14 h-14 bg-[#00A8CC]/10 rounded-none flex items-center justify-center">
-                          <Upload className="w-7 h-7 text-[#00A8CC]" />
-                        </div>
-                        <p className="text-[10px] font-black uppercase tracking-widest text-muted">Haz clic para subir foto</p>
-                      </>
-                    )}
+                    <div className="w-14 h-14 bg-[#00A8CC]/10 rounded-none flex items-center justify-center">
+                      <Upload className="w-7 h-7 text-[#00A8CC]" />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-muted">Haz clic para subir fotos</p>
+                      <p className="text-[8px] font-bold text-muted uppercase tracking-widest mt-1">Puedes seleccionar varias</p>
+                    </div>
                     <input 
                       id="hotel-image"
                       type="file" 
+                      multiple
                       accept="image/*"
                       onChange={handleImageUpload}
                       className="hidden"
                     />
                   </div>
+
+                  {formData.imagenes_secundarias.length > 0 && (
+                    <div className="grid grid-cols-3 gap-4">
+                      {formData.imagenes_secundarias.map((foto, index) => (
+                        <div key={index} className="relative aspect-square rounded-none overflow-hidden group border border-gray-100">
+                          <img src={foto} className="w-full h-full object-cover" alt={`Preview ${index}`} />
+                          <button 
+                            type="button"
+                            onClick={() => removeImage(index)}
+                            className="absolute top-2 right-2 w-8 h-8 bg-rose-500 text-white rounded-none flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="w-4 h-4" />
+                          </button>
+                          {index === 0 && (
+                            <div className="absolute bottom-0 inset-x-0 bg-[#00A8CC]/80 backdrop-blur-sm py-1 text-center">
+                              <span className="text-[8px] font-black text-white uppercase tracking-widest">Portada</span>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">

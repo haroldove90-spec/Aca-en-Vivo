@@ -141,20 +141,29 @@ export default function AgenciaDashboard() {
   const fetchDashboardData = async () => {
     try {
       setLoading(true);
-      const [
-        { data: profs },
-        { data: ents },
-        { count: resCount }
-      ] = await Promise.all([
-        supabase.from('profiles').select('*'),
-        supabase.from('entities').select('*'),
-        supabase.from('reservations').select('*', { count: 'exact', head: true })
-      ]);
-
-      if (profs) setProfiles(profs);
       
+      // Fetch profiles
+      const { data: profs, error: profError } = await supabase.from('profiles').select('*');
+      if (profError) console.error("Error fetching profiles:", profError);
+      if (profs) setProfiles(profs);
+
+      // Fetch entities
+      const { data: ents, error: entError } = await supabase.from('entities').select('*');
+      if (entError) console.error("Error fetching entities:", entError);
+
+      // Fetch reservations count (safely)
+      let resCount = 0;
+      try {
+        const { count, error: resError } = await supabase
+          .from('reservations')
+          .select('*', { count: 'exact', head: true });
+        if (!resError) resCount = count || 0;
+      } catch (e) {
+        console.error("Reservations table might be missing:", e);
+      }
+
       setStats({
-        comisiones: (resCount || 0) * 150, // Mock calculation
+        comisiones: resCount * 150, // Mock calculation
         pendientes: (ents?.filter(e => e.status === 'pendiente').length || 0),
         afiliados: ents?.length || 0,
         usuarios: profs?.length || 0

@@ -99,8 +99,8 @@ const getNavItems = (pathname: string, userRole: string | null, isPreview: boole
     { id: 'favoritos', label: 'Favoritos', icon: Heart, path: '/favoritos' },
     { id: 'reservas', label: 'Reservas', icon: Bookmark, path: '/reservas' },
     { id: 'perfil', label: 'Perfil', icon: User, path: '/perfil' },
-    { id: 'clasificados', label: 'Rentas', icon: Building2, path: '/?cat=clasificados' },
-    { id: 'hoteles', label: 'Hoteles', icon: Hotel, path: '/?cat=hotel' },
+    { id: 'clasificado', label: 'Rentas', icon: Building2, path: '/?cat=clasificado' },
+    { id: 'hotel', label: 'Hoteles', icon: Hotel, path: '/?cat=hotel' },
     { id: 'settings', label: 'Ajustes', icon: Settings, path: '/settings' },
   ];
 
@@ -421,7 +421,7 @@ export function Layout({ children, onAuthClick }: LayoutProps) {
 
           {/* Bottom Row: Navigation Tabs */}
           <div className="flex items-center gap-2 lg:gap-4 pb-4 overflow-x-auto no-scrollbar">
-            {navItems.filter(item => ['explorar', 'hoteles', 'clasificados', 'favoritos', 'reservas'].includes(item.id)).map((item) => (
+            {navItems.filter(item => ['explorar', 'hotel', 'clasificado', 'favoritos', 'reservas'].includes(item.id)).map((item) => (
               <button
                 key={item.id}
                 onClick={() => navigate(item.path)}

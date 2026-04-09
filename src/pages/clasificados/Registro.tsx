@@ -56,16 +56,31 @@ export default function ClasificadosRegistro() {
     precio: '',
     amenidades: [] as string[],
     fotos: [] as string[],
-    whatsapp: ''
+    whatsapp: '',
+    imagen_principal: ''
   });
 
-  const toggleAmenity = (id: string) => {
-    setFormData(prev => ({
-      ...prev,
-      amenidades: prev.amenidades.includes(id)
-        ? prev.amenidades.filter(a => a !== id)
-        : [...prev.amenidades, id]
-    }));
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      const newFotos = Array.from(files).map(file => URL.createObjectURL(file));
+      setFormData(prev => ({
+        ...prev,
+        fotos: [...prev.fotos, ...newFotos].slice(0, 6), // Limit to 6
+        imagen_principal: prev.imagen_principal || newFotos[0]
+      }));
+    }
+  };
+
+  const removeFoto = (index: number) => {
+    setFormData(prev => {
+      const newFotos = prev.fotos.filter((_, i) => i !== index);
+      return {
+        ...prev,
+        fotos: newFotos,
+        imagen_principal: prev.imagen_principal === prev.fotos[index] ? (newFotos[0] || '') : prev.imagen_principal
+      };
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -81,9 +96,10 @@ export default function ClasificadosRegistro() {
           precio: Number(formData.precio),
           capacidad: formData.capacidad,
           whatsapp: formData.whatsapp,
-          tipo: 'clasificados',
-          status: 'pendiente',
-          imagen: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&q=80&w=800'
+          tipo: 'clasificado',
+          status: 'activo',
+          imagen: formData.imagen_principal || 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&q=80&w=800',
+          imagenes_secundarias: formData.fotos
         }])
         .select()
         .single();
@@ -280,14 +296,47 @@ export default function ClasificadosRegistro() {
                 <h2 className="text-sm font-black uppercase tracking-[0.2em] text-dark">4. Fotos</h2>
               </div>
 
-              <div className="border-4 border-dashed border-gray-100 rounded-[32px] p-12 flex flex-col items-center justify-center gap-4 bg-gray-50/50 group hover:bg-gray-50 transition-all cursor-pointer">
-                <div className="w-20 h-20 bg-white rounded-3xl shadow-xl flex items-center justify-center group-hover:scale-110 transition-transform">
-                  <Camera className="w-10 h-10 text-[#FF7F50]" />
-                </div>
-                <div className="text-center">
-                  <p className="text-xs font-black uppercase tracking-widest text-dark">Subir Fotos</p>
-                  <p className="text-[10px] font-bold text-muted uppercase tracking-widest mt-1">Selecciona varias a la vez</p>
-                </div>
+              <div className="space-y-6">
+                <label className="block">
+                  <input 
+                    type="file" 
+                    multiple 
+                    accept="image/*"
+                    onChange={handleFileChange}
+                    className="hidden" 
+                  />
+                  <div className="border-4 border-dashed border-gray-100 rounded-[32px] p-12 flex flex-col items-center justify-center gap-4 bg-gray-50/50 group hover:bg-gray-50 transition-all cursor-pointer">
+                    <div className="w-20 h-20 bg-white rounded-3xl shadow-xl flex items-center justify-center group-hover:scale-110 transition-transform">
+                      <Camera className="w-10 h-10 text-[#FF7F50]" />
+                    </div>
+                    <div className="text-center">
+                      <p className="text-xs font-black uppercase tracking-widest text-dark">Subir Fotos</p>
+                      <p className="text-[10px] font-bold text-muted uppercase tracking-widest mt-1">Selecciona hasta 6 imágenes</p>
+                    </div>
+                  </div>
+                </label>
+
+                {formData.fotos.length > 0 && (
+                  <div className="grid grid-cols-3 gap-4">
+                    {formData.fotos.map((foto, index) => (
+                      <div key={index} className="relative aspect-square rounded-2xl overflow-hidden group">
+                        <img src={foto} className="w-full h-full object-cover" alt={`Preview ${index}`} />
+                        <button 
+                          type="button"
+                          onClick={() => removeFoto(index)}
+                          className="absolute top-2 right-2 w-8 h-8 bg-rose-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                        {index === 0 && (
+                          <div className="absolute bottom-0 inset-x-0 bg-dark/60 backdrop-blur-sm py-1 text-center">
+                            <span className="text-[8px] font-black text-white uppercase tracking-widest">Principal</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             </section>
 
@@ -358,9 +407,9 @@ export default function ClasificadosRegistro() {
                 <CheckCircle2 className="w-12 h-12" />
               </div>
               <div className="space-y-3">
-                <h3 className="text-3xl font-black text-dark tracking-tighter uppercase">¡Recibido!</h3>
+                <h3 className="text-3xl font-black text-dark tracking-tighter uppercase">¡Publicado!</h3>
                 <p className="text-xs font-bold text-muted uppercase tracking-widest leading-relaxed">
-                  ¡Tu anuncio está en revisión! En breve aparecerá en el directorio de rentas de Acapulco.
+                  ¡Tu anuncio ya está activo! Ahora aparecerá en el directorio de rentas de Acapulco.
                 </p>
               </div>
               <button 

@@ -42,7 +42,7 @@ const CATEGORIES = [
   { id: 'all', label: 'Todo', icon: Grid, color: 'bg-dark' },
   { id: 'hotel', label: 'Hoteles', icon: Hotel, color: 'bg-blue-500' },
   { id: 'negocio', label: 'Negocios', icon: Store, color: 'bg-amber-500' },
-  { id: 'clasificados', label: 'Rentas', icon: Home, color: 'bg-purple-600' },
+  { id: 'clasificado', label: 'Rentas', icon: Home, color: 'bg-purple-600' },
   { id: 'yates', label: 'Yates', icon: Ship, color: 'bg-cyan-500' },
 ];
 
@@ -251,7 +251,7 @@ export default function ClienteFeed() {
     { id: 'admin-agencia', label: 'Agencia', path: '/admin-agencia', color: 'bg-emerald-400' },
     { id: 'hotel', label: 'Hotel', path: '/hotel', color: 'bg-blue-500' },
     { id: 'negocio', label: 'Negocio', path: '/negocio', color: 'bg-amber-500' },
-    { id: 'clasificados', label: 'Rentas', path: '/clasificados', color: 'bg-orange-400' },
+    { id: 'clasificado', label: 'Rentas', path: '/clasificados', color: 'bg-orange-400' },
   ];
 
   const filteredBusinesses = useMemo(() => {

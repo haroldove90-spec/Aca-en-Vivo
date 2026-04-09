@@ -35,6 +35,7 @@ interface BusinessData {
   rangoPrecio: string;
   horario: string;
   imagen: string | null;
+  imagenes_secundarias: string[];
   menu: string | null;
 }
 
@@ -62,6 +63,7 @@ export default function NegocioRegistro() {
     rangoPrecio: '',
     horario: '',
     imagen: null,
+    imagenes_secundarias: [],
     menu: null,
   });
 
@@ -69,15 +71,36 @@ export default function NegocioRegistro() {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleFileUpload = (field: 'imagen' | 'menu', e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        updateFormData(field, reader.result as string);
-      };
-      reader.readAsDataURL(file);
+  const handleFileUpload = (field: 'imagen' | 'menu' | 'imagenes_secundarias', e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files) {
+      if (field === 'imagenes_secundarias') {
+        const newImages = Array.from(files).map(file => URL.createObjectURL(file));
+        setFormData(prev => ({
+          ...prev,
+          imagenes_secundarias: [...prev.imagenes_secundarias, ...newImages].slice(0, 6),
+          imagen: prev.imagen || newImages[0]
+        }));
+      } else {
+        const file = files[0];
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          updateFormData(field, reader.result as string);
+        };
+        reader.readAsDataURL(file);
+      }
     }
+  };
+
+  const removeSecondaryImage = (index: number) => {
+    setFormData(prev => {
+      const newSec = prev.imagenes_secundarias.filter((_, i) => i !== index);
+      return {
+        ...prev,
+        imagenes_secundarias: newSec,
+        imagen: prev.imagen === prev.imagenes_secundarias[index] ? (newSec[0] || null) : prev.imagen
+      };
+    });
   };
 
   const isStepValid = () => {
@@ -110,9 +133,10 @@ export default function NegocioRegistro() {
           zona: formData.zona,
           whatsapp: formData.whatsapp,
           tipo: 'negocio',
-          status: 'pendiente',
+          status: 'activo',
           descripcion: `Horario: ${formData.horario}. Rango: ${formData.rangoPrecio}`,
-          imagen: formData.imagen || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=800'
+          imagen: formData.imagen || 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&q=80&w=800',
+          imagenes_secundarias: formData.imagenes_secundarias
         }])
         .select()
         .single();
@@ -289,29 +313,38 @@ export default function NegocioRegistro() {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 gap-6">
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted">Foto de Portada</label>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-muted">Galería de Fotos</label>
                       <div 
                         onClick={() => document.getElementById('biz-image')?.click()}
-                        className={cn(
-                          "h-32 border-2 border-dashed border-gray-200 rounded-none flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-gray-50 transition-all relative overflow-hidden",
-                          formData.imagen && "border-solid border-[#FF7F50]/30"
-                        )}
+                        className="h-32 border-2 border-dashed border-gray-200 rounded-none flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-gray-50 transition-all relative overflow-hidden"
                       >
-                        {formData.imagen ? (
-                          <img src={formData.imagen} className="w-full h-full object-cover" alt="Preview" referrerPolicy="no-referrer" />
-                        ) : (
-                          <>
-                            <Upload className="w-5 h-5 text-muted" />
-                            <span className="text-[8px] font-black uppercase tracking-widest text-muted">Subir Foto</span>
-                          </>
-                        )}
-                        <input id="biz-image" type="file" accept="image/*" onChange={(e) => handleFileUpload('imagen', e)} className="hidden" />
+                        <Upload className="w-5 h-5 text-muted" />
+                        <span className="text-[8px] font-black uppercase tracking-widest text-muted">Subir Fotos</span>
+                        <input id="biz-image" type="file" multiple accept="image/*" onChange={(e) => handleFileUpload('imagenes_secundarias', e)} className="hidden" />
                       </div>
+                      
+                      {formData.imagenes_secundarias.length > 0 && (
+                        <div className="grid grid-cols-3 gap-2">
+                          {formData.imagenes_secundarias.map((foto, index) => (
+                            <div key={index} className="relative aspect-square rounded-none overflow-hidden group border border-gray-100">
+                              <img src={foto} className="w-full h-full object-cover" alt={`Preview ${index}`} />
+                              <button 
+                                type="button"
+                                onClick={() => removeSecondaryImage(index)}
+                                className="absolute top-1 right-1 w-6 h-6 bg-rose-500 text-white rounded-none flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                              >
+                                <X className="w-3 h-3" />
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
+                    
                     <div className="space-y-2">
-                      <label className="text-[10px] font-black uppercase tracking-widest text-muted">Menú / Catálogo</label>
+                      <label className="text-[10px] font-black uppercase tracking-widest text-muted">Menú / Catálogo (Opcional)</label>
                       <div 
                         onClick={() => document.getElementById('menu-image')?.click()}
                         className={cn(
