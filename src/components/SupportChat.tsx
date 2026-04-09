@@ -37,10 +37,10 @@ interface ChatSession {
   unread: boolean;
 }
 
-export function SupportChat({ isAdmin = false }: { isAdmin?: boolean }) {
+export function SupportChat({ isAdmin = false, inline = false }: { isAdmin?: boolean, inline?: boolean }) {
   const navigate = useNavigate();
   const location = useLocation();
-  const [isOpen, setIsOpen] = useState(false);
+  const [isOpen, setIsOpen] = useState(inline);
   const [messages, setMessages] = useState<Message[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [activeChat, setActiveChat] = useState<string | null>(null);
@@ -178,6 +178,149 @@ export function SupportChat({ isAdmin = false }: { isAdmin?: boolean }) {
       console.error('Error sending message:', error);
     }
   };
+
+  if (inline) {
+    return (
+      <div className="w-full h-full flex flex-col bg-white overflow-hidden">
+        {/* Header */}
+        <div className="bg-primary p-6 text-white flex items-center justify-between shrink-0">
+          <div className="flex items-center gap-4">
+            <div className="w-10 h-10 bg-white/20 rounded-none flex items-center justify-center backdrop-blur-md">
+              {isAdmin ? <ShieldCheck className="w-5 h-5" /> : <MessageSquare className="w-5 h-5" />}
+            </div>
+            <div>
+              <h3 className="text-sm font-black tracking-tighter uppercase leading-none">
+                {isAdmin ? (activeChat ? 'Chat de Soporte' : 'Centro de Mensajes') : 'Soporte Agencia'}
+              </h3>
+              <p className="text-[9px] font-bold text-white/60 uppercase tracking-widest mt-1">
+                {isAdmin ? (activeChat ? 'Asistiendo a Socio' : 'Chats Activos') : 'En línea ahora'}
+              </p>
+            </div>
+          </div>
+          {isAdmin && activeChat && (
+            <button 
+              onClick={() => setActiveChat(null)}
+              className="px-4 py-2 bg-white/10 hover:bg-white/20 text-[10px] font-black uppercase tracking-widest transition-all"
+            >
+              Volver a la lista
+            </button>
+          )}
+        </div>
+
+        {/* Content */}
+        <div className="flex-1 overflow-hidden flex flex-col">
+          {isAdmin && !activeChat ? (
+            // Admin Session List
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 no-scrollbar">
+              <div className="relative mb-6">
+                <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted" />
+                <input 
+                  type="text" 
+                  placeholder="Buscar socio..."
+                  className="w-full bg-gray-50 border-none rounded-none py-3 pl-12 pr-4 text-xs font-bold focus:ring-2 focus:ring-primary/20"
+                />
+              </div>
+              {sessions.length === 0 ? (
+                <div className="text-center py-20 space-y-4">
+                  <MessageSquare className="w-12 h-12 text-gray-100 mx-auto" />
+                  <p className="text-[10px] font-black text-muted uppercase tracking-widest">No hay chats activos</p>
+                </div>
+              ) : (
+                sessions.map((session) => (
+                  <button
+                    key={session.userId}
+                    onClick={() => setActiveChat(session.userId)}
+                    className="w-full p-4 rounded-none hover:bg-gray-50 transition-all flex items-center gap-4 group text-left border border-transparent hover:border-gray-100"
+                  >
+                    <div className="w-12 h-12 bg-gray-100 rounded-none flex items-center justify-center group-hover:bg-white transition-colors relative">
+                      {session.userRole === 'hotel' ? <Building2 className="w-6 h-6 text-blue-500" /> : 
+                       session.userRole === 'negocio' ? <Store className="w-6 h-6 text-amber-500" /> : 
+                       <Palmtree className="w-6 h-6 text-emerald-500" />}
+                      {session.unread && <div className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-rose-500 rounded-none border-2 border-white" />}
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="text-xs font-black text-dark uppercase truncate">{session.userName}</span>
+                        <span className="text-[9px] font-bold text-muted uppercase">Hoy</span>
+                      </div>
+                      <p className={cn(
+                        "text-[11px] truncate",
+                        session.unread ? "font-black text-dark" : "text-muted font-medium"
+                      )}>
+                        {session.lastMessage}
+                      </p>
+                    </div>
+                  </button>
+                ))
+              )}
+            </div>
+          ) : (
+            // Chat Messages
+            <>
+              <div 
+                ref={scrollRef}
+                className="flex-1 overflow-y-auto p-8 space-y-6 no-scrollbar"
+              >
+                {messages.length === 0 && (
+                  <div className="text-center py-10 space-y-4">
+                    <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto">
+                      <MessageSquare className="w-8 h-8 text-gray-200" />
+                    </div>
+                    <p className="text-[10px] font-black text-muted uppercase tracking-widest">Inicia la conversación</p>
+                  </div>
+                )}
+                {messages.map((msg) => (
+                  <div 
+                    key={msg.id}
+                    className={cn(
+                      "flex flex-col max-w-[80%]",
+                      msg.sender_role === 'admin' ? "ml-auto items-end" : "items-start"
+                    )}
+                  >
+                    <div className={cn(
+                      "p-4 rounded-none text-sm font-bold shadow-sm",
+                      msg.sender_role === 'admin' 
+                        ? "bg-primary text-white" 
+                        : "bg-gray-100 text-dark"
+                    )}>
+                      {msg.text}
+                    </div>
+                    <div className="flex items-center gap-2 mt-2 px-1">
+                      <span className="text-[9px] font-black text-muted uppercase tracking-widest">
+                        {msg.sender_role === 'admin' ? 'Agencia' : msg.sender_name} • {new Date(msg.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                      </span>
+                      {msg.sender_role === 'admin' && <CheckCheck className="w-3 h-3 text-primary" />}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Input */}
+              <form 
+                onSubmit={handleSendMessage}
+                className="p-6 border-t border-gray-100 flex gap-3 shrink-0"
+              >
+                <input 
+                  type="text" 
+                  value={newMessage}
+                  onChange={(e) => setNewMessage(e.target.value)}
+                  placeholder="Escribe un mensaje..."
+                  className="flex-1 bg-gray-50 border-none rounded-none px-5 py-4 text-sm font-bold focus:ring-2 focus:ring-primary/20"
+                />
+                <button 
+                  type="submit"
+                  disabled={!newMessage.trim()}
+                  className="w-14 h-14 bg-primary text-white rounded-none flex items-center justify-center shadow-lg shadow-primary/20 active:scale-90 transition-all disabled:opacity-50"
+                >
+                  <Send className="w-6 h-6" />
+                </button>
+              </form>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed bottom-20 lg:bottom-10 right-6 lg:right-10 z-[150]">

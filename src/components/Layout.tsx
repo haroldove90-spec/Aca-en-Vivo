@@ -54,6 +54,7 @@ const getNavItems = (pathname: string) => {
       { id: 'dashboard', label: 'Panel', icon: Grid, path: '/admin-agencia' },
       { id: 'afiliados', label: 'Afiliados', icon: Building2, path: '/admin-agencia?tab=afiliados' },
       { id: 'usuarios', label: 'Usuarios', icon: Users, path: '/admin-agencia?tab=usuarios' },
+      { id: 'chat', label: 'Chat', icon: MessageSquare, path: '/admin-agencia?tab=chat' },
       { id: 'zonas', label: 'Zonas', icon: MapPin, path: '/admin-agencia?tab=zonas' },
       { id: 'pagos', label: 'Pagos', icon: DollarSign, path: '/admin-agencia?tab=pagos' },
     ];
@@ -149,6 +150,9 @@ export function Layout({ children, onAuthClick }: LayoutProps) {
     return location.pathname + location.search === path;
   };
 
+  const userRole = user?.user_metadata?.role || (user?.email === 'haroldove90@gmail.com' ? 'admin' : null);
+  const canSwitchRoles = userRole === 'admin' || userRole === 'admin-dev';
+
   return (
     <div className="min-h-screen bg-bg flex flex-col font-sans selection:bg-primary/30">
       {/* Top Header (Desktop & Mobile) */}
@@ -177,6 +181,30 @@ export function Layout({ children, onAuthClick }: LayoutProps) {
               </div>
 
               <div className="flex items-center gap-4 lg:gap-6">
+                {canSwitchRoles && (
+                  <div className="hidden lg:flex items-center gap-2 bg-white/5 p-1 rounded-none border border-white/10">
+                    {[
+                      { id: 'admin', label: 'Agencia', path: '/admin-agencia', icon: ShieldCheck },
+                      { id: 'dev', label: 'Dev', path: '/admin-dev', icon: Database },
+                      { id: 'cliente', label: 'Cliente', path: '/', icon: User },
+                    ].map((role) => (
+                      <button
+                        key={role.id}
+                        onClick={() => navigate(role.path)}
+                        className={cn(
+                          "flex items-center gap-2 px-3 py-1.5 text-[9px] font-black uppercase tracking-widest transition-all",
+                          (location.pathname === role.path || (role.id === 'cliente' && location.pathname === '/'))
+                            ? "bg-primary text-white"
+                            : "text-white/60 hover:text-white hover:bg-white/10"
+                        )}
+                      >
+                        <role.icon className="w-3 h-3" />
+                        {role.label}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
                 <div className="relative">
                   <button 
                     onClick={() => setIsNotifOpen(!isNotifOpen)}

@@ -109,8 +109,9 @@ const ZoneHeatmap = () => (
 
 import { useAcaData } from '../../hooks/useAcaData';
 import { BaseEntity, EntityStatus } from '../../constants/mockData';
+import { SupportChat } from '../../components/SupportChat';
 
-type Tab = 'dashboard' | 'afiliados' | 'usuarios' | 'zonas' | 'pagos';
+type Tab = 'dashboard' | 'afiliados' | 'usuarios' | 'zonas' | 'pagos' | 'chat';
 
 export default function AgenciaDashboard() {
   const navigate = useNavigate();
@@ -123,29 +124,80 @@ export default function AgenciaDashboard() {
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
   const [selectedEntity, setSelectedEntity] = useState<BaseEntity | null>(null);
-  const [profiles, setProfiles] = useState<any[]>([
-    { id: '1', full_name: 'Harold Ove', email: 'haroldove90@gmail.com', role: 'admin', avatar_url: 'https://i.pravatar.cc/150?u=1' },
-    { id: '2', full_name: 'Juan Pérez', email: 'juan@hotel.com', role: 'hotel', avatar_url: 'https://i.pravatar.cc/150?u=2' },
-  ]);
+  const [profiles, setProfiles] = useState<any[]>([]);
+  const [stats, setStats] = useState({
+    comisiones: 0,
+    pendientes: 0,
+    afiliados: 0,
+    usuarios: 0
+  });
+
+  const fetchDashboardData = async () => {
+    try {
+      setLoading(true);
+      const [
+        { data: profs },
+        { data: ents },
+        { count: resCount }
+      ] = await Promise.all([
+        supabase.from('profiles').select('*'),
+        supabase.from('entities').select('*'),
+        supabase.from('reservations').select('*', { count: 'exact', head: true })
+      ]);
+
+      if (profs) setProfiles(profs);
+      
+      setStats({
+        comisiones: (resCount || 0) * 150, // Mock calculation
+        pendientes: (ents?.filter(e => e.status === 'pendiente').length || 0),
+        afiliados: ents?.length || 0,
+        usuarios: profs?.length || 0
+      });
+
+    } catch (error) {
+      console.error("Error fetching dashboard data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
-    setTimeout(() => setLoading(false), 800);
+    fetchDashboardData();
   }, []);
 
-  const handleDeleteEntity = (id: string) => {
+  const handleDeleteEntity = async (id: string) => {
     if (window.confirm('¿Estás seguro de eliminar este registro?')) {
-      deleteEntity(id);
+      try {
+        const { error } = await supabase.from('entities').delete().eq('id', id);
+        if (error) throw error;
+        deleteEntity(id);
+      } catch (error) {
+        console.error("Error deleting entity:", error);
+      }
     }
   };
 
-  const handleDeleteProfile = (id: string) => {
+  const handleDeleteProfile = async (id: string) => {
     if (window.confirm('¿Estás seguro de eliminar este usuario?')) {
-      setProfiles(prev => prev.filter(p => p.id !== id));
+      try {
+        const { error } = await supabase.from('profiles').delete().eq('id', id);
+        if (error) throw error;
+        setProfiles(prev => prev.filter(p => p.id !== id));
+      } catch (error) {
+        console.error("Error deleting profile:", error);
+      }
     }
   };
 
-  const handleUpdateStatus = (id: string, newStatus: EntityStatus) => {
-    updateEntity(id, { status: newStatus });
+  const handleUpdateStatus = async (id: string, newStatus: EntityStatus) => {
+    try {
+      const { error } = await supabase.from('entities').update({ status: newStatus }).eq('id', id);
+      if (error) throw error;
+      updateEntity(id, { status: newStatus });
+      setStats(prev => ({ ...prev, pendientes: prev.pendientes - 1 }));
+    } catch (error) {
+      console.error("Error updating status:", error);
+    }
   };
 
   const filteredAffiliates = useMemo(() => {
@@ -187,10 +239,10 @@ export default function AgenciaDashboard() {
             className="space-y-10"
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              <SummaryCard title="Comisiones Mes" value={42800} isCurrency trend="+15%" icon={DollarSign} />
-              <SummaryCard title="Pagos Pendientes" value={12} trend="-2" icon={Clock} />
-              <SummaryCard title="Nuevos Afiliados" value={data.length} trend="+4" icon={UserCheck} />
-              <SummaryCard title="Proyección Semana Santa" value={185000} isCurrency trend="+22%" icon={TrendingUp} />
+              <SummaryCard title="Comisiones Est." value={stats.comisiones} isCurrency trend="+15%" icon={DollarSign} />
+              <SummaryCard title="Pendientes" value={stats.pendientes} trend={stats.pendientes > 0 ? "+"+stats.pendientes : "0"} icon={Clock} />
+              <SummaryCard title="Total Afiliados" value={stats.afiliados} trend="+4" icon={UserCheck} />
+              <SummaryCard title="Usuarios" value={stats.usuarios} trend="+22%" icon={Users} />
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-10">
@@ -333,6 +385,37 @@ export default function AgenciaDashboard() {
                     ))}
                   </tbody>
                 </table>
+              </div>
+            </div>
+          </motion.div>
+        )}
+
+        {activeTab === 'chat' && (
+          <motion.div
+            key="chat"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="h-[calc(100vh-250px)]"
+          >
+            <div className="bg-white rounded-none shadow-xl shadow-black/5 border border-gray-100 h-full overflow-hidden flex flex-col">
+              <div className="p-8 lg:p-10 border-b border-gray-100 flex items-center justify-between">
+                <div>
+                  <h3 className="text-sm font-black text-dark uppercase tracking-[0.2em] flex items-center gap-3">
+                    <MessageSquare className="w-6 h-6 text-primary" />
+                    Centro de Soporte Multiusuario
+                  </h3>
+                  <p className="text-[10px] font-bold text-muted uppercase tracking-widest mt-1">Gestiona todas las conversaciones de socios y clientes</p>
+                </div>
+                <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500" />
+                    <span className="text-[10px] font-black text-dark uppercase">Agentes Activos: 1</span>
+                  </div>
+                </div>
+              </div>
+              <div className="flex-1 relative">
+                <SupportChat isAdmin={true} inline={true} />
               </div>
             </div>
           </motion.div>

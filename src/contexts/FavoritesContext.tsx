@@ -77,20 +77,36 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
     
     const existing = favorites.find(f => f.item_id === item.id);
 
+    // Optimistic UI update
     if (existing) {
+      setFavorites(prev => prev.filter(f => f.item_id !== item.id));
       try {
         const { error } = await supabase
           .from('favorites')
           .delete()
           .eq('id', existing.id);
 
-        if (error) throw error;
-        await fetchFavorites();
+        if (error) {
+          await fetchFavorites(); // Revert on error
+          throw error;
+        }
         sendLocalNotification('Eliminado', `${item.name} eliminado de favoritos.`);
       } catch (error) {
         console.error('Error removing favorite:', error);
       }
     } else {
+      const newFav: Favorite = {
+        id: Math.random().toString(), // Temp ID
+        item_id: item.id,
+        user_id: session.user.id,
+        name: item.name,
+        category: item.category || 'General',
+        image: item.image || HOTEL_IMAGES.EXTERIOR,
+        price: item.price || '$0',
+        rating: item.rating || 5.0
+      };
+      setFavorites(prev => [...prev, newFav]);
+      
       try {
         const { error } = await supabase
           .from('favorites')
@@ -104,8 +120,10 @@ export function FavoritesProvider({ children }: { children: React.ReactNode }) {
             rating: item.rating || 5.0
           });
 
-        if (error) throw error;
-        await fetchFavorites();
+        if (error) {
+          await fetchFavorites(); // Revert on error
+          throw error;
+        }
         sendLocalNotification('Guardado', `${item.name} guardado en favoritos.`);
       } catch (error) {
         console.error('Error adding favorite:', error);
